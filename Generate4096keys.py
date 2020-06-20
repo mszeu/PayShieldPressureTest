@@ -40,22 +40,22 @@ def main():
     global COMMAND
     connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     connection.connect((TCP_IP, TCP_PORT))
-    BUFFER_SIZE = 1024
+    buffer_size = 1024
 
     # Convert hex to binary
     COMMAND = build_command(COMMAND)
     # calculate the size and format it correctly
-    SIZE = pack('>h', len(COMMAND))
+    size = pack('>h', len(COMMAND))
     # join everything together
-    MESSAGE = SIZE + COMMAND
-    # send MESSAGE
-    connection.send(MESSAGE)
+    message = size + COMMAND
+    # send message
+    connection.send(message)
     # receive data
-    data = connection.recv(BUFFER_SIZE)
+    data = connection.recv(buffer_size)
     # don't print ascii if msg or resp contain non printable chars
-    if test_printable(MESSAGE[2:]):
-        print("sent data (ASCII) :", MESSAGE[2:])
-    print("sent data (HEX) :", MESSAGE.encode('hex'))
+    if test_printable(message[2:]):
+        print("sent data (ASCII) :", message[2:])
+    print("sent data (HEX) :", message.encode('hex'))
     if test_printable(data[2:]):
         print("received data (ASCII):", data[2:])
     print("received data (HEX) :", data.encode('hex'))
