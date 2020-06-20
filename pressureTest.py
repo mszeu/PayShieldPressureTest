@@ -59,7 +59,7 @@ def run_test(tcp_ip, tcp_port, host_command):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Stress a PayShield appliance with RSA key generation")
-    parser.add_argument("--host", "-ip", help="Ip address or hostname of the payShiled")
+    parser.add_argument("host", help="Ip address or hostname of the payShiled")
     parser.add_argument("--port", "-p", help="The host port", default=1500)
     parser.add_argument("--key", help="RSA key length. Accepted values are 2048 ot 4096",
                         default=2048, choices=[2048, 4096], type=int)
@@ -67,6 +67,7 @@ if __name__ == "__main__":
                         action="store_true")
     parser.add_argument("--times", help="how many time to repeat the operation", type=int, default=1000)
     args = parser.parse_args()
+
     if args.key == 2048:
         command = 'HEADEI2204801%00#0000'
     else:
