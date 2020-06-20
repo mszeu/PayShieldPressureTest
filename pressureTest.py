@@ -57,6 +57,8 @@ def run_test(tcp_ip, tcp_port, host_command):
 
 
 if __name__ == "__main__":
+    print("PayShield stress utility by Marco S. Zuppone - msz@msz.eu")
+    print("To get more info about the usage invoke it with the -h option")
 
     parser = argparse.ArgumentParser(description="Stress a PayShield appliance with RSA key generation")
     parser.add_argument("host", help="Ip address or hostname of the payShiled")
