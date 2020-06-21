@@ -1,9 +1,10 @@
 # PayShieldPPressureTest
 The **pressureTest.py** Python script creates a workload on the **Thales** appliance **payShield** **10k** and **9k**.
-They can be useful during demonstrations of the appliance.
-They are in an early development stage and still a bit clumsy.
-To use them you need to edit the IP of the appliance and the HOST port.
-When I will have time, and learn better Python I will create a version that accepts parameters ;-)
+
+The script can be useful during demonstrations of the appliance.
+
+The project is in an early development stage and still a bit clumsy.
+
 
 ## Usage
 **pressureTest.py \[-h\] \[--port PORT\] \[--key {2048,4096} | --nc\] \[--forever\] \[--times TIMES\] host**
