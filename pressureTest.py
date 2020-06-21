@@ -45,8 +45,9 @@ def run_test(tcp_ip, tcp_port, host_command):
     host_command = build_command(host_command)
     # calculate the size and format it correctly
     size = pack('>h', len(host_command))
-    # join everything together
-    message = size + host_command
+    # join everything together in python3
+
+    message = size.decode("ascii") + host_command
     # send message
     connection.send(message)
     # receive data
@@ -83,12 +84,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.nc:
-        command = args.header+'NC'
+        command = args.header + 'NC'
 
     if args.key == 2048:
-        command = args.header+'EI2204801%00#0000'
+        command = args.header + 'EI2204801%00#0000'
     else:
-        command = args.header+'EI2409601%00#0000'
+        command = args.header + 'EI2409601%00#0000'
 
     if args.forever:
         while True:
