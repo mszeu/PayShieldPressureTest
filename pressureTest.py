@@ -65,15 +65,18 @@ if __name__ == "__main__":
     parser.add_argument("--port", "-p", help="The host port", default=1500)
     parser.add_argument("--key", help="RSA key length. Accepted values are 2048 ot 4096",
                         default=2048, choices=[2048, 4096], type=int)
+    parser.add_argument("--nc", help="Just perform a NC test", action="store_true")
     parser.add_argument("--forever", help="if this option is specified the program will run for ever",
                         action="store_true")
     parser.add_argument("--times", help="how many time to repeat the operation", type=int, default=1000)
     args = parser.parse_args()
-
-    if args.key == 2048:
-        command = 'HEADEI2204801%00#0000'
+    if args.nc:
+        command = 'HEADNC'
     else:
-        command = 'HEADEI2409601%00#0000'
+        if args.key == 2048:
+            command = 'HEADEI2204801%00#0000'
+        else:
+            command = 'HEADEI2409601%00#0000'
     if args.forever:
         while 1 == 1:
             run_test(args.host, args.port, command)
