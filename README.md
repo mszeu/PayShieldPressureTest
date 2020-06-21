@@ -7,7 +7,7 @@ The project is in an early development stage and still a bit clumsy.
 
 
 ## Usage
-**pressureTest.py \[-h\] \[--port PORT\] \[--key {2048,4096} | --nc\] \[--forever\] \[--times TIMES\] host**
+**pressureTest.py \[-h\] \[--port PORT\] \[--key {2048,4096} | --nc\] \[--head HEADER\] \[--forever\] \[--times TIMES\] host**
 
 **host** you need to specify the ip address or the hostname/fqdn of the **payShield** appliance
 
