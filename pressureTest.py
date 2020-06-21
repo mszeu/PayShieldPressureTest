@@ -1,3 +1,8 @@
+# payShield test utility by Marco S. Zuppone - msz@msz.eu
+# This utility is released under AGPL 3.0 license
+# please refer to the LICENSE file for more information about licensing
+# and to README.md file for more information about the usage of it
+
 import socket
 import binascii
 import string
@@ -62,21 +67,22 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Stress a PayShield appliance with RSA key generation")
     parser.add_argument("host", help="Ip address or hostname of the payShiled")
+    group = parser.add_mutually_exclusive_group()
     parser.add_argument("--port", "-p", help="The host port", default=1500)
-    parser.add_argument("--key", help="RSA key length. Accepted values are 2048 ot 4096",
+    group.add_argument("--key", help="RSA key length. Accepted values are 2048 ot 4096",
                         default=2048, choices=[2048, 4096], type=int)
-    parser.add_argument("--nc", help="Just perform a NC test If this option is specified --key is ignored", action="store_true")
+    group.add_argument("--nc", help="Just perform a NC test If this option is specified --key is ignored", action="store_true")
     parser.add_argument("--forever", help="if this option is specified the program will run for ever",
                         action="store_true")
     parser.add_argument("--times", help="how many time to repeat the operation", type=int, default=1000)
     args = parser.parse_args()
     if args.nc:
         command = 'HEADNC'
+
+    if args.key == 2048:
+        command = 'HEADEI2204801%00#0000'
     else:
-        if args.key == 2048:
-            command = 'HEADEI2204801%00#0000'
-        else:
-            command = 'HEADEI2409601%00#0000'
+        command = 'HEADEI2409601%00#0000'
 
     if args.forever:
         while 1 == 1:
@@ -84,4 +90,3 @@ if __name__ == "__main__":
     else:
         for i in range(0, args.times):
             run_test(args.host, args.port, command)
-
