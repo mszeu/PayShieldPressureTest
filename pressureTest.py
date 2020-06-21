@@ -70,22 +70,28 @@ if __name__ == "__main__":
     group = parser.add_mutually_exclusive_group()
     parser.add_argument("--port", "-p", help="The host port", default=1500)
     group.add_argument("--key", help="RSA key length. Accepted values are 2048 ot 4096",
-                        default=2048, choices=[2048, 4096], type=int)
-    group.add_argument("--nc", help="Just perform a NC test If this option is specified --key is ignored", action="store_true")
+                       default=2048, choices=[2048, 4096], type=int)
+    group.add_argument("--nc", help="Just perform a NC test If this option is specified --key is ignored",
+                       action="store_true")
+    parser.add_argument("--header",
+                        help="the header string to prepend to the host command. If not specified the default is HEAD",
+                        default="HEAD", type=str)
     parser.add_argument("--forever", help="if this option is specified the program will run for ever",
                         action="store_true")
     parser.add_argument("--times", help="how many time to repeat the operation", type=int, default=1000)
+
     args = parser.parse_args()
+
     if args.nc:
-        command = 'HEADNC'
+        command = args.header+'NC'
 
     if args.key == 2048:
-        command = 'HEADEI2204801%00#0000'
+        command = args.header+'EI2204801%00#0000'
     else:
-        command = 'HEADEI2409601%00#0000'
+        command = args.header+'EI2409601%00#0000'
 
     if args.forever:
-        while 1 == 1:
+        while True:
             run_test(args.host, args.port, command)
     else:
         for i in range(0, args.times):
