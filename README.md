@@ -16,6 +16,8 @@ The project is in an early development stage and still a bit clumsy.
 **--key** the length of the RSA key that the appliance will generate. there are ony two valid values: **2048** or **4096**
 if the parameter is not specified **2048** is the default
 
+**--header** the header string to prefix to the host command. if is not specified the default value is **HEAD**
+
 **--nc** performs just an NC test. It cannot be used in conjunction with **--key**
 
 **--forever** the test will run forever. Use CTRL-c to terminate it
