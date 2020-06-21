@@ -26,4 +26,4 @@ if the parameter is not specified **2048** is the default
 **--times** how many times execute the test. If it is not specified the default value is **1000** times
 
 ## Questions bug and suggestions
-For any question, feedback, suggestion, send money (yes...it's a dream I know) you can contact the author at **msz@msz.eu**
+For any question, feedback, suggestion, send money ***(yes...it's a dream I know)*** you can contact the author at **msz@msz.eu**
