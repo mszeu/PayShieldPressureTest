@@ -5,6 +5,8 @@ The script can be useful during demonstrations of the appliance.
  
 The project is in an early development stage and still a bit clumsy.
 
+It requires **Python 3**
+
 
 ## Usage
 **pressureTest.py \[-h\] \[--port PORT\] \[--key {2048,4096} | --nc\] \[--head HEADER\] \[--forever\] \[--times TIMES\] host**
@@ -37,7 +39,7 @@ if the parameter is not specified **2048** is the default
 
   This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
    GNU Affero General Public License for more details.
    
 ## Questions bug and suggestions
