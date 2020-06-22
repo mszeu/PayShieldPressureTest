@@ -49,22 +49,23 @@ def run_test(tcp_ip, tcp_port, host_command):
 
     message = size.decode("ascii") + host_command
     # send message
-    connection.send(message)
+    connection.send(message.encode())
     # receive data
     data = connection.recv(buffer_size)
     # don't print ascii if msg or resp contains non printable chars
     if test_printable(message[2:]):
         print("sent data (ASCII) :", message[2:])
-    print("sent data (HEX) :", message.encode('hex'))
-    if test_printable(data[2:]):
+    print("sent data (HEX) :", binascii.hexlify(message.encode()))
+    if test_printable((data[2:]).decode("ascii", "ignore")):
         print("received data (ASCII):", data[2:])
-    print("received data (HEX) :", data.encode('hex'))
+    print("sent data (HEX) :", binascii.hexlify(data))
     connection.close()
 
 
 if __name__ == "__main__":
     print("PayShield stress utility by Marco S. Zuppone - msz@msz.eu")
     print("To get more info about the usage invoke it with the -h option")
+    print("This software is open source and it is under the Affero AGPL 3.0")
 
     parser = argparse.ArgumentParser(description="Stress a PayShield appliance with RSA key generation")
     parser.add_argument("host", help="Ip address or hostname of the payShiled")
@@ -82,18 +83,17 @@ if __name__ == "__main__":
     parser.add_argument("--times", help="how many time to repeat the operation", type=int, default=1000)
 
     args = parser.parse_args()
-
-    if args.nc:
-        command = args.header + 'NC'
-
+    # the order of the IF here is important due to the default arguments
     if args.key == 2048:
         command = args.header + 'EI2204801%00#0000'
     else:
         command = args.header + 'EI2409601%00#0000'
-
+    if args.nc:
+        command = args.header + 'NC'
     if args.forever:
         while True:
             run_test(args.host, args.port, command)
     else:
         for i in range(0, args.times):
             run_test(args.host, args.port, command)
+            print("Iteration: ", i + 1)
