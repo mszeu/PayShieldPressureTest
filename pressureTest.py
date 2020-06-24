@@ -58,7 +58,7 @@ def run_test(tcp_ip, tcp_port, host_command):
     print("sent data (HEX) :", binascii.hexlify(message.encode()))
     if test_printable((data[2:]).decode("ascii", "ignore")):
         print("received data (ASCII):", data[2:])
-    print("sent data (HEX) :", binascii.hexlify(data))
+    print("received data (HEX) :", binascii.hexlify(data))
     connection.close()
 
 
