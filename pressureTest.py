@@ -64,9 +64,9 @@ def run_test(tcp_ip, tcp_port, host_command):
         print("received data (HEX) :", binascii.hexlify(data))
 
     except ConnectionError as e:
-        print("Connection issue: ",e.strerror)
+        print("Connection issue: ", e.strerror)
     except Exception as e:
-        print("Unexpected issue:",e.strerror)
+        print("Unexpected issue:", e.strerror)
 
     connection.close()
 
