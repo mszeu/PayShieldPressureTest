@@ -38,27 +38,36 @@ def build_command(command):
 
 def run_test(tcp_ip, tcp_port, host_command):
     connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    connection.connect((tcp_ip, tcp_port))
-    buffer_size = 1024
+    try:
+        connection.connect((tcp_ip, tcp_port))
+        buffer_size = 1024
 
-    # Convert hex to binary
-    host_command = build_command(host_command)
-    # calculate the size and format it correctly
-    size = pack('>h', len(host_command))
-    # join everything together in python3
+        # Convert hex to binary
+        host_command = build_command(host_command)
+        # calculate the size and format it correctly
+        size = pack('>h', len(host_command))
+        # join everything together in python3
 
-    message = size.decode("ascii") + host_command
-    # send message
-    connection.send(message.encode())
-    # receive data
-    data = connection.recv(buffer_size)
-    # don't print ascii if msg or resp contains non printable chars
-    if test_printable(message[2:]):
-        print("sent data (ASCII) :", message[2:])
-    print("sent data (HEX) :", binascii.hexlify(message.encode()))
-    if test_printable((data[2:]).decode("ascii", "ignore")):
-        print("received data (ASCII):", data[2:])
-    print("received data (HEX) :", binascii.hexlify(data))
+        message = size.decode("ascii") + host_command
+        # send message
+        connection.send(message.encode())
+        # receive data
+        data = connection.recv(buffer_size)
+        # don't print ascii if msg or resp contains non printable chars
+        if test_printable(message[2:]):
+            print("sent data (ASCII) :", message[2:])
+        print("sent data (HEX) :", binascii.hexlify(message.encode()))
+
+        if test_printable((data[2:]).decode("ascii", "ignore")):
+            print("received data (ASCII):", data[2:])
+
+        print("received data (HEX) :", binascii.hexlify(data))
+
+    except ConnectionError as e:
+        print("Connection issue: ",e.strerror)
+    except Exception as e:
+        print("Unexpected issue:",e.strerror)
+
     connection.close()
 
 
