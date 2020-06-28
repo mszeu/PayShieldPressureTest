@@ -67,8 +67,8 @@ def run_test(tcp_ip, tcp_port, host_command):
         print("Connection issue: ", e.strerror)
     except Exception as e:
         print("Unexpected issue:", e.strerror)
-
-    connection.close()
+    finally:
+        connection.close()
 
 
 if __name__ == "__main__":
