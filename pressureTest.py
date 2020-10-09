@@ -102,9 +102,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # the order of the IF here is important due to the default arguments
     if args.key == 2048:
-        command = args.header + 'EI2204801%00#0000'
+        command = args.header + 'EI2204801#0000'
     else:
-        command = args.header + 'EI2409601%00#0000'
+        command = args.header + 'EI2409601#0000'
     if args.nc:
         command = args.header + 'NC'
     if args.j2:
