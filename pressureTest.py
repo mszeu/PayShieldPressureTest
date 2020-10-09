@@ -84,6 +84,14 @@ if __name__ == "__main__":
                        default=2048, choices=[2048, 4096], type=int)
     group.add_argument("--nc", help="Just perform a NC test If this option is specified --key is ignored",
                        action="store_true")
+    group.add_argument("--j2", help="Get HSM Loading using J2 command. If this option is specified --key is ignored",
+                       action="store_true")
+    group.add_argument("--j4", help="Get Host Command Volumes using J4 command. If this option is specified --key is ignored",
+                       action="store_true")
+    group.add_argument("--j8", help="Get Health Check Accumulated Counts using J8 command. If this option is specified --key is ignored",
+                       action="store_true")
+    group.add_argument("--jk", help="Get Instantaneous Health Check Status using JK command. If this option is specified --key is ignored",
+                       action="store_true")
     parser.add_argument("--header",
                         help="the header string to prepend to the host command. If not specified the default is HEAD",
                         default="HEAD", type=str)
@@ -99,6 +107,14 @@ if __name__ == "__main__":
         command = args.header + 'EI2409601%00#0000'
     if args.nc:
         command = args.header + 'NC'
+    if args.j2:
+        command = args.header + 'J2'
+    if args.j4:
+        command = args.header + 'J4'
+    if args.j8:
+        command = args.header + 'J8'
+    if args.jk:
+        command = args.header + 'JK'
     if args.forever:
         while True:
             run_test(args.host, args.port, command)

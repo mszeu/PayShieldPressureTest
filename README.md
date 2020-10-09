@@ -9,7 +9,7 @@ It requires **Python 3**
 
 
 ## Usage
-**pressureTest.py \[-h\] \[--port PORT\] \[--key {2048,4096} | --nc\] \[--head HEADER\] \[--forever\] \[--times TIMES\] host**
+**pressureTest.py \[-h\] \[--port PORT\] \[--key {2048,4096} | --nc | --j2 | --j4 | --nj8 | --jk\] \[--head HEADER\] \[--forever\] \[--times TIMES\] host**
 
 **host** you need to specify the ip address or the hostname/fqdn of the **payShield** appliance
 
@@ -21,6 +21,14 @@ if the parameter is not specified **2048** is the default
 **--header** the header string to prefix to the host command. if is not specified the default value is **HEAD**
 
 **--nc** performs just an NC test. It cannot be used in conjunction with **--key**
+
+**--j2** get HSM Loading using J2 command. It cannot be used in conjunction with **--key**
+
+**--j4** get Host Command Volumes using J4 command. It cannot be used in conjunction with **--key**
+
+**--j8** get Health Check Accumulated Counts using J8 command. It cannot be used in conjunction with **--key**
+
+**--jk** get Instantaneous Health Check Status using JK command. It cannot be used in conjunction with **--key**
 
 **--forever** the test will run forever. Use CTRL-c to terminate it
 
