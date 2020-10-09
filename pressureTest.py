@@ -36,23 +36,38 @@ def build_command(command):
     return host_command
 
 
-def run_test(tcp_ip, tcp_port, host_command):
-    connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+def run_test(ip_addr, port, host_command, proto="tcp"):
+    if proto != "tcp" and proto != "udp":
+        print("invalid protocol parameter, It needs to be tcp or udp")
+        return -1
+
     try:
-        connection.connect((tcp_ip, tcp_port))
-        buffer_size = 1024
 
         # Convert hex to binary
         host_command = build_command(host_command)
         # calculate the size and format it correctly
         size = pack('>h', len(host_command))
         # join everything together in python3
-
         message = size.decode("ascii") + host_command
-        # send message
-        connection.send(message.encode())
-        # receive data
-        data = connection.recv(buffer_size)
+        # Connect to the host and the the reply in TCP or UDP
+        buffer_size = 4096
+        if proto == "tcp":
+            # creates the TCP socket
+            connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            connection.connect((ip_addr, port))
+            # send message
+            connection.send(message.encode())
+            # receive data
+            data = connection.recv(buffer_size)
+        else:
+            # create the UDP socket
+            connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            # send data
+            connection.sendto(message.encode(), (ip_addr, port))
+            # receive data
+            data_tuple = connection.recvfrom(buffer_size)
+            data = data_tuple[0]
+
         # don't print ascii if msg or resp contains non printable chars
         if test_printable(message[2:]):
             print("sent data (ASCII) :", message[2:])
@@ -75,7 +90,7 @@ if __name__ == "__main__":
     print("PayShield stress utility by Marco S. Zuppone - msz@msz.eu")
     print("To get more info about the usage invoke it with the -h option")
     print("This software is open source and it is under the Affero AGPL 3.0")
-
+    print("")
     parser = argparse.ArgumentParser(description="Stress a PayShield appliance with RSA key generation")
     parser.add_argument("host", help="Ip address or hostname of the payShiled")
     group = parser.add_mutually_exclusive_group()
@@ -86,11 +101,14 @@ if __name__ == "__main__":
                        action="store_true")
     group.add_argument("--j2", help="Get HSM Loading using J2 command. If this option is specified --key is ignored",
                        action="store_true")
-    group.add_argument("--j4", help="Get Host Command Volumes using J4 command. If this option is specified --key is ignored",
+    group.add_argument("--j4",
+                       help="Get Host Command Volumes using J4 command. If this option is specified --key is ignored",
                        action="store_true")
-    group.add_argument("--j8", help="Get Health Check Accumulated Counts using J8 command. If this option is specified --key is ignored",
+    group.add_argument("--j8",
+                       help="Get Health Check Accumulated Counts using J8 command. If this option is specified --key is ignored",
                        action="store_true")
-    group.add_argument("--jk", help="Get Instantaneous Health Check Status using JK command. If this option is specified --key is ignored",
+    group.add_argument("--jk",
+                       help="Get Instantaneous Health Check Status using JK command. If this option is specified --key is ignored",
                        action="store_true")
     parser.add_argument("--header",
                         help="the header string to prepend to the host command. If not specified the default is HEAD",
@@ -98,6 +116,8 @@ if __name__ == "__main__":
     parser.add_argument("--forever", help="if this option is specified the program will run for ever",
                         action="store_true")
     parser.add_argument("--times", help="how many time to repeat the operation", type=int, default=1000)
+    parser.add_argument("--proto", help="accepted value are tcp or udp, the default is tcp", default="tcp"
+                        , choices=["tcp", "udp"], type=str)
 
     args = parser.parse_args()
     # the order of the IF here is important due to the default arguments
@@ -117,8 +137,10 @@ if __name__ == "__main__":
         command = args.header + 'JK'
     if args.forever:
         while True:
-            run_test(args.host, args.port, command)
+            run_test(args.host, args.port, command, args.proto)
+            print("")
     else:
         for i in range(0, args.times):
-            run_test(args.host, args.port, command)
+            run_test(args.host, args.port, command, args.proto)
             print("Iteration: ", i + 1)
+            print("")
