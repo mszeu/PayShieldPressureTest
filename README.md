@@ -9,11 +9,13 @@ It requires **Python 3**
 
 
 ## Usage
-**pressureTest.py \[-h\] \[--port PORT\] \[--key {2048,4096} | --nc | --j2 | --j4 | --n8 | --jk\] \[--head HEADER\] \[--forever\] \[--times TIMES\] host**
+**pressureTest.py \[-h\] \[--port PORT\] \[--proto {tcp, udp}\] \[--key {2048,4096} | --nc | --j2 | --j4 | --n8 | --jk\] \[--head HEADER\] \[--forever\] \[--times TIMES\] host**
 
 **host** you need to specify the ip address or the hostname/fqdn of the **payShield** appliance
 
 **--port** specify the host port. If the parameter is omitted the default value **1500** is used
+
+**--proto** specify the protocol to use, **tcp** or **udp**. If the parameter is omitted the default value **tcp** is used
 
 **--key** the length of the RSA key that the appliance will generate. there are ony two valid values: **2048** or **4096**
 if the parameter is not specified **2048** is the default
