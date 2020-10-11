@@ -10,6 +10,23 @@ from struct import *
 import argparse
 
 
+def check_return_message(result_returned, head_len):
+    if len(result_returned) < 2 + head_len + 2:  # 2 bytes for len + 2 header len + 2 for command
+        return -1, "Incomplete message"
+    # decode the first two bytes returned and transform them in integer
+    expected_msg_len = int.from_bytes((result_returned[:2]).encode(), byteorder='big', signed=False)
+    # compares the effective message length with then one stated in the first two bytes of the message
+    if len(result_returned) - 2 != expected_msg_len:
+        return -2, "Len mismatch"
+    ret_code_position = 2 + head_len + 2
+    ret_code = int(result_returned[ret_code_position:ret_code_position + 2])
+
+    if ret_code == 0:
+        return 0, "OK"
+    else:
+        return ret_code, "Error returned"
+
+
 def test_printable(str):
     return all(c in string.printable for c in str)
 
