@@ -64,7 +64,6 @@ def test_printable(input_str):
     return all(c in string.printable for c in input_str)
 
 
-
 def run_test(ip_addr, port, host_command, proto="tcp"):
     if proto != "tcp" and proto != "udp":
         print("invalid protocol parameter, It needs to be tcp or udp")
