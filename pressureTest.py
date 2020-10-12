@@ -60,28 +60,28 @@ def check_return_message(result_returned, head_len):
         return ret_code, "Error returned"  # if the error message is not in the list
 
 
-def test_printable(str):
-    return all(c in string.printable for c in str)
+def test_printable(input_str):
+    return all(c in string.printable for c in input_str)
 
 
-def build_command(command):
+def build_command(command_to_prepare):
     # convert hex supplied data into binary
     host_command = ''
-    i = 0
+    idx = 0
     while True:
-        if command[i:i + 1] == '<':
-            i = i + 1
+        if command_to_prepare[idx:idx + 1] == '<':
+            idx = idx + 1
             while True:
-                host_command = host_command + binascii.a2b_hex(command[i:i + 2])
-                i = i + 2
-                if command[i:i + 1] == '>':
-                    i = i + 1
+                host_command = host_command + binascii.a2b_hex(command_to_prepare[idx:idx + 2])
+                idx = idx + 2
+                if command_to_prepare[idx:idx + 1] == '>':
+                    idx = idx + 1
                     break
         else:
-            host_command = host_command + command[i]
-            i = i + 1
+            host_command = host_command + command_to_prepare[idx]
+            idx = idx + 1
 
-        if i == len(command):
+        if idx == len(command_to_prepare):
             break
     return host_command
 
@@ -140,8 +140,8 @@ def run_test(ip_addr, port, host_command, proto="tcp"):
 
     except ConnectionError as e:
         print("Connection issue: ", e.strerror)
-    except Exception as e:
-        print("Unexpected issue:", e.strerror)
+    except Exception:
+        print("Unexpected issue:")
     finally:
         connection.close()
 
@@ -178,8 +178,8 @@ if __name__ == "__main__":
     parser.add_argument("--forever", help="if this option is specified the program will run for ever",
                         action="store_true")
     parser.add_argument("--times", help="how many time to repeat the operation", type=int, default=1000)
-    parser.add_argument("--proto", help="accepted value are tcp or udp, the default is tcp", default="tcp"
-                        , choices=["tcp", "udp"], type=str)
+    parser.add_argument("--proto", help="accepted value are tcp or udp, the default is tcp", default="tcp",
+                        choices=["tcp", "udp"], type=str)
 
     args = parser.parse_args()
     # the order of the IF here is important due to the default arguments
