@@ -16,14 +16,23 @@ def check_return_message(result_returned, head_len):
     # decode the first two bytes returned and transform them in integer
     try:
         expected_msg_len = int.from_bytes(result_returned[:2], byteorder='big', signed=False)
-    except Exception as e:
-        return (-99, "Malformed message")
+    except ValueError:
+        return -99, "Malformed message"
+    except Exception:
+        return -100, "Unknown message length parsing error"
 
     # compares the effective message length with then one stated in the first two bytes of the message
     if len(result_returned) - 2 != expected_msg_len:
         return -2, "Len mismatch"
     ret_code_position = 2 + head_len + 2
-    ret_code = int(result_returned[ret_code_position:ret_code_position + 2])
+
+    # better be safe than sorry
+    try:
+        ret_code = int(result_returned[ret_code_position:ret_code_position + 2])
+    except ValueError:
+        return -102, "message result code parsing error"
+    except Exception:
+        return -101, "Unknown message result code parsing error"
 
     # try to describe the error
 
@@ -48,7 +57,7 @@ def check_return_message(result_returned, head_len):
     elif ret_code == 68:
         return ret_code, "Command disabled"
     else:
-        return ret_code, "Error returned"
+        return ret_code, "Error returned"  # if the error message is not in the list
 
 
 def test_printable(str):
