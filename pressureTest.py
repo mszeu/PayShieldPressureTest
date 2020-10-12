@@ -14,15 +14,35 @@ def check_return_message(result_returned, head_len):
     if len(result_returned) < 2 + head_len + 2:  # 2 bytes for len + 2 header len + 2 for command
         return -1, "Incomplete message"
     # decode the first two bytes returned and transform them in integer
-    expected_msg_len = int.from_bytes((result_returned[:2]).encode(), byteorder='big', signed=False)
+    expected_msg_len = int.from_bytes(result_returned[:2], byteorder='big', signed=False)
     # compares the effective message length with then one stated in the first two bytes of the message
     if len(result_returned) - 2 != expected_msg_len:
         return -2, "Len mismatch"
     ret_code_position = 2 + head_len + 2
     ret_code = int(result_returned[ret_code_position:ret_code_position + 2])
 
+    # try to describe the error
+
     if ret_code == 0:
         return 0, "OK"
+    elif ret_code == 17:
+        return ret_code, "HSM not authorized, or operation prohibited by security settings"
+    elif ret_code == 3:
+        return ret_code, "Invalid public key encoding type"
+    elif ret_code == 4:
+        return ret_code, "Key Length error"
+    elif ret_code == 5:
+        return ret_code, "Invalid key type"
+    elif ret_code == 6:
+        return ret_code, "Public exponent length error"
+    elif ret_code == 8:
+        return ret_code, "Supplied public exponent is even"
+    elif ret_code == 47:
+        return ret_code, "Algorithm not licensed"
+    elif ret_code == 48:
+        return ret_code, "Stronger LMK required to protect this size RSA key"
+    elif ret_code == 68:
+        return ret_code, "Command disabled"
     else:
         return ret_code, "Error returned"
 
@@ -65,7 +85,9 @@ def run_test(ip_addr, port, host_command, proto="tcp"):
         # calculate the size and format it correctly
         size = pack('>h', len(host_command))
         # join everything together in python3
-        message = size.decode("ascii") + host_command
+        #Test to convert better
+        # original: message = size.decode("ascii") + host_command
+        message = size + host_command.encode()
         # Connect to the host and the the reply in TCP or UDP
         buffer_size = 4096
         if proto == "tcp":
@@ -73,22 +95,30 @@ def run_test(ip_addr, port, host_command, proto="tcp"):
             connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             connection.connect((ip_addr, port))
             # send message
-            connection.send(message.encode())
+            # original: connection.send(message.encode())
+            connection.send(message)
             # receive data
             data = connection.recv(buffer_size)
         else:
             # create the UDP socket
             connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             # send data
-            connection.sendto(message.encode(), (ip_addr, port))
+            # original connection.sendto(message.encode(), (ip_addr, port))
+            connection.sendto(message, (ip_addr, port))
             # receive data
             data_tuple = connection.recvfrom(buffer_size)
             data = data_tuple[0]
 
+        # test begin
+        mia_tupla = check_return_message(data, len(args.header))
+        print(mia_tupla)
+        # test end
+
         # don't print ascii if msg or resp contains non printable chars
-        if test_printable(message[2:]):
+        if test_printable(message[2:].decode("ascii", "ignore")):
             print("sent data (ASCII) :", message[2:])
-        print("sent data (HEX) :", binascii.hexlify(message.encode()))
+        # original: print("sent data (HEX) :", binascii.hexlify(message.encode()))
+        print("sent data (HEX) :", binascii.hexlify(message))
 
         if test_printable((data[2:]).decode("ascii", "ignore")):
             print("received data (ASCII):", data[2:])
@@ -155,7 +185,7 @@ if __name__ == "__main__":
     if args.jk:
         command = args.header + 'JK'
     if args.randgen:
-        command = args.header + 'N0008'
+        command = args.header + 'N0064'
     if args.forever:
         while True:
             run_test(args.host, args.port, command, args.proto)
