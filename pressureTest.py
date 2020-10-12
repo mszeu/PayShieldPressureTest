@@ -127,6 +127,8 @@ if __name__ == "__main__":
     group.add_argument("--jk",
                        help="Get Instantaneous Health Check Status using JK command. If this option is specified --key is ignored",
                        action="store_true")
+    group.add_argument("--randgen",
+                       help="Generate a random value 8 bytes long", action="store_true")
     parser.add_argument("--header",
                         help="the header string to prepend to the host command. If not specified the default is HEAD",
                         default="HEAD", type=str)
@@ -152,6 +154,8 @@ if __name__ == "__main__":
         command = args.header + 'J8'
     if args.jk:
         command = args.header + 'JK'
+    if args.randgen:
+        command = args.header + 'N0008'
     if args.forever:
         while True:
             run_test(args.host, args.port, command, args.proto)

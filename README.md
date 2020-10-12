@@ -1,41 +1,48 @@
 # PayShieldPPressureTest
 The **pressureTest.py** Python script creates a workload on the **Thales** appliance **payShield** **10k** and **9k**.
 
-The script can be useful during demonstrations of the appliance.
+The script can be useful during demonstrations of the monitoring features of the appliance and can be used in every case you need to generate a workload for testing purposes.
  
 The project is in an early development stage and still a bit clumsy.
 
-It requires **Python 3**
+It requires **Python 3**. It was tested on **Python 3.7** and **3.8** using a **payShield 10k**.
 
 
 ## Usage
-  develop
-**pressureTest.py \[-h\] \[--port PORT\] \[--proto {tcp, udp}\] \[--key {2048,4096} | --nc | --j2 | --j4 | --n8 | --jk\] \[--head HEADER\] \[--forever\] \[--times TIMES\] host**
 
-**host** you need to specify the ip address or the hostname/fqdn of the **payShield** appliance
+**pressureTest.py \[-h\] \[--port PORT\] \[--proto {tcp, udp}\] \[--key {2048,4096} | --nc | --j2 | --j4 | --n8 | --jk | --randgen\] \[--head HEADER\] \[--forever\] \[--times TIMES\] host**
 
-**--port** specify the host port. If the parameter is omitted the default value **1500** is used
+**host** you need to specify the ip address or the hostname/fqdn of the **payShield** appliance.
 
-**--proto** specify the protocol to use, **tcp** or **udp**. If the parameter is omitted the default value **tcp** is used
+**--port** specify the host port. If the parameter is omitted the default value **1500** is used.
 
-**--key** the length of the RSA key that the appliance will generate. there are ony two valid values: **2048** or **4096**
-if the parameter is not specified **2048** is the default
+**--proto** specify the protocol to use, **tcp** or **udp**. If the parameter is omitted the default value **tcp** is used.
 
-**--header** the header string to prefix to the host command. if is not specified the default value is **HEAD**
+**--key** the length of the RSA key that the appliance will generate. there are ony two valid values: **2048** or **4096**.
+if the parameter is not specified **2048** is the default.
 
-**--nc** performs just an NC test. It cannot be used in conjunction with **--key**
+**--header** the header string to prefix to the host command. if is not specified the default value is **HEAD**.
 
-**--j2** get HSM Loading using J2 command. It cannot be used in conjunction with **--key**
+**--nc** performs just an **NC** test. It cannot be used in conjunction with **--key**.
 
-**--j4** get Host Command Volumes using J4 command. It cannot be used in conjunction with **--key**
+**--j2** get HSM Loading using **J2** command. It cannot be used in conjunction with **--key**.
 
-**--j8** get Health Check Accumulated Counts using J8 command. It cannot be used in conjunction with **--key**
+**--j4** get Host Command Volumes using **J4** command. It cannot be used in conjunction with **--key**.
 
-**--jk** get Instantaneous Health Check Status using JK command. It cannot be used in conjunction with **--key**
+**--j8** get Health Check Accumulated Counts using **J8** command. It cannot be used in conjunction with **--key**.
 
-**--forever** the test will run forever. Use CTRL-c to terminate it
+**--jk** get Instantaneous Health Check Status using **JK** command. It cannot be used in conjunction with **--key**.
 
-**--times** how many times execute the test. If it is not specified the default value is **1000** times
+**--randgen** Generate a random value 8 bytes long using **N0** command. It cannot be used in conjunction with **--key**.
+
+**--forever** the test will run forever. Use **CTRL-c** to terminate it.
+
+**--times** how many times execute the test. If it is not specified the default value is **1000** times.
+
+## NOTES ##
+
+The **EI** command used to generate the RSA key requires authorization and the generation of 4096 bit keys is possible only for keyblock LMKs.
+
 
 ## COPYRIGHT & LICENSE
   Please refer to the **LICENSE** file that is part of this project.
