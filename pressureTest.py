@@ -74,8 +74,7 @@ def run_test(ip_addr, port, host_command, proto="tcp"):
         # calculate the size and format it correctly
         size = pack('>h', len(host_command))
         # join everything together in python3
-        # Test to convert better
-        # original: message = size.decode("ascii") + host_command
+
         message = size + host_command.encode()
         # Connect to the host and the the reply in TCP or UDP
         buffer_size = 4096
@@ -84,7 +83,6 @@ def run_test(ip_addr, port, host_command, proto="tcp"):
             connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             connection.connect((ip_addr, port))
             # send message
-            # original: connection.send(message.encode())
             connection.send(message)
             # receive data
             data = connection.recv(buffer_size)
@@ -92,21 +90,19 @@ def run_test(ip_addr, port, host_command, proto="tcp"):
             # create the UDP socket
             connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             # send data
-            # original connection.sendto(message.encode(), (ip_addr, port))
             connection.sendto(message, (ip_addr, port))
             # receive data
             data_tuple = connection.recvfrom(buffer_size)
             data = data_tuple[0]
 
-        # test begin
+        # try to decode the result code contained in the reply of the payShield
         return_code_tuple = check_return_message(data, len(args.header))
         print("Return code: " + str(return_code_tuple[0]) + " " + return_code_tuple[1])
-        # test end
 
         # don't print ascii if msg or resp contains non printable chars
         if test_printable(message[2:].decode("ascii", "ignore")):
             print("sent data (ASCII) :", message[2:])
-        # original: print("sent data (HEX) :", binascii.hexlify(message.encode()))
+
         print("sent data (HEX) :", binascii.hexlify(message))
 
         if test_printable((data[2:]).decode("ascii", "ignore")):
