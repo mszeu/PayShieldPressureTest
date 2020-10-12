@@ -64,27 +64,6 @@ def test_printable(input_str):
     return all(c in string.printable for c in input_str)
 
 
-def build_command(command_to_prepare):
-    # convert hex supplied data into binary
-    host_command = ''
-    idx = 0
-    while True:
-        if command_to_prepare[idx:idx + 1] == '<':
-            idx = idx + 1
-            while True:
-                host_command = host_command + binascii.a2b_hex(command_to_prepare[idx:idx + 2])
-                idx = idx + 2
-                if command_to_prepare[idx:idx + 1] == '>':
-                    idx = idx + 1
-                    break
-        else:
-            host_command = host_command + command_to_prepare[idx]
-            idx = idx + 1
-
-        if idx == len(command_to_prepare):
-            break
-    return host_command
-
 
 def run_test(ip_addr, port, host_command, proto="tcp"):
     if proto != "tcp" and proto != "udp":
@@ -93,8 +72,6 @@ def run_test(ip_addr, port, host_command, proto="tcp"):
 
     try:
 
-        # Convert hex to binary
-        host_command = build_command(host_command)
         # calculate the size and format it correctly
         size = pack('>h', len(host_command))
         # join everything together in python3
