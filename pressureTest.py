@@ -14,7 +14,11 @@ def check_return_message(result_returned, head_len):
     if len(result_returned) < 2 + head_len + 2:  # 2 bytes for len + 2 header len + 2 for command
         return -1, "Incomplete message"
     # decode the first two bytes returned and transform them in integer
-    expected_msg_len = int.from_bytes(result_returned[:2], byteorder='big', signed=False)
+    try:
+        expected_msg_len = int.from_bytes(result_returned[:2], byteorder='big', signed=False)
+    except Exception as e:
+        return (-99, "Malformed message")
+
     # compares the effective message length with then one stated in the first two bytes of the message
     if len(result_returned) - 2 != expected_msg_len:
         return -2, "Len mismatch"
@@ -85,7 +89,7 @@ def run_test(ip_addr, port, host_command, proto="tcp"):
         # calculate the size and format it correctly
         size = pack('>h', len(host_command))
         # join everything together in python3
-        #Test to convert better
+        # Test to convert better
         # original: message = size.decode("ascii") + host_command
         message = size + host_command.encode()
         # Connect to the host and the the reply in TCP or UDP
@@ -110,8 +114,8 @@ def run_test(ip_addr, port, host_command, proto="tcp"):
             data = data_tuple[0]
 
         # test begin
-        mia_tupla = check_return_message(data, len(args.header))
-        print(mia_tupla)
+        return_code_tuple = check_return_message(data, len(args.header))
+        print("Return code: " + str(return_code_tuple[0]) + " " + return_code_tuple[1])
         # test end
 
         # don't print ascii if msg or resp contains non printable chars
