@@ -118,7 +118,7 @@ def run_test(ip_addr, port, host_command, proto="tcp"):
         if check_result_tuple[0] != 0:
             print("NOTE: The response received from the HSM seems unrelated to the request!")
 
-        print("Command sent/recvd: " + check_result_tuple[1] + " ==> " + check_result_tuple[2])
+        print("Command sent/received: " + check_result_tuple[1] + " ==> " + check_result_tuple[2])
 
         # don't print ascii if msg or resp contains non printable chars
         if test_printable(message[2:].decode("ascii", "ignore")):

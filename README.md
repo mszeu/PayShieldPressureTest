@@ -39,7 +39,32 @@ if the parameter is not specified **2048** is the default.
 
 **--times** how many times execute the test. If it is not specified the default value is **1000** times.
 
-## NOTES ##
+## Example
+C:\Test>*python pressureTest.py 192.168.0.36 --nc --times 2*
+
+PayShield stress utility by Marco S. Zuppone - msz@msz.eu
+To get more info about the usage invoke it with the -h option
+This software is open source and it is under the Affero AGPL 3.0
+
+
+Return code: 0 OK
+Command sent/received: NC ==> ND
+sent data (ASCII) : b'HEADNC'
+sent data (HEX) : b'0006484541444e43'
+received data (ASCII): b'HEADND00451BC800000000001500-0023'
+received data (HEX) : b'0021484541444e44303034353142433830303030303030303030313530302d30303233'
+Iteration:  1
+
+
+Return code: 0 OK
+Command sent/received: NC ==> ND
+sent data (ASCII) : b'HEADNC'
+sent data (HEX) : b'0006484541444e43'
+received data (ASCII): b'HEADND00451BC800000000001500-0023'
+received data (HEX) : b'0021484541444e44303034353142433830303030303030303030313530302d30303233'
+Iteration:  2
+
+## NOTES
 
 The **EI** command used to generate the RSA key requires authorization and the generation of 4096 bit keys is possible only for keyblock LMKs.
 
