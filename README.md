@@ -85,5 +85,5 @@ The **EI** command used to generate the RSA key requires authorization and the g
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.** See the  
    GNU Affero General Public License for more details.  
    
-## Questions bug and suggestions
+## Questions, bugs & suggestions
 For any question, feedback, suggestion, send money ***(yes...it's a dream I know)*** you can contact the author at **msz@msz.eu**
