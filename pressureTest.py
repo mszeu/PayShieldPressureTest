@@ -24,49 +24,50 @@ def check_returned_command_verb(result_returned: bytes, head_len: int, command_s
 
 def check_return_message(result_returned, head_len):
     if len(result_returned) < 2 + head_len + 2:  # 2 bytes for len + 2 header len + 2 for command
-        return -1, "Incomplete message"
+        return "ZZ", "Incomplete message"
     # decode the first two bytes returned and transform them in integer
     try:
         expected_msg_len = int.from_bytes(result_returned[:2], byteorder='big', signed=False)
     except ValueError:
-        return -99, "Malformed message"
+        return "ZZ", "Malformed message"
     except Exception:
-        return -100, "Unknown message length parsing error"
+        return "ZZ", "Unknown message length parsing error"
 
     # compares the effective message length with then one stated in the first two bytes of the message
     if len(result_returned) - 2 != expected_msg_len:
-        return -2, "Length mismatch"
+        return "ZZ", "Length mismatch"
     ret_code_position = 2 + head_len + 2
 
     # better be safe than sorry
     try:
-        ret_code = int(result_returned[ret_code_position:ret_code_position + 2])
-    except ValueError:
-        return -102, "message result code parsing error"
+        # ret_code = int(result_returned[ret_code_position:ret_code_position + 2])
+        ret_code = result_returned[ret_code_position:ret_code_position + 2].decode()
+    except (ValueError, UnicodeDecodeError):
+        return "ZZ", "message result code parsing error"
     except Exception:
-        return -101, "Unknown message result code parsing error"
+        return "ZZ", "Unknown message result code parsing error"
 
     # try to describe the error
 
-    if ret_code == 0:
-        return 0, "OK"
-    elif ret_code == 17:
+    if ret_code == "00":
+        return ret_code, "OK"
+    elif ret_code == "17":
         return ret_code, "HSM not authorized, or operation prohibited by security settings"
-    elif ret_code == 3:
+    elif ret_code == "03":
         return ret_code, "Invalid public key encoding type"
-    elif ret_code == 4:
+    elif ret_code == "04":
         return ret_code, "Key Length error"
-    elif ret_code == 5:
+    elif ret_code == "05":
         return ret_code, "Invalid key type"
-    elif ret_code == 6:
+    elif ret_code == "06":
         return ret_code, "Public exponent length error"
-    elif ret_code == 8:
+    elif ret_code == "08":
         return ret_code, "Supplied public exponent is even"
-    elif ret_code == 47:
+    elif ret_code == "47":
         return ret_code, "Algorithm not licensed"
-    elif ret_code == 48:
+    elif ret_code == "48":
         return ret_code, "Stronger LMK required to protect this size RSA key"
-    elif ret_code == 68:
+    elif ret_code == "68":
         return ret_code, "Command disabled"
     else:
         return ret_code, "Error returned"  # if the error message is not in the list
@@ -110,7 +111,7 @@ def run_test(ip_addr, port, host_command, proto="tcp"):
         # try to decode the result code contained in the reply of the payShield
         check_result_tuple = (-1, "", "")
         return_code_tuple = check_return_message(data, len(args.header))
-        if return_code_tuple[0] >= 0:
+        if return_code_tuple[0] != "ZZ":
             print()
             check_result_tuple = check_returned_command_verb(data, len(args.header), host_command)
 
