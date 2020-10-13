@@ -1,5 +1,5 @@
 # PayShieldPPressureTest
-The **pressureTest.py** Python script creates a workload on the **Thales** appliance **payShield** **10k** and **9k**.
+The **pressureTest.py** Python script creates a workload on the **Thales payShield 10k** and **9k** appliances.
 
 The script can be useful during demonstrations of the monitoring features of the appliance and can be used in every case you need to generate a workload for testing purposes.
  
@@ -35,7 +35,7 @@ if the parameter is not specified **2048** is the default.
 
 **--randgen** Generate a random value 8 bytes long using **N0** command. It cannot be used in conjunction with **--key**.
 
-**--forever** the test will run forever. Use **CTRL-c** to terminate it.
+**--forever** the test will run forever. Use **CTRL-C** to terminate it.
 
 **--times** how many times execute the test. If it is not specified the default value is **1000** times.
 

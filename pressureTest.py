@@ -9,8 +9,10 @@ import string
 from struct import *
 import argparse
 
+from typing import Tuple
 
-def check_returned_command_verb(result_returned: bytes, head_len: int, command_sent: str) -> tuple:
+
+def check_returned_command_verb(result_returned: bytes, head_len: int, command_sent: str) -> Tuple[int, str, str]:
     verb_returned = result_returned[2 + head_len:][:2]
     verb_sent = command_sent[head_len:][:2]
     verb_expected = verb_sent[0:1] + chr(ord(verb_sent[1:2]) + 1)
@@ -156,10 +158,12 @@ if __name__ == "__main__":
                        help="Get Host Command Volumes using J4 command. If this option is specified --key is ignored",
                        action="store_true")
     group.add_argument("--j8",
-                       help="Get Health Check Accumulated Counts using J8 command. If this option is specified --key is ignored",
+                       help="Get Health Check Accumulated Counts using J8 command."
+                            "If this option is specified --key is ignored",
                        action="store_true")
     group.add_argument("--jk",
-                       help="Get Instantaneous Health Check Status using JK command. If this option is specified --key is ignored",
+                       help="Get Instantaneous Health Check Status using JK command."
+                            "If this option is specified --key is ignored",
                        action="store_true")
     group.add_argument("--randgen",
                        help="Generate a random value 8 bytes long", action="store_true")
