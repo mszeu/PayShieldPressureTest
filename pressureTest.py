@@ -10,6 +10,16 @@ from struct import *
 import argparse
 
 
+def check_returned_command_verb(result_returned: bytes, head_len: int, command_sent: str) -> tuple:
+    verb_returned = result_returned[2 + head_len:][:2]
+    verb_sent = command_sent[head_len:][:2]
+    verb_expected = verb_sent[0:1] + chr(ord(verb_sent[1:2]) + 1)
+    if verb_returned != verb_expected.encode():
+        return -1, verb_sent, verb_returned.decode()
+    else:
+        return 0, verb_sent, verb_returned.decode()
+
+
 def check_return_message(result_returned, head_len):
     if len(result_returned) < 2 + head_len + 2:  # 2 bytes for len + 2 header len + 2 for command
         return -1, "Incomplete message"
@@ -23,7 +33,7 @@ def check_return_message(result_returned, head_len):
 
     # compares the effective message length with then one stated in the first two bytes of the message
     if len(result_returned) - 2 != expected_msg_len:
-        return -2, "Len mismatch"
+        return -2, "Length mismatch"
     ret_code_position = 2 + head_len + 2
 
     # better be safe than sorry
@@ -96,8 +106,17 @@ def run_test(ip_addr, port, host_command, proto="tcp"):
             data = data_tuple[0]
 
         # try to decode the result code contained in the reply of the payShield
+        check_result_tuple = (-1, "", "")
         return_code_tuple = check_return_message(data, len(args.header))
+        if return_code_tuple[0] >= 0:
+            print()
+            check_result_tuple = check_returned_command_verb(data, len(args.header), host_command)
+
         print("Return code: " + str(return_code_tuple[0]) + " " + return_code_tuple[1])
+        if check_result_tuple[0] != 0:
+            print("NOTE: The response received from the HSM seems unrelated to the request!")
+
+        print("Command sent/recvd: " + check_result_tuple[1] + " ==> " + check_result_tuple[2])
 
         # don't print ascii if msg or resp contains non printable chars
         if test_printable(message[2:].decode("ascii", "ignore")):
