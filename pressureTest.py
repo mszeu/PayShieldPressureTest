@@ -189,7 +189,7 @@ if __name__ == "__main__":
     if args.jk:
         command = args.header + 'JK'
     if args.randgen:
-        command = args.header + 'N0064'
+        command = args.header + 'N0008'
     if args.forever:
         while True:
             run_test(args.host, args.port, command, args.proto)
