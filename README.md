@@ -1,5 +1,5 @@
 # PayShieldPPressureTest
-The **pressureTest.py** Python script creates a workload on the **Thales** appliance **payShield** **10k** and **9k**.
+The **pressureTest.py** Python script creates a workload on the **Thales payShield 10k** and **9k** appliances.
 
 The script can be useful during demonstrations of the monitoring features of the appliance and can be used in every case you need to generate a workload for testing purposes.
  
@@ -35,11 +35,36 @@ if the parameter is not specified **2048** is the default.
 
 **--randgen** Generate a random value 8 bytes long using **N0** command. It cannot be used in conjunction with **--key**.
 
-**--forever** the test will run forever. Use **CTRL-c** to terminate it.
+**--forever** the test will run forever. Use **CTRL-C** to terminate it.
 
 **--times** how many times execute the test. If it is not specified the default value is **1000** times.
 
-## NOTES ##
+## Example
+C:\Test>*python pressureTest.py 192.168.0.36 --nc --times 2*
+
+PayShield stress utility by Marco S. Zuppone - msz@msz.eu
+To get more info about the usage invoke it with the -h option
+This software is open source and it is under the Affero AGPL 3.0
+
+
+Return code: 0 OK
+Command sent/received: NC ==> ND
+sent data (ASCII) : b'HEADNC'
+sent data (HEX) : b'0006484541444e43'
+received data (ASCII): b'HEADND00451BC800000000001500-0023'
+received data (HEX) : b'0021484541444e44303034353142433830303030303030303030313530302d30303233'
+Iteration:  1
+
+
+Return code: 0 OK
+Command sent/received: NC ==> ND
+sent data (ASCII) : b'HEADNC'
+sent data (HEX) : b'0006484541444e43'
+received data (ASCII): b'HEADND00451BC800000000001500-0023'
+received data (HEX) : b'0021484541444e44303034353142433830303030303030303030313530302d30303233'
+Iteration:  2
+
+## NOTES
 
 The **EI** command used to generate the RSA key requires authorization and the generation of 4096 bit keys is possible only for keyblock LMKs.
 

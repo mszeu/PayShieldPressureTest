@@ -9,52 +9,65 @@ import string
 from struct import *
 import argparse
 
+from typing import Tuple
+
+
+def check_returned_command_verb(result_returned: bytes, head_len: int, command_sent: str) -> Tuple[int, str, str]:
+    verb_returned = result_returned[2 + head_len:][:2]
+    verb_sent = command_sent[head_len:][:2]
+    verb_expected = verb_sent[0:1] + chr(ord(verb_sent[1:2]) + 1)
+    if verb_returned != verb_expected.encode():
+        return -1, verb_sent, verb_returned.decode()
+    else:
+        return 0, verb_sent, verb_returned.decode()
+
 
 def check_return_message(result_returned, head_len):
     if len(result_returned) < 2 + head_len + 2:  # 2 bytes for len + 2 header len + 2 for command
-        return -1, "Incomplete message"
+        return "ZZ", "Incomplete message"
     # decode the first two bytes returned and transform them in integer
     try:
         expected_msg_len = int.from_bytes(result_returned[:2], byteorder='big', signed=False)
     except ValueError:
-        return -99, "Malformed message"
+        return "ZZ", "Malformed message"
     except Exception:
-        return -100, "Unknown message length parsing error"
+        return "ZZ", "Unknown message length parsing error"
 
     # compares the effective message length with then one stated in the first two bytes of the message
     if len(result_returned) - 2 != expected_msg_len:
-        return -2, "Len mismatch"
+        return "ZZ", "Length mismatch"
     ret_code_position = 2 + head_len + 2
 
     # better be safe than sorry
     try:
-        ret_code = int(result_returned[ret_code_position:ret_code_position + 2])
-    except ValueError:
-        return -102, "message result code parsing error"
+        # ret_code = int(result_returned[ret_code_position:ret_code_position + 2])
+        ret_code = result_returned[ret_code_position:ret_code_position + 2].decode()
+    except (ValueError, UnicodeDecodeError):
+        return "ZZ", "message result code parsing error"
     except Exception:
-        return -101, "Unknown message result code parsing error"
+        return "ZZ", "Unknown message result code parsing error"
 
     # try to describe the error
 
-    if ret_code == 0:
-        return 0, "OK"
-    elif ret_code == 17:
+    if ret_code == "00":
+        return ret_code, "OK"
+    elif ret_code == "17":
         return ret_code, "HSM not authorized, or operation prohibited by security settings"
-    elif ret_code == 3:
+    elif ret_code == "03":
         return ret_code, "Invalid public key encoding type"
-    elif ret_code == 4:
+    elif ret_code == "04":
         return ret_code, "Key Length error"
-    elif ret_code == 5:
+    elif ret_code == "05":
         return ret_code, "Invalid key type"
-    elif ret_code == 6:
+    elif ret_code == "06":
         return ret_code, "Public exponent length error"
-    elif ret_code == 8:
+    elif ret_code == "08":
         return ret_code, "Supplied public exponent is even"
-    elif ret_code == 47:
+    elif ret_code == "47":
         return ret_code, "Algorithm not licensed"
-    elif ret_code == 48:
+    elif ret_code == "48":
         return ret_code, "Stronger LMK required to protect this size RSA key"
-    elif ret_code == 68:
+    elif ret_code == "68":
         return ret_code, "Command disabled"
     else:
         return ret_code, "Error returned"  # if the error message is not in the list
@@ -96,8 +109,17 @@ def run_test(ip_addr, port, host_command, proto="tcp"):
             data = data_tuple[0]
 
         # try to decode the result code contained in the reply of the payShield
+        check_result_tuple = (-1, "", "")
         return_code_tuple = check_return_message(data, len(args.header))
+        if return_code_tuple[0] != "ZZ":
+            print()
+            check_result_tuple = check_returned_command_verb(data, len(args.header), host_command)
+
         print("Return code: " + str(return_code_tuple[0]) + " " + return_code_tuple[1])
+        if check_result_tuple[0] != 0:
+            print("NOTE: The response received from the HSM seems unrelated to the request!")
+
+        print("Command sent/received: " + check_result_tuple[1] + " ==> " + check_result_tuple[2])
 
         # don't print ascii if msg or resp contains non printable chars
         if test_printable(message[2:].decode("ascii", "ignore")):
@@ -137,10 +159,12 @@ if __name__ == "__main__":
                        help="Get Host Command Volumes using J4 command. If this option is specified --key is ignored",
                        action="store_true")
     group.add_argument("--j8",
-                       help="Get Health Check Accumulated Counts using J8 command. If this option is specified --key is ignored",
+                       help="Get Health Check Accumulated Counts using J8 command."
+                            "If this option is specified --key is ignored",
                        action="store_true")
     group.add_argument("--jk",
-                       help="Get Instantaneous Health Check Status using JK command. If this option is specified --key is ignored",
+                       help="Get Instantaneous Health Check Status using JK command."
+                            "If this option is specified --key is ignored",
                        action="store_true")
     group.add_argument("--randgen",
                        help="Generate a random value 8 bytes long", action="store_true")
@@ -170,7 +194,7 @@ if __name__ == "__main__":
     if args.jk:
         command = args.header + 'JK'
     if args.randgen:
-        command = args.header + 'N0064'
+        command = args.header + 'N0008'
     if args.forever:
         while True:
             run_test(args.host, args.port, command, args.proto)
