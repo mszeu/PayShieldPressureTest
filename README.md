@@ -42,27 +42,27 @@ if the parameter is not specified **2048** is the default.
 ## Example
 C:\Test>*python pressureTest.py 192.168.0.36 --nc --times 2*
 
-PayShield stress utility by Marco S. Zuppone - msz@msz.eu
-To get more info about the usage invoke it with the -h option
-This software is open source and it is under the Affero AGPL 3.0
+PayShield stress utility by Marco S. Zuppone - msz@msz.eu  
+To get more info about the usage invoke it with the -h option  
+This software is open source and it is under the Affero AGPL 3.0  
 
 
-Return code: 0 OK
-Command sent/received: NC ==> ND
-sent data (ASCII) : b'HEADNC'
-sent data (HEX) : b'0006484541444e43'
-received data (ASCII): b'HEADND00451BC800000000001500-0023'
-received data (HEX) : b'0021484541444e44303034353142433830303030303030303030313530302d30303233'
-Iteration:  1
+Return code: 0 OK  
+Command sent/received: NC ==> ND  
+sent data (ASCII) : b'HEADNC'  
+sent data (HEX) : b'0006484541444e43'  
+received data (ASCII): b'HEADND00451BC800000000001500-0023'  
+received data (HEX) : b'0021484541444e44303034353142433830303030303030303030313530302d30303233'  
+Iteration:  1  
 
 
-Return code: 0 OK
-Command sent/received: NC ==> ND
-sent data (ASCII) : b'HEADNC'
-sent data (HEX) : b'0006484541444e43'
-received data (ASCII): b'HEADND00451BC800000000001500-0023'
-received data (HEX) : b'0021484541444e44303034353142433830303030303030303030313530302d30303233'
-Iteration:  2
+Return code: 0 OK  
+Command sent/received: NC ==> ND  
+sent data (ASCII) : b'HEADNC'  
+sent data (HEX) : b'0006484541444e43'  
+received data (ASCII): b'HEADND00451BC800000000001500-0023'  
+received data (HEX) : b'0021484541444e44303034353142433830303030303030303030313530302d30303233'  
+Iteration:  2  
 
 ## NOTES
 
@@ -75,15 +75,15 @@ The **EI** command used to generate the RSA key requires authorization and the g
   
   Copyright(C) 2020  **Marco S. Zuppone** - **msz@msz.eu** - [](https://msz.eu)
 
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU Affero General Public License as
-  published by the Free Software Foundation, either version 3 of the
-  License, or any later version.
+  This program is free software: you can redistribute it and/or modify  
+  it under the terms of the GNU Affero General Public License as  
+  published by the Free Software Foundation, either version 3 of the  
+  License, or any later version.  
 
-  This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-   GNU Affero General Public License for more details.
+  This program is distributed in the hope that it will be useful,  
+   but ***WITHOUT ANY WARRANTY; without even the implied warranty of  
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.** See the  
+   GNU Affero General Public License for more details.  
    
 ## Questions bug and suggestions
 For any question, feedback, suggestion, send money ***(yes...it's a dream I know)*** you can contact the author at **msz@msz.eu**
