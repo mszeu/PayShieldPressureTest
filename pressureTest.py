@@ -124,7 +124,7 @@ def check_returned_command_verb(result_returned: bytes, head_len: int, command_s
         return 0, verb_sent, verb_returned.decode()
 
 
-def check_return_message(result_returned, head_len):
+def check_return_message(result_returned: bytes, head_len: int) -> Tuple[str, str]:
     if len(result_returned) < 2 + head_len + 2:  # 2 bytes for len + 2 header len + 2 for command
         return "ZZ", "Incomplete message"
     # decode the first two bytes returned and transform them in integer
@@ -157,7 +157,12 @@ def test_printable(input_str):
     return all(c in string.printable for c in input_str)
 
 
-def run_test(ip_addr, port, host_command, proto="tcp", header_len=4):
+def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", header_len: int = 4) -> int:
+    # it connects to the specified host and port, using the specified protocol that can me tcp or udp and
+    # sends the command.
+    # The standard header length is set to 4 if not provided because this is the out of box default value
+    # in payShield 10k
+
     if proto != "tcp" and proto != "udp":
         print("invalid protocol parameter, It needs to be tcp or udp")
         return -1
@@ -166,10 +171,10 @@ def run_test(ip_addr, port, host_command, proto="tcp", header_len=4):
 
         # calculate the size and format it correctly
         size = pack('>h', len(host_command))
-        # join everything together in python3
 
+        # join everything together in python3
         message = size + host_command.encode()
-        # Connect to the host and the the reply in TCP or UDP
+        # Connect to the host and gather the the reply in TCP or UDP
         buffer_size = 4096
         if proto == "tcp":
             # creates the TCP socket
@@ -214,8 +219,10 @@ def run_test(ip_addr, port, host_command, proto="tcp", header_len=4):
 
     except ConnectionError as e:
         print("Connection issue: ", e.strerror)
+
     except Exception:
         print("Unexpected issue:")
+
     finally:
         connection.close()
 
