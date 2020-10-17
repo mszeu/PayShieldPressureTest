@@ -157,7 +157,7 @@ def test_printable(input_str):
     return all(c in string.printable for c in input_str)
 
 
-def run_test(ip_addr, port, host_command, proto="tcp"):
+def run_test(ip_addr, port, host_command, proto="tcp", header_len=4):
     if proto != "tcp" and proto != "udp":
         print("invalid protocol parameter, It needs to be tcp or udp")
         return -1
@@ -190,10 +190,10 @@ def run_test(ip_addr, port, host_command, proto="tcp"):
 
         # try to decode the result code contained in the reply of the payShield
         check_result_tuple = (-1, "", "")
-        return_code_tuple = check_return_message(data, len(args.header))
+        return_code_tuple = check_return_message(data, header_len)
         if return_code_tuple[0] != "ZZ":
             print()
-            check_result_tuple = check_returned_command_verb(data, len(args.header), host_command)
+            check_result_tuple = check_returned_command_verb(data, header_len, host_command)
 
         print("Return code: " + str(return_code_tuple[0]) + " " + return_code_tuple[1])
         if check_result_tuple[0] != 0:
@@ -226,7 +226,7 @@ if __name__ == "__main__":
     print("This software is open source and it is under the Affero AGPL 3.0")
     print("")
     parser = argparse.ArgumentParser(description="Stress a PayShield appliance with RSA key generation")
-    parser.add_argument("host", help="Ip address or hostname of the payShiled")
+    parser.add_argument("host", help="Ip address or hostname of the payShield")
     group = parser.add_mutually_exclusive_group()
     parser.add_argument("--port", "-p", help="The host port", default=1500)
     group.add_argument("--key", help="RSA key length. Accepted values are 2048 ot 4096",
@@ -277,10 +277,10 @@ if __name__ == "__main__":
         command = args.header + 'N0008'
     if args.forever:
         while True:
-            run_test(args.host, args.port, command, args.proto)
+            run_test(args.host, args.port, command, args.proto, len(args.header))
             print("")
     else:
         for i in range(0, args.times):
-            run_test(args.host, args.port, command, args.proto)
+            run_test(args.host, args.port, command, args.proto, len(args.header))
             print("Iteration: ", i + 1)
             print("")
