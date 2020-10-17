@@ -144,7 +144,7 @@ def check_return_message(result_returned, head_len):
         return "ZZ", "Unknown message result code parsing error"
 
     # try to describe the error
-    return payshield_error_codes(ret_code)
+    return ret_code, payshield_error_codes(ret_code)
 
 
 def test_printable(input_str):
