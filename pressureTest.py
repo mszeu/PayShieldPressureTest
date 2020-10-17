@@ -8,11 +8,17 @@ import binascii
 import string
 from struct import *
 import argparse
-
 from typing import Tuple
 
 
 def payshield_error_codes(error_code: str) -> str:
+    # This function maps the result code with the error message
+    # I derived the list of errors and messages from the following manual:
+    # payShield 10K Core Host Commands v1
+    # Revision: A
+    # Date: 04 August 2020
+    # Doc.Number: PUGD0537 - 004
+
     pay_shield_error_table = {
         '00': 'No error',
         '01': 'Verification failure or warning of imported key parity error',
