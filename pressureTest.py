@@ -8,8 +8,110 @@ import binascii
 import string
 from struct import *
 import argparse
-
 from typing import Tuple
+
+
+def payshield_error_codes(error_code: str) -> str:
+    # This function maps the result code with the error message
+    # I derived the list of errors and messages from the following manual:
+    # payShield 10K Core Host Commands v1
+    # Revision: A
+    # Date: 04 August 2020
+    # Doc.Number: PUGD0537 - 004
+
+    pay_shield_error_table = {
+        '00': 'No error',
+        '01': 'Verification failure or warning of imported key parity error',
+        '02': 'Key inappropriate length for algorithm',
+        '04': 'Invalid key type code',
+        '05': 'Invalid key length flag',
+        '10': 'Source key parity error',
+        '11': 'Destination key parity error or key all zeros',
+        '12': 'Contents of user storage not available. Reset, power-down or overwrite',
+        '13': 'Invalid LMK Identifier',
+        '14': 'PIN encrypted under LMK pair 02-03 is invalid',
+        '15': 'Invalid input data (invalid format, invalid characters, or not enough data provided)',
+        '16': 'Console or printer not ready or not connected',
+        '17': 'HSM not authorized, or operation prohibited by security settings',
+        '18': 'Document format definition not loaded',
+        '19': 'Specified Diebold Table is invalid',
+        '20': 'PIN block does not contain valid values',
+        '21': 'Invalid index value, or index/block count would cause an overflow condition',
+        '22': 'Invalid account number',
+        '23': 'Invalid PIN block format code. (Use includes where the security setting to implement PCI HSM '
+              'limitations on PIN Block format usage is applied, and a Host command attempts to convert a PIN Block '
+              'to a disallowed format.)',
+        '24': 'PIN is fewer than 4 or more than 12 digits in length',
+        '25': 'Decimalization Table error',
+        '26': 'Invalid key scheme',
+        '27': 'Incompatible key length',
+        '28': 'Invalid key type',
+        '29': 'Key function not permitted',
+        '30': 'Invalid reference number',
+        '31': 'Insufficient solicitation entries for batch',
+        '32': 'AES not licensed',
+        '33': 'LMK key change storage is corrupted',
+        '39': 'Fraud detection',
+        '40': 'Invalid checksum',
+        '41': 'Internal hardware/software error: bad RAM, invalid error codes, etc.',
+        '42': 'DES failure',
+        '43': 'RSA Key Generation Failure',
+        '46': 'Invalid tag for encrypted PIN',
+        '47': 'Algorithm not licensed',
+        '49': 'Private key error, report to supervisor',
+        '51': 'Invalid message header',
+        '65': 'Transaction Key Scheme set to None',
+        '67': 'Command not licensed',
+        '68': 'Command has been disabled',
+        '69': 'PIN block format has been disabled',
+        '74': 'Invalid digest info syntax (no hash mode only)',
+        '75': 'Single length key masquerading as double or triple length key',
+        '76': 'RSA public key length error or RSA encrypted data length error',
+        '77': 'Clear data block error',
+        '78': 'Private key length error',
+        '79': 'Hash algorithm object identifier error',
+        '80': 'Data length error. The amount of MAC data (or other data) is greater than or less than the expected '
+              'amount.',
+        '81': 'Invalid certificate header',
+        '82': 'Invalid check value length',
+        '83': 'Key block format error',
+        '84': 'Key block check value error',
+        '85': 'Invalid OAEP Mask Generation Function',
+        '86': 'Invalid OAEP MGF Hash Function',
+        '87': 'OAEP Parameter Error',
+        '90': 'Data parity error in the request message received by the HSM',
+        'A1': 'Incompatible LMK schemes',
+        'A2': 'Incompatible LMK identifiers',
+        'A3': 'Incompatible key block LMK identifiers',
+        'A4': 'Key block authentication failure',
+        'A5': 'Incompatible key length',
+        'A6': 'Invalid key usage',
+        'A7': 'Invalid algorithm',
+        'A8': 'Invalid mode of use',
+        'A9': 'Invalid key version number',
+        'AA': 'Invalid export field',
+        'AB': 'Invalid number of optional blocks',
+        'AC': 'Optional header block error',
+        'AD': 'Key status optional block error',
+        'AE': 'Invalid start date/time',
+        'AF': 'Invalid end date/time',
+        'B0': 'Invalid encryption mode',
+        'B1': 'Invalid authentication mode',
+        'B2': 'Miscellaneous key block error',
+        'B3': 'Invalid number of optional blocks',
+        'B4': 'Optional block data error',
+        'B5': 'Incompatible components',
+        'B6': 'Incompatible key status optional blocks',
+        'B7': 'Invalid change field',
+        'B8': 'Invalid old value',
+        'B9': 'Invalid new value',
+        'BA': 'No key status block in the key block',
+        'BB': 'Invalid wrapping key',
+        'BC': 'Repeated optional block',
+        'BD': 'Incompatible key types',
+        'BE': 'Invalid key block header ID'}
+
+    return pay_shield_error_table.get(error_code, "Unknown error")
 
 
 def check_returned_command_verb(result_returned: bytes, head_len: int, command_sent: str) -> Tuple[int, str, str]:
@@ -22,7 +124,7 @@ def check_returned_command_verb(result_returned: bytes, head_len: int, command_s
         return 0, verb_sent, verb_returned.decode()
 
 
-def check_return_message(result_returned, head_len):
+def check_return_message(result_returned: bytes, head_len: int) -> Tuple[str, str]:
     if len(result_returned) < 2 + head_len + 2:  # 2 bytes for len + 2 header len + 2 for command
         return "ZZ", "Incomplete message"
     # decode the first two bytes returned and transform them in integer
@@ -48,36 +150,19 @@ def check_return_message(result_returned, head_len):
         return "ZZ", "Unknown message result code parsing error"
 
     # try to describe the error
-
-    if ret_code == "00":
-        return ret_code, "OK"
-    elif ret_code == "17":
-        return ret_code, "HSM not authorized, or operation prohibited by security settings"
-    elif ret_code == "03":
-        return ret_code, "Invalid public key encoding type"
-    elif ret_code == "04":
-        return ret_code, "Key Length error"
-    elif ret_code == "05":
-        return ret_code, "Invalid key type"
-    elif ret_code == "06":
-        return ret_code, "Public exponent length error"
-    elif ret_code == "08":
-        return ret_code, "Supplied public exponent is even"
-    elif ret_code == "47":
-        return ret_code, "Algorithm not licensed"
-    elif ret_code == "48":
-        return ret_code, "Stronger LMK required to protect this size RSA key"
-    elif ret_code == "68":
-        return ret_code, "Command disabled"
-    else:
-        return ret_code, "Error returned"  # if the error message is not in the list
+    return ret_code, payshield_error_codes(ret_code)
 
 
 def test_printable(input_str):
     return all(c in string.printable for c in input_str)
 
 
-def run_test(ip_addr, port, host_command, proto="tcp"):
+def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", header_len: int = 4) -> int:
+    # it connects to the specified host and port, using the specified protocol that can me tcp or udp and
+    # sends the command.
+    # The standard header length is set to 4 if not provided because this is the out of box default value
+    # in payShield 10k
+
     if proto != "tcp" and proto != "udp":
         print("invalid protocol parameter, It needs to be tcp or udp")
         return -1
@@ -86,10 +171,10 @@ def run_test(ip_addr, port, host_command, proto="tcp"):
 
         # calculate the size and format it correctly
         size = pack('>h', len(host_command))
-        # join everything together in python3
 
+        # join everything together in python3
         message = size + host_command.encode()
-        # Connect to the host and the the reply in TCP or UDP
+        # Connect to the host and gather the the reply in TCP or UDP
         buffer_size = 4096
         if proto == "tcp":
             # creates the TCP socket
@@ -110,10 +195,10 @@ def run_test(ip_addr, port, host_command, proto="tcp"):
 
         # try to decode the result code contained in the reply of the payShield
         check_result_tuple = (-1, "", "")
-        return_code_tuple = check_return_message(data, len(args.header))
+        return_code_tuple = check_return_message(data, header_len)
         if return_code_tuple[0] != "ZZ":
             print()
-            check_result_tuple = check_returned_command_verb(data, len(args.header), host_command)
+            check_result_tuple = check_returned_command_verb(data, header_len, host_command)
 
         print("Return code: " + str(return_code_tuple[0]) + " " + return_code_tuple[1])
         if check_result_tuple[0] != 0:
@@ -134,8 +219,10 @@ def run_test(ip_addr, port, host_command, proto="tcp"):
 
     except ConnectionError as e:
         print("Connection issue: ", e.strerror)
+
     except Exception:
         print("Unexpected issue:")
+
     finally:
         connection.close()
 
@@ -146,7 +233,7 @@ if __name__ == "__main__":
     print("This software is open source and it is under the Affero AGPL 3.0")
     print("")
     parser = argparse.ArgumentParser(description="Stress a PayShield appliance with RSA key generation")
-    parser.add_argument("host", help="Ip address or hostname of the payShiled")
+    parser.add_argument("host", help="Ip address or hostname of the payShield")
     group = parser.add_mutually_exclusive_group()
     parser.add_argument("--port", "-p", help="The host port", default=1500)
     group.add_argument("--key", help="RSA key length. Accepted values are 2048 ot 4096",
@@ -197,10 +284,10 @@ if __name__ == "__main__":
         command = args.header + 'N0008'
     if args.forever:
         while True:
-            run_test(args.host, args.port, command, args.proto)
+            run_test(args.host, args.port, command, args.proto, len(args.header))
             print("")
     else:
         for i in range(0, args.times):
-            run_test(args.host, args.port, command, args.proto)
+            run_test(args.host, args.port, command, args.proto, len(args.header))
             print("Iteration: ", i + 1)
             print("")
