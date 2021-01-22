@@ -14,13 +14,18 @@ It requires **Python 3**. It was tested on **Python 3.7** and **3.8** using a **
 
 ## Usage
 
-**pressureTest.py \[-h\] \[--port PORT\] \[--proto {tcp, udp}\] \[--key {2048,4096} | --nc | --j2 | --j4 | --n8 | --jk | --randgen\] \[--head HEADER\] \[--forever\] \[--times TIMES\] host**
+**pressureTest.py \[-h\] \[--port PORT\] \[--proto {tcp, udp, tls}\] \[--keyfile CLIENT.KEY\] \[--crtfile CLIENT.CRT\] \[--key {2048,4096} | --nc | --j2 | --j4 | --n8 | --jk | --randgen\] \[--head HEADER\] \[--forever\] \[--times TIMES\] host**
 
 **host** you need to specify the ip address or the hostname/fqdn of the **payShield** appliance.
 
 **--port** specify the host port. If the parameter is omitted the default value **1500** is used.
 
-**--proto** specify the protocol to use, **tcp** or **udp**. If the parameter is omitted the default value **tcp** is used.
+**--proto** specify the protocol to use, **tcp**, **udp** or **tls**. If the parameter is omitted the default value **tcp** is used.
+If **tls** is used you might specify the path of the client key file and the certificate using the parameters **--keyfile** and **--crtfile**
+
+**--keyfile** the path of the client key file. If is not specified the default value is **client.key**. It's only considered it the protocol is **tls**
+
+**--crtfile** the path of the client certificate file. If is not specified the default value is **client.crt**. It's only considered it the protocol is **tls**
 
 **--key** the length of the RSA key that the appliance will generate. there are ony two valid values: **2048** or **4096**.
 if the parameter is not specified **2048** is the default.
@@ -48,7 +53,7 @@ C:\Test>*python pressureTest.py 192.168.0.36 --nc --times 2*
 
 PayShield stress utility by Marco S. Zuppone - msz@msz.eu  
 To get more info about the usage invoke it with the -h option  
-This software is open source and it is under the Affero AGPL 3.0  
+This software is open source, and it is under the Affero AGPL 3.0  
 
 
 Return code: 0 OK  
@@ -70,7 +75,7 @@ Iteration:  2
 
 ## NOTES
 
-The **EI** command used to generate the RSA key requires authorization and the generation of 4096 bit keys is possible only for keyblock LMKs.
+The **EI** command used to generate the RSA key requires authorization, and the generation of 4096-bit keys is possible only for keyblock LMKs.
 
 
 ## COPYRIGHT & LICENSE

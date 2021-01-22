@@ -313,7 +313,8 @@ if __name__ == "__main__":
                   "Check value passed to the parameters --keyfile and --crtfile")
             exit()
         if args.port < 2500:
-            print("WARNING: generally the TLS base is 2500, please check that you passed the right value to the "
+            print("WARNING: generally the TLS base port is 2500. You are instead using the port ",
+                  args.port, " please check that you passed the right value to the "
                   "--port parameter")
 
     if args.forever:
