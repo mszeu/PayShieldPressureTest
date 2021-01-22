@@ -249,7 +249,7 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
 
 
 if __name__ == "__main__":
-    print("PayShield stress utility, version " + VERSION + ", by Marco S. Zuppone - msz@msz.eu")
+    print("PayShield stress utility, version", VERSION, ",by Marco S. Zuppone - msz@msz.eu")
     print("To get more info about the usage invoke it with the -h option")
     print("This software is open source and it is under the Affero AGPL 3.0")
     print("")
@@ -267,11 +267,11 @@ if __name__ == "__main__":
                        help="Get Host Command Volumes using J4 command. If this option is specified --key is ignored",
                        action="store_true")
     group.add_argument("--j8",
-                       help="Get Health Check Accumulated Counts using J8 command."
+                       help="Get Health Check Accumulated Counts using J8 command. "
                             "If this option is specified --key is ignored",
                        action="store_true")
     group.add_argument("--jk",
-                       help="Get Instantaneous Health Check Status using JK command."
+                       help="Get Instantaneous Health Check Status using JK command. "
                             "If this option is specified --key is ignored",
                        action="store_true")
     group.add_argument("--randgen",
