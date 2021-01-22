@@ -1,6 +1,10 @@
 # PayShieldPPressureTest
-The **pressureTest.py** Python script creates a workload on the **Thales payShield 10k** and **9k** appliances.
 
+<a href="https://www.jetbrains.com/?from=PayshieldPPressureTest"><img src=images/jetbrains-variant-3.png width=100></a>May thanks to <a href="https://www.jetbrains.com/?from=PayshieldPPressureTest">JetBrains</a> for giving us the <b>Open Source License</b> for free with the full access to their developer suite.
+
+&nbsp;
+
+The **pressureTest.py** Python script creates a workload on the **Thales payShield 10k** and **9k** appliances.
 The script can be useful during demonstrations of the monitoring features of the appliance and can be used in every case you need to generate a workload for testing purposes.
  
 The project is in an early development stage and still a bit clumsy.
