@@ -235,7 +235,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Stress a PayShield appliance with RSA key generation")
     parser.add_argument("host", help="Ip address or hostname of the payShield")
     group = parser.add_mutually_exclusive_group()
-    parser.add_argument("--port", "-p", help="The host port", default=1500,type=int)
+    parser.add_argument("--port", "-p", help="The host port", default=1500, type=int)
     group.add_argument("--key", help="RSA key length. Accepted values are 2048 ot 4096",
                        default=2048, choices=[2048, 4096], type=int)
     group.add_argument("--nc", help="Just perform a NC test If this option is specified --key is ignored",
