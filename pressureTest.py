@@ -12,7 +12,7 @@ import argparse
 from pathlib import Path
 from typing import Tuple
 
-VERSION = "1.0"
+VERSION = "1.0-devel"
 
 
 def payshield_error_codes(error_code: str) -> str:
@@ -234,12 +234,15 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
         print("received data (HEX) :", binascii.hexlify(data))
 
     except ConnectionError as e:
-        print("Connection issue: ", e.strerror)
+        print("Connection issue: ", e.message)
     except FileNotFoundError as e:
         print("The client certificate file or the client key file cannot be found or accessed.\n" +
-              "Check value passed to the parameters --keyfile and --crtfile", e.strerror)
+              "Check value passed to the parameters --keyfile and --crtfile", e.message)
     except Exception as e:
-        print("Unexpected issue:", e.strerror)
+        if hasattr(e, 'message'):
+            print("Unexpected issue:", e.message)
+        else:
+            print("Unexpected issue:", e)
 
     finally:
         connection.close()
@@ -319,6 +322,7 @@ if __name__ == "__main__":
             print("")
     else:
         for i in range(0, args.times):
+            print("Iteration: ", i + 1, " of ", args.times)
             run_test(args.host, args.port, command, args.proto, len(args.header))
-            print("Iteration: ", i + 1)
             print("")
+        print("DONE")
