@@ -4,11 +4,15 @@
 # and to README.md file for more information about the usage of it
 
 import socket
+import ssl
 import binascii
 import string
 from struct import *
 import argparse
+from pathlib import Path
 from typing import Tuple
+
+VERSION = "1.0"
 
 
 def payshield_error_codes(error_code: str) -> str:
@@ -158,13 +162,14 @@ def test_printable(input_str):
 
 
 def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", header_len: int = 4) -> int:
-    # it connects to the specified host and port, using the specified protocol that can me tcp or udp and
+    # it connects to the specified host and port, using the specified protocol that can me tcp, udp or tls and
     # sends the command.
-    # The standard header length is set to 4 if not provided because this is the out of box default value
+    # The default header length is set to 4 if not provided because this is the out of box default value
     # in payShield 10k
 
-    if proto != "tcp" and proto != "udp":
-        print("invalid protocol parameter, It needs to be tcp or udp")
+    # if proto != "tcp" and proto != "udp" and proto != "tls":
+    if proto not in ['tcp', 'udp', 'tls']:
+        print("invalid protocol parameter, It needs to be tcp, udp or tls")
         return -1
 
     try:
@@ -184,7 +189,18 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
             connection.send(message)
             # receive data
             data = connection.recv(buffer_size)
-        else:
+        if proto == "tls":
+            # creates the TCP TLS socket
+            connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            ciphers = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:AES128-GCM-SHA256:AES128-SHA256:HIGH:"
+            ciphers += "!aNULL:!eNULL:!EXPORT:!DSS:!DES:!RC4:!3DES:!MD5:!PSK"
+            ssl_sock = ssl.wrap_socket(connection, args.keyfile, args.crtfile)
+            ssl_sock.connect((ip_addr, port))
+            # send message
+            ssl_sock.send(message)
+            # receive data
+            data = ssl_sock.recv(buffer_size)
+        if proto == "udp":
             # create the UDP socket
             connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             # send data
@@ -218,17 +234,22 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
         print("received data (HEX) :", binascii.hexlify(data))
 
     except ConnectionError as e:
-        print("Connection issue: ", e.strerror)
-
-    except Exception:
-        print("Unexpected issue:")
+        print("Connection issue: ", e.message)
+    except FileNotFoundError as e:
+        print("The client certificate file or the client key file cannot be found or accessed.\n" +
+              "Check value passed to the parameters --keyfile and --crtfile", e.message)
+    except Exception as e:
+        if hasattr(e, 'message'):
+            print("Unexpected issue:", e.message)
+        else:
+            print("Unexpected issue:", e)
 
     finally:
         connection.close()
 
 
 if __name__ == "__main__":
-    print("PayShield stress utility by Marco S. Zuppone - msz@msz.eu")
+    print("PayShield stress utility, version " + VERSION + ", by Marco S. Zuppone - msz@msz.eu - https://msz.eu")
     print("To get more info about the usage invoke it with the -h option")
     print("This software is open source and it is under the Affero AGPL 3.0")
     print("")
@@ -246,11 +267,11 @@ if __name__ == "__main__":
                        help="Get Host Command Volumes using J4 command. If this option is specified --key is ignored",
                        action="store_true")
     group.add_argument("--j8",
-                       help="Get Health Check Accumulated Counts using J8 command."
+                       help="Get Health Check Accumulated Counts using J8 command. "
                             "If this option is specified --key is ignored",
                        action="store_true")
     group.add_argument("--jk",
-                       help="Get Instantaneous Health Check Status using JK command."
+                       help="Get Instantaneous Health Check Status using JK command. "
                             "If this option is specified --key is ignored",
                        action="store_true")
     group.add_argument("--randgen",
@@ -262,8 +283,11 @@ if __name__ == "__main__":
                         action="store_true")
     parser.add_argument("--times", help="how many time to repeat the operation", type=int, default=1000)
     parser.add_argument("--proto", help="accepted value are tcp or udp, the default is tcp", default="tcp",
-                        choices=["tcp", "udp"], type=str)
-
+                        choices=["tcp", "udp", "tls"], type=str.lower)
+    parser.add_argument("--keyfile", help="client key file, used if the protocol is TLS", type=Path,
+                        default="client.key")
+    parser.add_argument("--crtfile", help="client certificate file, used if the protocol is TLS", type=Path,
+                        default="client.crt")
     args = parser.parse_args()
     # the order of the IF here is important due to the default arguments
     if args.key == 2048:
@@ -282,12 +306,30 @@ if __name__ == "__main__":
         command = args.header + 'JK'
     if args.randgen:
         command = args.header + 'N0008'
+    if args.proto == 'tls':
+        # check that the cert and key files are accessible
+        if not (args.keyfile.exists() and args.crtfile.exists()):
+            print("The client certificate file or the client key file cannot be found or accessed.\n" +
+                  "Check value passed to the parameters --keyfile and --crtfile")
+            print("You passed these values:")
+            print("Certificate file:", args.crtfile)
+            print("Key file:", args.keyfile)
+            exit()
+        if args.port < 2500:
+            print("WARNING: generally the TLS base port is 2500. You are instead using the port ",
+                  args.port, " please check that you passed the right value to the "
+                             "--port parameter")
+
     if args.forever:
+        i = 1
         while True:
+            print("Iteration: ", i)
             run_test(args.host, args.port, command, args.proto, len(args.header))
+            i = i + 1
             print("")
     else:
         for i in range(0, args.times):
+            print("Iteration: ", i + 1, " of ", args.times)
             run_test(args.host, args.port, command, args.proto, len(args.header))
-            print("Iteration: ", i + 1)
             print("")
+        print("DONE")
