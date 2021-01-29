@@ -51,27 +51,29 @@ if the parameter is not specified **2048** is the default.
 ## Example
 C:\Test>*python pressureTest.py 192.168.0.36 --nc --times 2*
 
-PayShield stress utility by Marco S. Zuppone - msz@msz.eu  
-To get more info about the usage invoke it with the -h option  
-This software is open source, and it is under the Affero AGPL 3.0  
+PayShield stress utility, version 1.0, by Marco S. Zuppone - msz@msz.eu - https://msz.eu
+To get more info about the usage invoke it with the -h option
+This software is open source, and it is under the Affero AGPL 3.0
 
+Iteration:  1  of  2
 
-Return code: 0 OK  
-Command sent/received: NC ==> ND  
-sent data (ASCII) : b'HEADNC'  
-sent data (HEX) : b'0006484541444e43'  
-received data (ASCII): b'HEADND00451BC800000000001500-0023'  
-received data (HEX) : b'0021484541444e44303034353142433830303030303030303030313530302d30303233'  
-Iteration:  1  
+Return code: 00 No error
+Command sent/received: NC ==> ND
+sent data (ASCII) : b'HEADNC'
+sent data (HEX) : b'0006484541444e43'
+received data (ASCII): b'HEADND005D672700000000001500-0023'
+received data (HEX) : b'0021484541444e44303035443637323730303030303030303030313530302d30303233'
 
+Iteration:  2  of  2
 
-Return code: 0 OK  
-Command sent/received: NC ==> ND  
-sent data (ASCII) : b'HEADNC'  
-sent data (HEX) : b'0006484541444e43'  
-received data (ASCII): b'HEADND00451BC800000000001500-0023'  
-received data (HEX) : b'0021484541444e44303034353142433830303030303030303030313530302d30303233'  
-Iteration:  2  
+Return code: 00 No error
+Command sent/received: NC ==> ND
+sent data (ASCII) : b'HEADNC'
+sent data (HEX) : b'0006484541444e43'
+received data (ASCII): b'HEADND005D672700000000001500-0023'
+received data (HEX) : b'0021484541444e44303035443637323730303030303030303030313530302d30303233'
+
+DONE
 
 ## NOTES
 

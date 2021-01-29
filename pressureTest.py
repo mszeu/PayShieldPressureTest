@@ -12,7 +12,7 @@ import argparse
 from pathlib import Path
 from typing import Tuple
 
-VERSION = "1.0-devel"
+VERSION = "1.0"
 
 
 def payshield_error_codes(error_code: str) -> str:
@@ -249,7 +249,7 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
 
 
 if __name__ == "__main__":
-    print("PayShield stress utility, version", VERSION, ",by Marco S. Zuppone - msz@msz.eu")
+    print("PayShield stress utility, version " + VERSION + ", by Marco S. Zuppone - msz@msz.eu - https://msz.eu")
     print("To get more info about the usage invoke it with the -h option")
     print("This software is open source and it is under the Affero AGPL 3.0")
     print("")
@@ -283,7 +283,7 @@ if __name__ == "__main__":
                         action="store_true")
     parser.add_argument("--times", help="how many time to repeat the operation", type=int, default=1000)
     parser.add_argument("--proto", help="accepted value are tcp or udp, the default is tcp", default="tcp",
-                        choices=["tcp", "udp", "tls"], type=str)
+                        choices=["tcp", "udp", "tls"], type=str.lower)
     parser.add_argument("--keyfile", help="client key file, used if the protocol is TLS", type=Path,
                         default="client.key")
     parser.add_argument("--crtfile", help="client certificate file, used if the protocol is TLS", type=Path,
@@ -311,15 +311,21 @@ if __name__ == "__main__":
         if not (args.keyfile.exists() and args.crtfile.exists()):
             print("The client certificate file or the client key file cannot be found or accessed.\n" +
                   "Check value passed to the parameters --keyfile and --crtfile")
+            print("You passed these values:")
+            print("Certificate file:", args.crtfile)
+            print("Key file:", args.keyfile)
             exit()
         if args.port < 2500:
             print("WARNING: generally the TLS base port is 2500. You are instead using the port ",
                   args.port, " please check that you passed the right value to the "
-                  "--port parameter")
+                             "--port parameter")
 
     if args.forever:
+        i = 1
         while True:
+            print("Iteration: ", i)
             run_test(args.host, args.port, command, args.proto, len(args.header))
+            i = i + 1
             print("")
     else:
         for i in range(0, args.times):
