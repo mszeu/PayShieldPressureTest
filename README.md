@@ -1,7 +1,7 @@
 # PayShieldPPressureTest
 
 <a href="https://www.jetbrains.com/?from=PayshieldPPressureTest"><img src=images/jetbrains-variant-3.png width=100></a>May thanks to <a href="https://www.jetbrains.com/?from=PayshieldPPressureTest">JetBrains</a> for giving us the <b>Open Source License</b> for free with the full access to their developer suite.
-<a href="https://www.jetbrains.com/pycharm/?from=PayshieldPPressureTesPyCharm">PyCharm</a> is an awesome Python IDE that greately simplified my work.
+<a href="https://www.jetbrains.com/pycharm/?from=PayshieldPPressureTesPyCharm">PyCharm</a> is an awesome Python IDE that greatly simplified my work.
 
 &nbsp;
 
@@ -85,7 +85,7 @@ The **EI** command used to generate the RSA key requires authorization, and the 
   Please refer to the **LICENSE** file that is part of this project.
   The license is **[AGPL 3.0](https://www.gnu.org/licenses/agpl-3.0.en.html)**
   
-  Copyright(C) 2020  **Marco S. Zuppone** - **msz@msz.eu** - [](https://msz.eu)
+  Copyright(C) 2020-2021  **Marco S. Zuppone** - **msz@msz.eu** - [https://msz.eu](https://msz.eu)
 
   This program is free software: you can redistribute it and/or modify  
   it under the terms of the GNU Affero General Public License as  
