@@ -224,12 +224,12 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
 
         # don't print ascii if msg or resp contains non printable chars
         if test_printable(message[2:].decode("ascii", "ignore")):
-            print("sent data (ASCII) :", message[2:])
+            print("sent data (ASCII) :", message[2:].decode("ascii", "ignore"))
 
         print("sent data (HEX) :", binascii.hexlify(message))
 
         if test_printable((data[2:]).decode("ascii", "ignore")):
-            print("received data (ASCII):", data[2:])
+            print("received data (ASCII):", data[2:].decode("ascii", "ignore"))
 
         print("received data (HEX) :", binascii.hexlify(data))
 
@@ -253,33 +253,35 @@ if __name__ == "__main__":
     print("To get more info about the usage invoke it with the -h option")
     print("This software is open source and it is under the Affero AGPL 3.0")
     print("")
+    KEY_IGNORED_MSG = "If this option is specified --key is ignored"
     parser = argparse.ArgumentParser(description="Stress a PayShield appliance with RSA key generation")
     parser.add_argument("host", help="Ip address or hostname of the payShield")
     group = parser.add_mutually_exclusive_group()
     parser.add_argument("--port", "-p", help="The host port", default=1500, type=int)
     group.add_argument("--key", help="RSA key length. Accepted values are 2048 ot 4096",
                        default=2048, choices=[2048, 4096], type=int)
-    group.add_argument("--nc", help="Just perform a NC test If this option is specified --key is ignored",
+    group.add_argument("--nc", help="Just perform a NC test. " + KEY_IGNORED_MSG,
                        action="store_true")
-    group.add_argument("--j2", help="Get HSM Loading using J2 command. If this option is specified --key is ignored",
+    group.add_argument("--no", help="Retrieves HSM status information using the command NO. " +
+                                    KEY_IGNORED_MSG,
+                       action="store_true")
+    group.add_argument("--j2", help="Get HSM Loading using J2 command. " + KEY_IGNORED_MSG,
                        action="store_true")
     group.add_argument("--j4",
-                       help="Get Host Command Volumes using J4 command. If this option is specified --key is ignored",
+                       help="Get Host Command Volumes using J4 command. " + KEY_IGNORED_MSG,
                        action="store_true")
     group.add_argument("--j8",
-                       help="Get Health Check Accumulated Counts using J8 command. "
-                            "If this option is specified --key is ignored",
+                       help="Get Health Check Accumulated Counts using J8 command. " + KEY_IGNORED_MSG,
                        action="store_true")
     group.add_argument("--jk",
-                       help="Get Instantaneous Health Check Status using JK command. "
-                            "If this option is specified --key is ignored",
+                       help="Get Instantaneous Health Check Status using JK command. " + KEY_IGNORED_MSG,
                        action="store_true")
     group.add_argument("--randgen",
                        help="Generate a random value 8 bytes long", action="store_true")
     parser.add_argument("--header",
                         help="the header string to prepend to the host command. If not specified the default is HEAD",
                         default="HEAD", type=str)
-    parser.add_argument("--forever", help="if this option is specified the program will run for ever",
+    parser.add_argument("--forever", help="if this option is specified the program runs for ever",
                         action="store_true")
     parser.add_argument("--times", help="how many time to repeat the operation", type=int, default=1000)
     parser.add_argument("--proto", help="accepted value are tcp or udp, the default is tcp", default="tcp",
@@ -296,6 +298,8 @@ if __name__ == "__main__":
         command = args.header + 'EI2409601#0000'
     if args.nc:
         command = args.header + 'NC'
+    if args.no:
+        command = args.header + 'NO00'
     if args.j2:
         command = args.header + 'J2'
     if args.j4:
