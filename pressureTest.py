@@ -11,17 +11,73 @@ from struct import *
 import argparse
 from pathlib import Path
 from typing import Tuple
+from types import FunctionType
 
-VERSION = "1.0"
+VERSION = "1.1"
+
+
+def decode_no(mydata: bytes, head_len: int):
+    """
+    It decodes the result of the command NO an prints the meaning of the returned output
+
+    Parameters
+    ___________
+    mydata: bytes
+        The response returned by the payShield
+    head_len: int
+        The length of the header
+
+    Returns
+    ___________
+    nothing
+    """
+
+    print("Message length {}", int.from_bytes(mydata[:2], byteorder='big', signed=False))
+    mydata = mydata.decode('ascii', 'replace')
+    str_pointer: int = 2
+    print("Header:", mydata[str_pointer:str_pointer + head_len])
+    str_pointer = str_pointer + head_len
+    print("Command returned:", mydata[str_pointer:str_pointer + 2])
+    str_pointer = str_pointer + 2
+    print("Error returned:", mydata[str_pointer:str_pointer + 2])
+    str_pointer = str_pointer + 2
+    buf_size = {
+        '0': '2K bytes', '1': '8K bytes', '2': '16K bytes', '3': '32K bytes'}
+    print("I/O buffer size:", buf_size.get(mydata[str_pointer:str_pointer + 1], "Unknown"))
+    str_pointer = str_pointer + 1
+    if mydata[str_pointer:str_pointer + 1] == '0':
+        print("Type of connection: UDP")
+    elif mydata[str_pointer:str_pointer + 1] == '1':
+        print("Type of connection: TCP")
+    else:
+        print("Unexpected connection type")
+    str_pointer = str_pointer + 1
+    print("Number of TCP sockets:", mydata[str_pointer:str_pointer + 2])
+    str_pointer = str_pointer + 2
+    print("Firmware number:", mydata[str_pointer:str_pointer + 9])
+    str_pointer = str_pointer + 9
+    print("Reserved:", mydata[str_pointer:str_pointer + 1])
+    str_pointer = str_pointer + 1
+    print("Reserved:", mydata[str_pointer:str_pointer + 4])
 
 
 def payshield_error_codes(error_code: str) -> str:
-    # This function maps the result code with the error message
-    # I derived the list of errors and messages from the following manual:
-    # payShield 10K Core Host Commands v1
-    # Revision: A
-    # Date: 04 August 2020
-    # Doc.Number: PUGD0537 - 004
+    """This function maps the result code with the error message.
+        I derived the list of errors and messages from the following manual:
+        payShield 10K Core Host Commands v1
+        Revision: A
+        Date: 04 August 2020
+        Doc.Number: PUGD0537 - 004
+
+        Parameters
+        ----------
+         error_code: str
+            The status code returned from the payShield 10k
+
+         Returns
+         ----------
+          a string containing the message of the error code
+        """
 
     pay_shield_error_table = {
         '00': 'No error',
@@ -119,6 +175,25 @@ def payshield_error_codes(error_code: str) -> str:
 
 
 def check_returned_command_verb(result_returned: bytes, head_len: int, command_sent: str) -> Tuple[int, str, str]:
+    """
+    Checks if the command returned by the payShield is congruent to the command sent
+    Parameters
+    ----------
+    result_returned: bytes
+        The output returned from the payShield
+    head_len: int
+        The length of the header
+    command_sent: str
+        The command send to the payShield
+
+    Returns
+         ----------
+        a Tuple[int, str, str]
+        where the first value is 0 of the command is congruent or -1 if it is not
+        the second value is the command sent
+        the third value is the command returned by te payShield
+    """
+
     verb_returned = result_returned[2 + head_len:][:2]
     verb_sent = command_sent[head_len:][:2]
     verb_expected = verb_sent[0:1] + chr(ord(verb_sent[1:2]) + 1)
@@ -161,11 +236,31 @@ def test_printable(input_str):
     return all(c in string.printable for c in input_str)
 
 
-def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", header_len: int = 4) -> int:
-    # it connects to the specified host and port, using the specified protocol that can me tcp, udp or tls and
-    # sends the command.
-    # The default header length is set to 4 if not provided because this is the out of box default value
-    # in payShield 10k
+def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", header_len: int = 4,
+             decoder_funct: FunctionType = None) -> int:
+    """It connects to the specified host and port, using the specified protocol (tcp, udp or tls) and sends the command.
+    
+    Parameters
+    ----------
+     ip_addr: str
+        The address to connect to. It can be an IP, hostname or FQDN
+     port: int
+        The port to connect to
+     host_command: str
+        The command to send to the payShield complete of the header part    
+     proto: str
+        The protocol to use, it can be usb, tcp or tls. If not specified the default is tcp
+     header_len: int
+        The length of the header. If not specified the value is 4 because it is the default factory value
+        in payShield 10k
+     decoder_funct: FunctionType
+        If provided needs to be a reference to a function that is able to parse the command and print the meaning of it
+        If not provided the default is None
+     
+     Returns
+     ----------
+      an integer value representing the error code: -1 means that some parameter were wrong.
+    """
 
     # if proto != "tcp" and proto != "udp" and proto != "tls":
     if proto not in ['tcp', 'udp', 'tls']:
@@ -179,7 +274,7 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
 
         # join everything together in python3
         message = size + host_command.encode()
-        # Connect to the host and gather the the reply in TCP or UDP
+        # Connect to the host and gather the reply in TCP or UDP
         buffer_size = 4096
         if proto == "tcp":
             # creates the TCP socket
@@ -232,6 +327,8 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
             print("received data (ASCII):", data[2:].decode("ascii", "ignore"))
 
         print("received data (HEX) :", binascii.hexlify(data))
+        if decoder_funct is not None:
+            decoder_funct(data, header_len)
 
     except ConnectionError as e:
         print("Connection issue: ", e.message)
@@ -254,6 +351,15 @@ if __name__ == "__main__":
     print("This software is open source and it is under the Affero AGPL 3.0")
     print("")
     KEY_IGNORED_MSG = "If this option is specified --key is ignored"
+
+    # List of decoder functions used to interpreter the result.
+    # The reference to the function is used as parameter in the run_test function.
+    # If the parameter is not passed because a decoder for that command it is not defined the default value of the
+    # parameter assumes the value of None
+    DECODERS = {
+        'NO': decode_no
+    }
+
     parser = argparse.ArgumentParser(description="Stress a PayShield appliance with RSA key generation")
     parser.add_argument("host", help="Ip address or hostname of the payShield")
     group = parser.add_mutually_exclusive_group()
@@ -262,7 +368,7 @@ if __name__ == "__main__":
                        default=2048, choices=[2048, 4096], type=int)
     group.add_argument("--nc", help="Just perform a NC test. " + KEY_IGNORED_MSG,
                        action="store_true")
-    group.add_argument("--no", help="Retrieves HSM status information using the command NO. " +
+    group.add_argument("--no", help="Retrieves HSM status information using NO command. " +
                                     KEY_IGNORED_MSG,
                        action="store_true")
     group.add_argument("--j2", help="Get HSM Loading using J2 command. " + KEY_IGNORED_MSG,
@@ -328,12 +434,14 @@ if __name__ == "__main__":
         i = 1
         while True:
             print("Iteration: ", i)
-            run_test(args.host, args.port, command, args.proto, len(args.header))
+            run_test(args.host, args.port, command, args.proto, len(args.header),
+                     DECODERS.get(command[len(args.header) + 1:len(args.header) + 3], None))
             i = i + 1
             print("")
     else:
         for i in range(0, args.times):
             print("Iteration: ", i + 1, " of ", args.times)
-            run_test(args.host, args.port, command, args.proto, len(args.header))
+            run_test(args.host, args.port, command, args.proto, len(args.header),
+                     DECODERS.get(command[len(args.header) + 1:len(args.header) + 3], None))
             print("")
         print("DONE")
