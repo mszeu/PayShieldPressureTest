@@ -10,19 +10,19 @@ import string
 from struct import *
 import argparse
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Dict
 from types import FunctionType
 
 VERSION = "1.1"
 
 
-def decode_no(mydata: bytes, head_len: int):
+def decode_no(response_to_decode: bytes, head_len: int):
     """
     It decodes the result of the command NO an prints the meaning of the returned output
 
     Parameters
     ___________
-    mydata: bytes
+    response_to_decode: bytes
         The response returned by the payShield
     head_len: int
         The length of the header
@@ -31,34 +31,33 @@ def decode_no(mydata: bytes, head_len: int):
     ___________
     nothing
     """
-
-    print("Message length {}", int.from_bytes(mydata[:2], byteorder='big', signed=False))
-    mydata = mydata.decode('ascii', 'replace')
-    str_pointer: int = 2
-    print("Header:", mydata[str_pointer:str_pointer + head_len])
-    str_pointer = str_pointer + head_len
-    print("Command returned:", mydata[str_pointer:str_pointer + 2])
-    str_pointer = str_pointer + 2
-    print("Error returned:", mydata[str_pointer:str_pointer + 2])
-    str_pointer = str_pointer + 2
-    buf_size = {
+    BUFFER_SIZE: Dict[str, str] = {
         '0': '2K bytes', '1': '8K bytes', '2': '16K bytes', '3': '32K bytes'}
-    print("I/O buffer size:", buf_size.get(mydata[str_pointer:str_pointer + 1], "Unknown"))
+    print("Message length", int.from_bytes(response_to_decode[:2], byteorder='big', signed=False))
+    response_to_decode = response_to_decode.decode('ascii', 'replace')
+    str_pointer: int = 2
+    print("Header:", response_to_decode[str_pointer:str_pointer + head_len])
+    str_pointer = str_pointer + head_len
+    print("Command returned:", response_to_decode[str_pointer:str_pointer + 2])
+    str_pointer = str_pointer + 2
+    print("Error returned:", response_to_decode[str_pointer:str_pointer + 2])
+    str_pointer = str_pointer + 2
+    print("I/O buffer size:", BUFFER_SIZE.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
     str_pointer = str_pointer + 1
-    if mydata[str_pointer:str_pointer + 1] == '0':
+    if response_to_decode[str_pointer:str_pointer + 1] == '0':
         print("Type of connection: UDP")
-    elif mydata[str_pointer:str_pointer + 1] == '1':
+    elif response_to_decode[str_pointer:str_pointer + 1] == '1':
         print("Type of connection: TCP")
     else:
         print("Unexpected connection type")
     str_pointer = str_pointer + 1
-    print("Number of TCP sockets:", mydata[str_pointer:str_pointer + 2])
+    print("Number of TCP sockets:", response_to_decode[str_pointer:str_pointer + 2])
     str_pointer = str_pointer + 2
-    print("Firmware number:", mydata[str_pointer:str_pointer + 9])
+    print("Firmware number:", response_to_decode[str_pointer:str_pointer + 9])
     str_pointer = str_pointer + 9
-    print("Reserved:", mydata[str_pointer:str_pointer + 1])
+    print("Reserved:", response_to_decode[str_pointer:str_pointer + 1])
     str_pointer = str_pointer + 1
-    print("Reserved:", mydata[str_pointer:str_pointer + 4])
+    print("Reserved:", response_to_decode[str_pointer:str_pointer + 4])
 
 
 def payshield_error_codes(error_code: str) -> str:
@@ -79,7 +78,7 @@ def payshield_error_codes(error_code: str) -> str:
           a string containing the message of the error code
         """
 
-    pay_shield_error_table = {
+    PAYSHIELD_ERROR_CODE = {
         '00': 'No error',
         '01': 'Verification failure or warning of imported key parity error',
         '02': 'Key inappropriate length for algorithm',
@@ -171,7 +170,7 @@ def payshield_error_codes(error_code: str) -> str:
         'BD': 'Incompatible key types',
         'BE': 'Invalid key block header ID'}
 
-    return pay_shield_error_table.get(error_code, "Unknown error")
+    return PAYSHIELD_ERROR_CODE.get(error_code, "Unknown error")
 
 
 def check_returned_command_verb(result_returned: bytes, head_len: int, command_sent: str) -> Tuple[int, str, str]:
@@ -328,6 +327,8 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
 
         print("received data (HEX) :", binascii.hexlify(data))
         if decoder_funct is not None:
+            print("")
+            print("-----DECODING RESPONSE-----")
             decoder_funct(data, header_len)
 
     except ConnectionError as e:
@@ -389,6 +390,10 @@ if __name__ == "__main__":
                         default="HEAD", type=str)
     parser.add_argument("--forever", help="if this option is specified the program runs for ever",
                         action="store_true")
+    parser.add_argument("--decode", help="if this option is specified the reply of the payShield is interpreted "
+                                         "if a decoder function for that command has been implemented",
+                        action="store_true")
+
     parser.add_argument("--times", help="how many time to repeat the operation", type=int, default=1000)
     parser.add_argument("--proto", help="accepted value are tcp or udp, the default is tcp", default="tcp",
                         choices=["tcp", "udp", "tls"], type=str.lower)
@@ -434,14 +439,21 @@ if __name__ == "__main__":
         i = 1
         while True:
             print("Iteration: ", i)
-            run_test(args.host, args.port, command, args.proto, len(args.header),
-                     DECODERS.get(command[len(args.header) + 1:len(args.header) + 3], None))
+            if args.decode:
+                run_test(args.host, args.port, command, args.proto, len(args.header),
+                     DECODERS.get(command[len(args.header):len(args.header) + 2], None))
+            else:
+                run_test(args.host, args.port, command, args.proto, len(args.header), None)
+
             i = i + 1
             print("")
     else:
         for i in range(0, args.times):
             print("Iteration: ", i + 1, " of ", args.times)
-            run_test(args.host, args.port, command, args.proto, len(args.header),
-                     DECODERS.get(command[len(args.header) + 1:len(args.header) + 3], None))
+            if args.decode:
+                run_test(args.host, args.port, command, args.proto, len(args.header),
+                         DECODERS.get(command[len(args.header):len(args.header) + 2], None))
+            else:
+                run_test(args.host, args.port, command, args.proto, len(args.header), None)
             print("")
         print("DONE")
