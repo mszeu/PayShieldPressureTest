@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Tuple, Dict
 from types import FunctionType
 
-VERSION = "1.1"
+VERSION = "1.1.1"
 
 
 def decode_no(response_to_decode: bytes, head_len: int):
@@ -41,23 +41,55 @@ def decode_no(response_to_decode: bytes, head_len: int):
     print("Command returned:", response_to_decode[str_pointer:str_pointer + 2])
     str_pointer = str_pointer + 2
     print("Error returned:", response_to_decode[str_pointer:str_pointer + 2])
+    if response_to_decode[str_pointer:str_pointer + 2] == '00':
+        str_pointer = str_pointer + 2
+        print("I/O buffer size:", BUFFER_SIZE.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
+        str_pointer = str_pointer + 1
+        if response_to_decode[str_pointer:str_pointer + 1] == '0':
+            print("Type of connection: UDP")
+        elif response_to_decode[str_pointer:str_pointer + 1] == '1':
+            print("Type of connection: TCP")
+        else:
+            print("Unexpected connection type")
+        str_pointer = str_pointer + 1
+        print("Number of TCP sockets:", response_to_decode[str_pointer:str_pointer + 2])
+        str_pointer = str_pointer + 2
+        print("Firmware number:", response_to_decode[str_pointer:str_pointer + 9])
+        str_pointer = str_pointer + 9
+        print("Reserved:", response_to_decode[str_pointer:str_pointer + 1])
+        str_pointer = str_pointer + 1
+        print("Reserved:", response_to_decode[str_pointer:str_pointer + 4])
+
+
+def decode_nc(response_to_decode: bytes, head_len: int):
+    """
+    It decodes the result of the command NC an prints the meaning of the returned output
+    The message trailer is not considered
+
+    Parameters
+    ___________
+    response_to_decode: bytes
+        The response returned by the payShield
+    head_len: int
+        The length of the header
+
+    Returns
+    ___________
+    nothing
+    """
+    print("Message length", int.from_bytes(response_to_decode[:2], byteorder='big', signed=False))
+    response_to_decode = response_to_decode.decode('ascii', 'replace')
+    str_pointer: int = 2
+    print("Header:", response_to_decode[str_pointer:str_pointer + head_len])
+    str_pointer = str_pointer + head_len
+    print("Command returned:", response_to_decode[str_pointer:str_pointer + 2])
     str_pointer = str_pointer + 2
-    print("I/O buffer size:", BUFFER_SIZE.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
-    str_pointer = str_pointer + 1
-    if response_to_decode[str_pointer:str_pointer + 1] == '0':
-        print("Type of connection: UDP")
-    elif response_to_decode[str_pointer:str_pointer + 1] == '1':
-        print("Type of connection: TCP")
-    else:
-        print("Unexpected connection type")
-    str_pointer = str_pointer + 1
-    print("Number of TCP sockets:", response_to_decode[str_pointer:str_pointer + 2])
-    str_pointer = str_pointer + 2
-    print("Firmware number:", response_to_decode[str_pointer:str_pointer + 9])
-    str_pointer = str_pointer + 9
-    print("Reserved:", response_to_decode[str_pointer:str_pointer + 1])
-    str_pointer = str_pointer + 1
-    print("Reserved:", response_to_decode[str_pointer:str_pointer + 4])
+    print("Error returned:", response_to_decode[str_pointer:str_pointer + 2])
+    if response_to_decode[str_pointer:str_pointer + 2] == '00':
+        str_pointer = str_pointer + 2
+        print("LMK CRC:", response_to_decode[str_pointer:str_pointer + 16])
+        str_pointer = str_pointer + 16
+        print("Firmware number:", response_to_decode[str_pointer:str_pointer + 9])
 
 
 def payshield_error_codes(error_code: str) -> str:
@@ -326,7 +358,7 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
             print("received data (ASCII):", data[2:].decode("ascii", "ignore"))
 
         print("received data (HEX) :", binascii.hexlify(data))
-        if decoder_funct is not None:
+        if (decoder_funct is not None) and callable(decoder_funct):
             print("")
             print("-----DECODING RESPONSE-----")
             decoder_funct(data, header_len)
@@ -358,7 +390,8 @@ if __name__ == "__main__":
     # If the parameter is not passed because a decoder for that command it is not defined the default value of the
     # parameter assumes the value of None
     DECODERS = {
-        'NO': decode_no
+        'NO': decode_no,
+        'NC': decode_nc
     }
 
     parser = argparse.ArgumentParser(description="Stress a PayShield appliance with RSA key generation")
@@ -441,7 +474,7 @@ if __name__ == "__main__":
             print("Iteration: ", i)
             if args.decode:
                 run_test(args.host, args.port, command, args.proto, len(args.header),
-                     DECODERS.get(command[len(args.header):len(args.header) + 2], None))
+                         DECODERS.get(command[len(args.header):len(args.header) + 2], None))
             else:
                 run_test(args.host, args.port, command, args.proto, len(args.header), None)
 
