@@ -16,6 +16,34 @@ from types import FunctionType
 VERSION = "1.1.1"
 
 
+def decode_n0(response_to_decode: bytes, head_len: int):
+    """
+        It decodes the result of the command N0 an prints the meaning of the returned output
+
+        Parameters
+        ___________
+        response_to_decode: bytes
+            The response returned by the payShield
+        head_len: int
+            The length of the header
+
+        Returns
+        ___________
+        nothing
+        """
+    print("Message length", int.from_bytes(response_to_decode[:2], byteorder='big', signed=False))
+    str_pointer = 2
+    print("Header:", response_to_decode[str_pointer:str_pointer + head_len].decode('ascii', 'ignore'))
+    str_pointer = str_pointer + head_len
+    print("Command returned:", response_to_decode[str_pointer:str_pointer + 2].decode('ascii', 'ignore'))
+    str_pointer = str_pointer + 2
+    print("Error returned:", response_to_decode[str_pointer:str_pointer + 2].decode('ascii', 'ignore'))
+    if (response_to_decode[str_pointer:str_pointer + 2]).decode('ascii', 'ignore') == '01':
+        print("Invalid Random Value Length")
+    elif (response_to_decode[str_pointer:str_pointer + 2]).decode('ascii', 'ignore') == '00':
+        print("Random payload:(HEX)", binascii.hexlify(response_to_decode[6 + head_len:]).decode('ascii', 'ignore'))
+
+
 def decode_no(response_to_decode: bytes, head_len: int):
     """
     It decodes the result of the command NO an prints the meaning of the returned output
@@ -391,7 +419,8 @@ if __name__ == "__main__":
     # parameter assumes the value of None
     DECODERS = {
         'NO': decode_no,
-        'NC': decode_nc
+        'NC': decode_nc,
+        'N0': decode_n0
     }
 
     parser = argparse.ArgumentParser(description="Stress a PayShield appliance with RSA key generation")
