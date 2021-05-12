@@ -35,6 +35,8 @@ if the parameter is not specified **2048** is the default.
 
 **--nc** performs just an **NC** test. It cannot be used in conjunction with **--key**.
 
+**--no** gathers the status of the payShield through the **NO** command. It cannot be used in conjunction with **--key**.
+
 **--j2** get HSM Loading using **J2** command. It cannot be used in conjunction with **--key**.
 
 **--j4** get Host Command Volumes using **J4** command. It cannot be used in conjunction with **--key**.
@@ -48,6 +50,8 @@ if the parameter is not specified **2048** is the default.
 **--forever** the test will run forever. Use **CTRL-C** to terminate it.
 
 **--times** how many times execute the test. If it is not specified the default value is **1000** times.
+
+**--decode** decodes the response of the payShield if a decoder function is available for the command.
 
 ## Example
 C:\Test>*python pressureTest.py 192.168.0.36 --nc --times 2*
