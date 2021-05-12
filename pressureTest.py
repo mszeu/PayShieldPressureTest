@@ -294,6 +294,25 @@ def decode_jk(response_to_decode: bytes, head_len: int):
     ___________
     nothing
     """
+    # structures to decode the result
+    # We cam use CONSOLE_STATUS_CODE to check the status of the payShield Manager as well.
+
+    CONSOLE_STATUS_CODE = {
+        '0': 'unknown',
+        '1': 'running',
+        '2': 'not running',
+        '3': 'console disabled by GUI'}
+    TAMPER_STATUS_CODE = {
+        '0': 'Unknown',
+        '1': 'Not Tampered',
+        '2': 'Tampered'}
+    HOST_STATUS_CODE = {
+        '0': 'unknown',
+        '1': 'running',
+        '2': 'not running',
+        '3': 'not configured'
+    }
+
     msg_len = int.from_bytes(response_to_decode[:2], byteorder='big', signed=False)
     print("Message length", msg_len)
     response_to_decode = response_to_decode.decode('ascii', 'replace')
@@ -311,23 +330,22 @@ def decode_jk(response_to_decode: bytes, head_len: int):
         str_pointer = str_pointer + 6
         print("System Time: ", response_to_decode[str_pointer:str_pointer + 6])
         str_pointer = str_pointer + 6
-        print("Console State: ", response_to_decode[str_pointer:str_pointer + 1])
+        print("Console State: ", CONSOLE_STATUS_CODE.get(response_to_decode[str_pointer:str_pointer + 1], '?'))
         str_pointer = str_pointer + 1
-        print("payShield Manager State: ", response_to_decode[str_pointer:str_pointer + 1])
+        print("payShield Manager State: ",
+              CONSOLE_STATUS_CODE.get(response_to_decode[str_pointer:str_pointer + 1], '?'))
         str_pointer = str_pointer + 1
-        print("HOST 1 State: ", response_to_decode[str_pointer:str_pointer + 1])
+        print("HOST 1 State: ", HOST_STATUS_CODE.get(response_to_decode[str_pointer:str_pointer + 1], '?'))
         str_pointer = str_pointer + 1
-        print("HOST 2 State: ", response_to_decode[str_pointer:str_pointer + 1])
+        print("HOST 2 State: ", HOST_STATUS_CODE.get(response_to_decode[str_pointer:str_pointer + 1], '?'))
         str_pointer = str_pointer + 1
         print("Reserved: ", response_to_decode[str_pointer:str_pointer + 1])
         str_pointer = str_pointer + 1
         print("Reserved: ", response_to_decode[str_pointer:str_pointer + 1])
         str_pointer = str_pointer + 1
         tamper_state = response_to_decode[str_pointer:str_pointer + 1]
-        TAMPER_DESC_STATUS = {'0': 'Unknown',
-                              '1': 'Not Tampered',
-                              '2': 'Tampered'}
-        print("Tamper State: ", TAMPER_DESC_STATUS.get(tamper_state, '?'))
+
+        print("Tamper State: ", TAMPER_STATUS_CODE.get(tamper_state, '?'))
         str_pointer = str_pointer + 1
         if tamper_state == '2':
             print("Tamper Cause: ", response_to_decode[str_pointer:str_pointer + 2])
