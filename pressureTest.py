@@ -302,10 +302,12 @@ def decode_jk(response_to_decode: bytes, head_len: int):
         '1': 'running',
         '2': 'not running',
         '3': 'console disabled by GUI'}
+
     TAMPER_STATUS_CODE = {
         '0': 'Unknown',
         '1': 'Not Tampered',
         '2': 'Tampered'}
+
     HOST_STATUS_CODE = {
         '0': 'unknown',
         '1': 'running',
@@ -313,6 +315,36 @@ def decode_jk(response_to_decode: bytes, head_len: int):
         '3': 'not configured'
     }
 
+    TAMPER_CAUSE_CODE = {
+        '00': 'unknown',
+        '01': 'temp out of range',
+        '02': 'battery low',
+        '03': 'erase button pressed',
+        '04': 'security processor watchdog',
+        '05': 'power too high',
+        '06': 'security processor restart',
+        '07': 'motion detected',
+        '08': 'case tampered',
+        '09': 'TSPP Module',
+        '10': 'General'
+    }
+    LMK_ALGORITHM_CODE = {
+        '0': '3DES2Key',
+        '1': '3DES3Key',
+        '2': 'AES 256-bit'
+    }
+    LMK_SCHEME_CODE = {
+        'V': 'Variant',
+        'K': 'Keyblock'
+    }
+    LMK_STATUS_CODE = {
+        'L': 'Live',
+        'T': 'Test'
+    }
+    LMK_AUTH_CODE = {
+        '0': 'Not authorized',
+        '1': 'Authorized'
+    }
     msg_len = int.from_bytes(response_to_decode[:2], byteorder='big', signed=False)
     print("Message length", msg_len)
     response_to_decode = response_to_decode.decode('ascii', 'replace')
@@ -348,7 +380,7 @@ def decode_jk(response_to_decode: bytes, head_len: int):
         print("Tamper State: ", TAMPER_STATUS_CODE.get(tamper_state, '?'))
         str_pointer = str_pointer + 1
         if tamper_state == '2':
-            print("Tamper Cause: ", response_to_decode[str_pointer:str_pointer + 2])
+            print("Tamper Cause: ", TAMPER_CAUSE_CODE.get(response_to_decode[str_pointer:str_pointer + 2], '?'))
             str_pointer = str_pointer + 2
             print("Tamper Date: ", response_to_decode[str_pointer:str_pointer + 6])
             str_pointer = str_pointer + 6
@@ -363,6 +395,28 @@ def decode_jk(response_to_decode: bytes, head_len: int):
         str_pointer = str_pointer + 2
         if int(lmk_loaded) > 0:
             print("There are LMK loaded")
+            remaining_to_decode = response_to_decode[str_pointer:]
+            lmks_string = str.split(remaining_to_decode, '\x15')[0]
+            lmks_array = str.split(lmks_string, '\x14')
+            for lmk in lmks_array:
+                if len(lmk) > 0:
+                    local_lmk_pointer = 0
+                    print("LMK ID: ", lmk[local_lmk_pointer:local_lmk_pointer + 2])
+                    local_lmk_pointer = local_lmk_pointer + 2
+                    print("Authorised: ", LMK_AUTH_CODE.get(lmk[local_lmk_pointer:local_lmk_pointer + 1], '?'))
+                    local_lmk_pointer = local_lmk_pointer + 1
+                    print("Num Authorised Activities: ", lmk[local_lmk_pointer:local_lmk_pointer + 2])
+                    local_lmk_pointer = local_lmk_pointer + 2
+                    print("LMK Scheme: ", LMK_SCHEME_CODE.get(lmk[local_lmk_pointer:local_lmk_pointer + 1], '?'))
+                    local_lmk_pointer = local_lmk_pointer + 1
+                    print("Algorithm: ", LMK_ALGORITHM_CODE.get(lmk[local_lmk_pointer:local_lmk_pointer + 1], '?'))
+                    local_lmk_pointer = local_lmk_pointer + 1
+                    print("Status: ", LMK_STATUS_CODE.get(lmk[local_lmk_pointer:local_lmk_pointer + 1], '?'))
+                    local_lmk_pointer = local_lmk_pointer + 1
+                    print("Comments: ", lmk[local_lmk_pointer:])
+        fraud_detection = str.split(response_to_decode[str_pointer:], '\x15')[1]
+        print("Fraud detection Exceeded: ", fraud_detection[0])
+        print("PIN attacks exceeded: ", fraud_detection[1])
         print("")
 
 
