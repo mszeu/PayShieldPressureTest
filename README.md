@@ -60,7 +60,7 @@ only considered if the protocol is **tls**
 
 C:\Test>*python pressureTest.py 192.168.0.36 --nc --times 2*
 
-PayShield stress utility, version 1.1.1, by Marco S. Zuppone - msz@msz.eu - https://msz.eu
+PayShield stress utility, version 1.1.2, by Marco S. Zuppone - msz@msz.eu - https://msz.eu
 To get more info about the usage invoke it with the -h option This software is open source, and it is under the Affero
 AGPL 3.0 license
 
@@ -95,15 +95,15 @@ The **EI** command used to generate the RSA key requires authorization, and the 
   
   Copyright(C) 2020-2021  **Marco S. Zuppone** - **msz@msz.eu** - [https://msz.eu](https://msz.eu)
 
-  This program is free software: you can redistribute it and/or modify  
-  it under the terms of the GNU Affero General Public License as  
-  published by the Free Software Foundation, either version 3 of the  
-  License, or any later version.  
+This program is free software: you can redistribute it and/or modify  
+it under the terms of the GNU Affero General Public License as  
+published by the Free Software Foundation, either version 3 of the  
+License, or any later version.
 
-  This program is distributed in the hope that it will be useful,  
-   but **WITHOUT ANY WARRANTY; without even the implied warranty of  
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.** See the  
-   GNU Affero General Public License for more details.  
-   
+This program is distributed in the hope that it will be useful,  
+but **WITHOUT ANY WARRANTY; without even the implied warranty of  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.** See the  
+**GNU Affero General Public License** for more details.
+
 ## Questions, bugs & suggestions
 For any questions, feedback, suggestions, send money ***(yes...it's a dream I know)*** you can contact the author at **msz@msz.eu**
