@@ -120,6 +120,57 @@ def decode_nc(response_to_decode: bytes, head_len: int):
         print("Firmware number:", response_to_decode[str_pointer:str_pointer + 9])
 
 
+def decode_j8(response_to_decode: bytes, head_len: int):
+    """
+    It decodes the result of the command J8 an prints the meaning of the returned output
+    The message trailer is not considered
+
+    Parameters
+    ___________
+    response_to_decode: bytes
+        The response returned by the payShield
+    head_len: int
+        The length of the header
+
+    Returns
+    ___________
+    nothing
+    """
+    print("Message length", int.from_bytes(response_to_decode[:2], byteorder='big', signed=False))
+    response_to_decode = response_to_decode.decode('ascii', 'replace')
+    str_pointer: int = 2
+    print("Header: ", response_to_decode[str_pointer:str_pointer + head_len])
+    str_pointer = str_pointer + head_len
+    print("Command returned: ", response_to_decode[str_pointer:str_pointer + 2])
+    str_pointer = str_pointer + 2
+    print("Error returned: ", response_to_decode[str_pointer:str_pointer + 2])
+    if response_to_decode[str_pointer:str_pointer + 2] == '00':
+        str_pointer = str_pointer + 2
+        print("Serial Number: ", response_to_decode[str_pointer:str_pointer + 12])
+        str_pointer = str_pointer + 12
+        print("Start Date: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Start Time: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("End Date: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("End Time: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Current Date: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Current Time: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Reboots: ", response_to_decode[str_pointer:str_pointer + 10])
+        str_pointer = str_pointer + 10
+        print("Tampers: ", response_to_decode[str_pointer:str_pointer + 10])
+        str_pointer = str_pointer + 10
+        print("Pin verifies/minute: ", response_to_decode[str_pointer:str_pointer + 7])
+        str_pointer = str_pointer + 7
+        print("Pin verifies/hour: ", response_to_decode[str_pointer:str_pointer + 5])
+        str_pointer = str_pointer + 5
+        print("Pin attacks: ", response_to_decode[str_pointer:str_pointer + 8])
+
+
 def payshield_error_codes(error_code: str) -> str:
     """This function maps the result code with the error message.
         I derived the list of errors and messages from the following manual:
@@ -420,7 +471,8 @@ if __name__ == "__main__":
     DECODERS = {
         'NO': decode_no,
         'NC': decode_nc,
-        'N0': decode_n0
+        'N0': decode_n0,
+        'J8': decode_j8
     }
 
     parser = argparse.ArgumentParser(description="Stress a PayShield appliance with RSA key generation")
