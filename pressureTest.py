@@ -276,6 +276,75 @@ def decode_j4(response_to_decode: bytes, head_len: int):
             str_pointer = str_pointer + 2
             print("Transactions: ", response_to_decode[str_pointer:str_pointer + 12])
             str_pointer = str_pointer + 12
+
+
+def decode_jk(response_to_decode: bytes, head_len: int):
+    """
+    It decodes the result of the command JK an prints the meaning of the returned output
+    The message trailer is not considered
+
+    Parameters
+    ___________
+    response_to_decode: bytes
+        The response returned by the payShield
+    head_len: int
+        The length of the header
+
+    Returns
+    ___________
+    nothing
+    """
+    msg_len = int.from_bytes(response_to_decode[:2], byteorder='big', signed=False)
+    print("Message length", msg_len)
+    response_to_decode = response_to_decode.decode('ascii', 'replace')
+    str_pointer: int = 2
+    print("Header: ", response_to_decode[str_pointer:str_pointer + head_len])
+    str_pointer = str_pointer + head_len
+    print("Command returned: ", response_to_decode[str_pointer:str_pointer + 2])
+    str_pointer = str_pointer + 2
+    print("Error returned: ", response_to_decode[str_pointer:str_pointer + 2])
+    if response_to_decode[str_pointer:str_pointer + 2] == '00':
+        str_pointer = str_pointer + 2
+        print("Serial Number: ", response_to_decode[str_pointer:str_pointer + 12])
+        str_pointer = str_pointer + 12
+        print("System Date: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("System Time: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Console State: ", response_to_decode[str_pointer:str_pointer + 1])
+        str_pointer = str_pointer + 1
+        print("payShield Manager State: ", response_to_decode[str_pointer:str_pointer + 1])
+        str_pointer = str_pointer + 1
+        print("HOST 1 State: ", response_to_decode[str_pointer:str_pointer + 1])
+        str_pointer = str_pointer + 1
+        print("HOST 2 State: ", response_to_decode[str_pointer:str_pointer + 1])
+        str_pointer = str_pointer + 1
+        print("Reserved: ", response_to_decode[str_pointer:str_pointer + 1])
+        str_pointer = str_pointer + 1
+        print("Reserved: ", response_to_decode[str_pointer:str_pointer + 1])
+        str_pointer = str_pointer + 1
+        tamper_state = response_to_decode[str_pointer:str_pointer + 1]
+        TAMPER_DESC_STATUS = {'0': 'Unknown',
+                              '1': 'Not Tampered',
+                              '2': 'Tampered'}
+        print("Tamper State: ", TAMPER_DESC_STATUS.get(tamper_state, '?'))
+        str_pointer = str_pointer + 1
+        if tamper_state == '2':
+            print("Tamper Cause: ", response_to_decode[str_pointer:str_pointer + 2])
+            str_pointer = str_pointer + 2
+            print("Tamper Date: ", response_to_decode[str_pointer:str_pointer + 6])
+            str_pointer = str_pointer + 6
+            print("Tamper Time: ", response_to_decode[str_pointer:str_pointer + 6])
+            str_pointer = str_pointer + 6
+        lmk_loaded = response_to_decode[str_pointer:str_pointer + 2]
+        print("Number of LMK Loaded: ", lmk_loaded)
+        str_pointer = str_pointer + 2
+        print("Number of Test LMK: ", response_to_decode[str_pointer:str_pointer + 2])
+        str_pointer = str_pointer + 2
+        print("Number of Old LMK: ", response_to_decode[str_pointer:str_pointer + 2])
+        str_pointer = str_pointer + 2
+        if int(lmk_loaded) > 0:
+            print("There are LMK loaded")
         print("")
 
 
@@ -582,7 +651,8 @@ if __name__ == "__main__":
         'N0': decode_n0,
         'J8': decode_j8,
         'J2': decode_j2,
-        'J4': decode_j4
+        'J4': decode_j4,
+        'JK': decode_jk
     }
 
     parser = argparse.ArgumentParser(description="Stress a PayShield appliance with RSA key generation")
