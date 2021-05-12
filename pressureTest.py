@@ -409,7 +409,7 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
 if __name__ == "__main__":
     print("PayShield stress utility, version " + VERSION + ", by Marco S. Zuppone - msz@msz.eu - https://msz.eu")
     print("To get more info about the usage invoke it with the -h option")
-    print("This software is open source and it is under the Affero AGPL 3.0")
+    print("This software is open source and it is under the Affero AGPL 3.0 license")
     print("")
     KEY_IGNORED_MSG = "If this option is specified --key is ignored"
 
