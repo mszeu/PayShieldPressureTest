@@ -119,6 +119,35 @@ def decode_nc(response_to_decode: bytes, head_len: int):
         str_pointer = str_pointer + 16
         print("Firmware number:", response_to_decode[str_pointer:str_pointer + 9])
 
+    """
+    It decodes the result of the command NC an prints the meaning of the returned output
+    The message trailer is not considered
+
+    Parameters
+    ___________
+    response_to_decode: bytes
+        The response returned by the payShield
+    head_len: int
+        The length of the header
+
+    Returns
+    ___________
+    nothing
+    """
+    print("Message length", int.from_bytes(response_to_decode[:2], byteorder='big', signed=False))
+    response_to_decode = response_to_decode.decode('ascii', 'replace')
+    str_pointer: int = 2
+    print("Header:", response_to_decode[str_pointer:str_pointer + head_len])
+    str_pointer = str_pointer + head_len
+    print("Command returned:", response_to_decode[str_pointer:str_pointer + 2])
+    str_pointer = str_pointer + 2
+    print("Error returned:", response_to_decode[str_pointer:str_pointer + 2])
+    if response_to_decode[str_pointer:str_pointer + 2] == '00':
+        str_pointer = str_pointer + 2
+        print("LMK CRC:", response_to_decode[str_pointer:str_pointer + 16])
+        str_pointer = str_pointer + 16
+        print("Firmware number:", response_to_decode[str_pointer:str_pointer + 9])
+
 
 def payshield_error_codes(error_code: str) -> str:
     """This function maps the result code with the error message.
