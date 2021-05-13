@@ -5,17 +5,23 @@
 
 &nbsp;
 
-The **pressureTest.py** Python script creates a workload on the **Thales payShield 10k** and **9k** appliances.
-The script can be useful during demonstrations of the monitoring features of the appliance and can be used in every case you need to generate a workload for testing purposes.
- 
+The **pressureTest.py** Python script creates a workload on the **Thales payShield 10k** and **9k** appliances. The
+script can be useful during demonstrations of the monitoring features of the appliance and can be used in every case you
+need to generate a workload for testing purposes.
+
 The project is in an early development stage and still a bit clumsy.
 
 It requires **Python 3**. It was tested on **Python 3.7** and **3.8** using a **payShield 10k**.
 
+## Version
+
+**1.1.3**
 
 ## Usage
 
-**pressureTest.py \[-h\] \[--port PORT\] \[--proto {tcp, udp, tls}\] \[--keyfile CLIENT.KEY\] \[--crtfile CLIENT.CRT\] \[--key {2048,4096} | --nc | --j2 | --j4 | --n8 | --jk | --randgen\] \[--head HEADER\] \[--forever\] \[--times TIMES\] host**
+**pressureTest.py \[-h\] \[--port PORT\] \[--proto {tcp, udp, tls}\] \[--keyfile CLIENT.KEY\] \[--crtfile CLIENT.CRT\]
+\[--key {2048,4096} | --nc | --j2 | --j4 | --n8 | --jk | --randgen\] \[--head HEADER\] \[--forever\] \[--times TIMES\]
+host**
 
 **host** you need to specify the ip address or the hostname/fqdn of the **payShield** appliance.
 
@@ -60,7 +66,7 @@ only considered if the protocol is **tls**
 
     C:\Test>python pressureTest.py 192.168.0.36 --nc --times 2
 
-    PayShield stress utility, version 1.1.2, by Marco S. Zuppone - msz@msz.eu - https://msz.eu
+    PayShield stress utility, version 1.1.3, by Marco S. Zuppone - msz@msz.eu - https://msz.eu
     To get more info about the usage invoke it with the -h option This software is open source, and it is under the Affero
     AGPL 3.0 license
 
