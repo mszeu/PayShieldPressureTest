@@ -244,7 +244,7 @@ def decode_j4(response_to_decode: bytes, head_len: int):
     nothing
     """
     msg_len = int.from_bytes(response_to_decode[:2], byteorder='big', signed=False)
-    print("Message length", msg_len)
+    print("Message length: ", msg_len)
     response_to_decode = response_to_decode.decode('ascii', 'replace')
     str_pointer: int = 2
     print("Header: ", response_to_decode[str_pointer:str_pointer + head_len])
