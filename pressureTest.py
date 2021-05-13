@@ -31,17 +31,12 @@ def decode_n0(response_to_decode: bytes, head_len: int):
         ___________
         nothing
         """
-    print("Message length", int.from_bytes(response_to_decode[:2], byteorder='big', signed=False))
-    str_pointer = 2
-    print("Header:", response_to_decode[str_pointer:str_pointer + head_len].decode('ascii', 'ignore'))
-    str_pointer = str_pointer + head_len
-    print("Command returned:", response_to_decode[str_pointer:str_pointer + 2].decode('ascii', 'ignore'))
-    str_pointer = str_pointer + 2
-    print("Error returned:", response_to_decode[str_pointer:str_pointer + 2].decode('ascii', 'ignore'))
-    if (response_to_decode[str_pointer:str_pointer + 2]).decode('ascii', 'ignore') == '01':
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
+    if response_to_decode[str_pointer:str_pointer + 2] == '01':
         print("Invalid Random Value Length")
-    elif (response_to_decode[str_pointer:str_pointer + 2]).decode('ascii', 'ignore') == '00':
-        print("Random payload:(HEX)", binascii.hexlify(response_to_decode[6 + head_len:]).decode('ascii', 'ignore'))
+    elif response_to_decode[str_pointer:str_pointer + 2] == '00':
+        print("Random payload:(HEX)",
+              binascii.hexlify((response_to_decode[6 + head_len:]).encode()).decode('ascii', 'ignore'))
 
 
 def decode_no(response_to_decode: bytes, head_len: int):
@@ -61,14 +56,7 @@ def decode_no(response_to_decode: bytes, head_len: int):
     """
     BUFFER_SIZE: Dict[str, str] = {
         '0': '2K bytes', '1': '8K bytes', '2': '16K bytes', '3': '32K bytes'}
-    print("Message length", int.from_bytes(response_to_decode[:2], byteorder='big', signed=False))
-    response_to_decode = response_to_decode.decode('ascii', 'replace')
-    str_pointer: int = 2
-    print("Header:", response_to_decode[str_pointer:str_pointer + head_len])
-    str_pointer = str_pointer + head_len
-    print("Command returned:", response_to_decode[str_pointer:str_pointer + 2])
-    str_pointer = str_pointer + 2
-    print("Error returned:", response_to_decode[str_pointer:str_pointer + 2])
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
     if response_to_decode[str_pointer:str_pointer + 2] == '00':
         str_pointer = str_pointer + 2
         print("I/O buffer size:", BUFFER_SIZE.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
@@ -105,14 +93,7 @@ def decode_nc(response_to_decode: bytes, head_len: int):
     ___________
     nothing
     """
-    print("Message length", int.from_bytes(response_to_decode[:2], byteorder='big', signed=False))
-    response_to_decode = response_to_decode.decode('ascii', 'replace')
-    str_pointer: int = 2
-    print("Header:", response_to_decode[str_pointer:str_pointer + head_len])
-    str_pointer = str_pointer + head_len
-    print("Command returned:", response_to_decode[str_pointer:str_pointer + 2])
-    str_pointer = str_pointer + 2
-    print("Error returned:", response_to_decode[str_pointer:str_pointer + 2])
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
     if response_to_decode[str_pointer:str_pointer + 2] == '00':
         str_pointer = str_pointer + 2
         print("LMK CRC:", response_to_decode[str_pointer:str_pointer + 16])
@@ -136,14 +117,7 @@ def decode_j8(response_to_decode: bytes, head_len: int):
     ___________
     nothing
     """
-    print("Message length", int.from_bytes(response_to_decode[:2], byteorder='big', signed=False))
-    response_to_decode = response_to_decode.decode('ascii', 'replace')
-    str_pointer: int = 2
-    print("Header: ", response_to_decode[str_pointer:str_pointer + head_len])
-    str_pointer = str_pointer + head_len
-    print("Command returned: ", response_to_decode[str_pointer:str_pointer + 2])
-    str_pointer = str_pointer + 2
-    print("Error returned: ", response_to_decode[str_pointer:str_pointer + 2])
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
     if response_to_decode[str_pointer:str_pointer + 2] == '00':
         str_pointer = str_pointer + 2
         print("Serial Number: ", response_to_decode[str_pointer:str_pointer + 12])
@@ -187,15 +161,7 @@ def decode_j2(response_to_decode: bytes, head_len: int):
     ___________
     nothing
     """
-    msg_len = int.from_bytes(response_to_decode[:2], byteorder='big', signed=False)
-    print("Message length", msg_len)
-    response_to_decode = response_to_decode.decode('ascii', 'replace')
-    str_pointer: int = 2
-    print("Header: ", response_to_decode[str_pointer:str_pointer + head_len])
-    str_pointer = str_pointer + head_len
-    print("Command returned: ", response_to_decode[str_pointer:str_pointer + 2])
-    str_pointer = str_pointer + 2
-    print("Error returned: ", response_to_decode[str_pointer:str_pointer + 2])
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
     if response_to_decode[str_pointer:str_pointer + 2] == '00':
         str_pointer = str_pointer + 2
         print("Serial Number: ", response_to_decode[str_pointer:str_pointer + 12])
@@ -243,15 +209,7 @@ def decode_j4(response_to_decode: bytes, head_len: int):
     ___________
     nothing
     """
-    msg_len = int.from_bytes(response_to_decode[:2], byteorder='big', signed=False)
-    print("Message length: ", msg_len)
-    response_to_decode = response_to_decode.decode('ascii', 'replace')
-    str_pointer: int = 2
-    print("Header: ", response_to_decode[str_pointer:str_pointer + head_len])
-    str_pointer = str_pointer + head_len
-    print("Command returned: ", response_to_decode[str_pointer:str_pointer + 2])
-    str_pointer = str_pointer + 2
-    print("Error returned: ", response_to_decode[str_pointer:str_pointer + 2])
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
     if response_to_decode[str_pointer:str_pointer + 2] == '00':
         str_pointer = str_pointer + 2
         print("Serial Number: ", response_to_decode[str_pointer:str_pointer + 12])
@@ -345,15 +303,12 @@ def decode_jk(response_to_decode: bytes, head_len: int):
         '0': 'Not authorized',
         '1': 'Authorized'
     }
-    msg_len = int.from_bytes(response_to_decode[:2], byteorder='big', signed=False)
-    print("Message length", msg_len)
-    response_to_decode = response_to_decode.decode('ascii', 'replace')
-    str_pointer: int = 2
-    print("Header: ", response_to_decode[str_pointer:str_pointer + head_len])
-    str_pointer = str_pointer + head_len
-    print("Command returned: ", response_to_decode[str_pointer:str_pointer + 2])
-    str_pointer = str_pointer + 2
-    print("Error returned: ", response_to_decode[str_pointer:str_pointer + 2])
+    FRAUD_CODE = {
+
+        '0': 'not exceeded (or not enabled)',
+        '1': 'exceeded'
+    }
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
     if response_to_decode[str_pointer:str_pointer + 2] == '00':
         str_pointer = str_pointer + 2
         print("Serial Number: ", response_to_decode[str_pointer:str_pointer + 12])
@@ -415,8 +370,8 @@ def decode_jk(response_to_decode: bytes, head_len: int):
                     local_lmk_pointer = local_lmk_pointer + 1
                     print("Comments: ", lmk[local_lmk_pointer:])
         fraud_detection = str.split(response_to_decode[str_pointer:], '\x15')[1]
-        print("Fraud detection Exceeded: ", fraud_detection[0])
-        print("PIN attacks exceeded: ", fraud_detection[1])
+        print("Fraud detection Exceeded: ", FRAUD_CODE.get(fraud_detection[0], '?'))
+        print("PIN attacks exceeded: ", FRAUD_CODE.get(fraud_detection[1], '?'))
         print("")
 
 
@@ -704,6 +659,42 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
 
     finally:
         connection.close()
+
+
+def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str, int, int]:
+    """
+        This function is an helper used by the decode_XX functions.
+        It converts the response_to_decode in ascii, calculates and print the message size and
+        prints the header, the command returned and the error code.
+
+        Parameters
+        ___________
+        response_to_decode: bytes
+            The response returned by the payShield
+        head_len: int
+            The length of the header
+
+        Returns
+        ___________
+        returns a tuple:
+            message_to_decode: str
+                The message_to_decode converted in ascii
+            msg_len: int
+                The length of the message
+            str_pointer: int
+                the pointer (position) of the last interpreted/parsed character of the message_to_decode
+        """
+    msg_len = int.from_bytes(response_to_decode[:2], byteorder='big', signed=False)
+    print("Message length: ", msg_len)
+    response_to_decode = response_to_decode.decode('ascii', 'replace')
+    str_pointer: int = 2
+    print("Header: ", response_to_decode[str_pointer:str_pointer + head_len])
+    str_pointer = str_pointer + head_len
+    print("Command returned: ", response_to_decode[str_pointer:str_pointer + 2])
+    str_pointer = str_pointer + 2
+    print("Error returned: ", response_to_decode[str_pointer:str_pointer + 2])
+    return response_to_decode, msg_len, str_pointer
+    # End
 
 
 if __name__ == "__main__":
