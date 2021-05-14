@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Tuple, Dict
 from types import FunctionType
 
-VERSION = "1.1.1"
+VERSION = "1.1.3"
 
 
 def decode_n0(response_to_decode: bytes, head_len: int):
@@ -31,17 +31,12 @@ def decode_n0(response_to_decode: bytes, head_len: int):
         ___________
         nothing
         """
-    print("Message length", int.from_bytes(response_to_decode[:2], byteorder='big', signed=False))
-    str_pointer = 2
-    print("Header:", response_to_decode[str_pointer:str_pointer + head_len].decode('ascii', 'ignore'))
-    str_pointer = str_pointer + head_len
-    print("Command returned:", response_to_decode[str_pointer:str_pointer + 2].decode('ascii', 'ignore'))
-    str_pointer = str_pointer + 2
-    print("Error returned:", response_to_decode[str_pointer:str_pointer + 2].decode('ascii', 'ignore'))
-    if (response_to_decode[str_pointer:str_pointer + 2]).decode('ascii', 'ignore') == '01':
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
+    if response_to_decode[str_pointer:str_pointer + 2] == '01':
         print("Invalid Random Value Length")
-    elif (response_to_decode[str_pointer:str_pointer + 2]).decode('ascii', 'ignore') == '00':
-        print("Random payload:(HEX)", binascii.hexlify(response_to_decode[6 + head_len:]).decode('ascii', 'ignore'))
+    elif response_to_decode[str_pointer:str_pointer + 2] == '00':
+        print("Random payload:(HEX)",
+              binascii.hexlify((response_to_decode[6 + head_len:]).encode()).decode('ascii', 'ignore'))
 
 
 def decode_no(response_to_decode: bytes, head_len: int):
@@ -61,14 +56,7 @@ def decode_no(response_to_decode: bytes, head_len: int):
     """
     BUFFER_SIZE: Dict[str, str] = {
         '0': '2K bytes', '1': '8K bytes', '2': '16K bytes', '3': '32K bytes'}
-    print("Message length", int.from_bytes(response_to_decode[:2], byteorder='big', signed=False))
-    response_to_decode = response_to_decode.decode('ascii', 'replace')
-    str_pointer: int = 2
-    print("Header:", response_to_decode[str_pointer:str_pointer + head_len])
-    str_pointer = str_pointer + head_len
-    print("Command returned:", response_to_decode[str_pointer:str_pointer + 2])
-    str_pointer = str_pointer + 2
-    print("Error returned:", response_to_decode[str_pointer:str_pointer + 2])
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
     if response_to_decode[str_pointer:str_pointer + 2] == '00':
         str_pointer = str_pointer + 2
         print("I/O buffer size:", BUFFER_SIZE.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
@@ -105,19 +93,291 @@ def decode_nc(response_to_decode: bytes, head_len: int):
     ___________
     nothing
     """
-    print("Message length", int.from_bytes(response_to_decode[:2], byteorder='big', signed=False))
-    response_to_decode = response_to_decode.decode('ascii', 'replace')
-    str_pointer: int = 2
-    print("Header:", response_to_decode[str_pointer:str_pointer + head_len])
-    str_pointer = str_pointer + head_len
-    print("Command returned:", response_to_decode[str_pointer:str_pointer + 2])
-    str_pointer = str_pointer + 2
-    print("Error returned:", response_to_decode[str_pointer:str_pointer + 2])
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
     if response_to_decode[str_pointer:str_pointer + 2] == '00':
         str_pointer = str_pointer + 2
         print("LMK CRC:", response_to_decode[str_pointer:str_pointer + 16])
         str_pointer = str_pointer + 16
         print("Firmware number:", response_to_decode[str_pointer:str_pointer + 9])
+
+
+def decode_j8(response_to_decode: bytes, head_len: int):
+    """
+    It decodes the result of the command J8 an prints the meaning of the returned output
+    The message trailer is not considered
+
+    Parameters
+    ___________
+    response_to_decode: bytes
+        The response returned by the payShield
+    head_len: int
+        The length of the header
+
+    Returns
+    ___________
+    nothing
+    """
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
+    if response_to_decode[str_pointer:str_pointer + 2] == '00':
+        str_pointer = str_pointer + 2
+        print("Serial Number: ", response_to_decode[str_pointer:str_pointer + 12])
+        str_pointer = str_pointer + 12
+        print("Start Date: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Start Time: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("End Date: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("End Time: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Current Date: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Current Time: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Reboots: ", response_to_decode[str_pointer:str_pointer + 10])
+        str_pointer = str_pointer + 10
+        print("Tampers: ", response_to_decode[str_pointer:str_pointer + 10])
+        str_pointer = str_pointer + 10
+        print("Pin verifies/minute: ", response_to_decode[str_pointer:str_pointer + 7])
+        str_pointer = str_pointer + 7
+        print("Pin verifies/hour: ", response_to_decode[str_pointer:str_pointer + 5])
+        str_pointer = str_pointer + 5
+        print("Pin attacks: ", response_to_decode[str_pointer:str_pointer + 8])
+
+
+def decode_j2(response_to_decode: bytes, head_len: int):
+    """
+    It decodes the result of the command J2 an prints the meaning of the returned output
+    The message trailer is not considered
+
+    Parameters
+    ___________
+    response_to_decode: bytes
+        The response returned by the payShield
+    head_len: int
+        The length of the header
+
+    Returns
+    ___________
+    nothing
+    """
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
+    if response_to_decode[str_pointer:str_pointer + 2] == '00':
+        str_pointer = str_pointer + 2
+        print("Serial Number: ", response_to_decode[str_pointer:str_pointer + 12])
+        str_pointer = str_pointer + 12
+        print("Start Date: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Start Time: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("End Date: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("End Time: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Current Date: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Current Time: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Seconds: ", response_to_decode[str_pointer:str_pointer + 10])
+        str_pointer = str_pointer + 10
+
+        while (str_pointer + 15) <= msg_len:
+            print("Starting percentage: ", response_to_decode[str_pointer:str_pointer + 3])
+            str_pointer = str_pointer + 3
+            print("Ending percentage: ", response_to_decode[str_pointer:str_pointer + 3])
+            str_pointer = str_pointer + 3
+            print("Number Times Periods: ", response_to_decode[str_pointer:str_pointer + 10])
+            str_pointer = str_pointer + 10
+            print("Delimiter: ", response_to_decode[str_pointer:str_pointer + 1])
+            str_pointer = str_pointer + 1
+        print("")
+
+
+def decode_j4(response_to_decode: bytes, head_len: int):
+    """
+    It decodes the result of the command J4 an prints the meaning of the returned output
+    The message trailer is not considered
+
+    Parameters
+    ___________
+    response_to_decode: bytes
+        The response returned by the payShield
+    head_len: int
+        The length of the header
+
+    Returns
+    ___________
+    nothing
+    """
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
+    if response_to_decode[str_pointer:str_pointer + 2] == '00':
+        str_pointer = str_pointer + 2
+        print("Serial Number: ", response_to_decode[str_pointer:str_pointer + 12])
+        str_pointer = str_pointer + 12
+        print("Start Date: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Start Time: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("End Date: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("End Time: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Current Date: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Current Time: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Seconds: ", response_to_decode[str_pointer:str_pointer + 10])
+        str_pointer = str_pointer + 10
+
+        while (str_pointer + 12) <= msg_len:
+            print("Command Code: ", response_to_decode[str_pointer:str_pointer + 2])
+            str_pointer = str_pointer + 2
+            print("Transactions: ", response_to_decode[str_pointer:str_pointer + 12])
+            str_pointer = str_pointer + 12
+
+
+def decode_jk(response_to_decode: bytes, head_len: int):
+    """
+    It decodes the result of the command JK an prints the meaning of the returned output
+    The message trailer is not considered
+
+    Parameters
+    ___________
+    response_to_decode: bytes
+        The response returned by the payShield
+    head_len: int
+        The length of the header
+
+    Returns
+    ___________
+    nothing
+    """
+    # structures to decode the result
+    # We cam use CONSOLE_STATUS_CODE to check the status of the payShield Manager as well.
+
+    CONSOLE_STATUS_CODE = {
+        '0': 'unknown',
+        '1': 'running',
+        '2': 'not running',
+        '3': 'console disabled by GUI'}
+
+    TAMPER_STATUS_CODE = {
+        '0': 'Unknown',
+        '1': 'Not Tampered',
+        '2': 'Tampered'}
+
+    HOST_STATUS_CODE = {
+        '0': 'unknown',
+        '1': 'running',
+        '2': 'not running',
+        '3': 'not configured'
+    }
+
+    TAMPER_CAUSE_CODE = {
+        '00': 'unknown',
+        '01': 'temp out of range',
+        '02': 'battery low',
+        '03': 'erase button pressed',
+        '04': 'security processor watchdog',
+        '05': 'power too high',
+        '06': 'security processor restart',
+        '07': 'motion detected',
+        '08': 'case tampered',
+        '09': 'TSPP Module',
+        '10': 'General'
+    }
+    LMK_ALGORITHM_CODE = {
+        '0': '3DES2Key',
+        '1': '3DES3Key',
+        '2': 'AES 256-bit'
+    }
+    LMK_SCHEME_CODE = {
+        'V': 'Variant',
+        'K': 'Keyblock'
+    }
+    LMK_STATUS_CODE = {
+        'L': 'Live',
+        'T': 'Test'
+    }
+    LMK_AUTH_CODE = {
+        '0': 'Not authorized',
+        '1': 'Authorized'
+    }
+    FRAUD_CODE = {
+
+        '0': 'not exceeded (or not enabled)',
+        '1': 'exceeded'
+    }
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
+    if response_to_decode[str_pointer:str_pointer + 2] == '00':
+        str_pointer = str_pointer + 2
+        print("Serial Number: ", response_to_decode[str_pointer:str_pointer + 12])
+        str_pointer = str_pointer + 12
+        print("System Date: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("System Time: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Console State: ", CONSOLE_STATUS_CODE.get(response_to_decode[str_pointer:str_pointer + 1], '?'))
+        str_pointer = str_pointer + 1
+        print("payShield Manager State: ",
+              CONSOLE_STATUS_CODE.get(response_to_decode[str_pointer:str_pointer + 1], '?'))
+        str_pointer = str_pointer + 1
+        print("HOST 1 State: ", HOST_STATUS_CODE.get(response_to_decode[str_pointer:str_pointer + 1], '?'))
+        str_pointer = str_pointer + 1
+        print("HOST 2 State: ", HOST_STATUS_CODE.get(response_to_decode[str_pointer:str_pointer + 1], '?'))
+        str_pointer = str_pointer + 1
+        print("Reserved: ", response_to_decode[str_pointer:str_pointer + 1])
+        str_pointer = str_pointer + 1
+        print("Reserved: ", response_to_decode[str_pointer:str_pointer + 1])
+        str_pointer = str_pointer + 1
+        tamper_state = response_to_decode[str_pointer:str_pointer + 1]
+
+        print("Tamper State: ", TAMPER_STATUS_CODE.get(tamper_state, '?'))
+        str_pointer = str_pointer + 1
+        if tamper_state == '2':
+            print("Tamper Cause: ", TAMPER_CAUSE_CODE.get(response_to_decode[str_pointer:str_pointer + 2], '?'))
+            str_pointer = str_pointer + 2
+            print("Tamper Date: ", response_to_decode[str_pointer:str_pointer + 6])
+            str_pointer = str_pointer + 6
+            print("Tamper Time: ", response_to_decode[str_pointer:str_pointer + 6])
+            str_pointer = str_pointer + 6
+        lmk_loaded = response_to_decode[str_pointer:str_pointer + 2]
+        print("Number of LMK Loaded: ", lmk_loaded)
+        str_pointer = str_pointer + 2
+        print("Number of Test LMK: ", response_to_decode[str_pointer:str_pointer + 2])
+        str_pointer = str_pointer + 2
+        print("Number of Old LMK: ", response_to_decode[str_pointer:str_pointer + 2])
+        str_pointer = str_pointer + 2
+        print("There are ", lmk_loaded, " LMK(s) loaded")
+        try:
+            lmks_loaded_num = int(lmk_loaded)
+        except ValueError:
+            lmks_loaded_num = -1
+        if lmks_loaded_num > 0:
+            remaining_to_decode = response_to_decode[str_pointer:]
+            lmks_string = str.split(remaining_to_decode, '\x15')[0]
+            lmks_array = str.split(lmks_string, '\x14')
+            for lmk in lmks_array:
+                if len(lmk) > 0:
+                    local_lmk_pointer = 0
+                    print("LMK ID: ", lmk[local_lmk_pointer:local_lmk_pointer + 2])
+                    local_lmk_pointer = local_lmk_pointer + 2
+                    print("Authorised: ", LMK_AUTH_CODE.get(lmk[local_lmk_pointer:local_lmk_pointer + 1], '?'))
+                    local_lmk_pointer = local_lmk_pointer + 1
+                    print("Num Authorised Activities: ", lmk[local_lmk_pointer:local_lmk_pointer + 2])
+                    local_lmk_pointer = local_lmk_pointer + 2
+                    print("LMK Scheme: ", LMK_SCHEME_CODE.get(lmk[local_lmk_pointer:local_lmk_pointer + 1], '?'))
+                    local_lmk_pointer = local_lmk_pointer + 1
+                    print("Algorithm: ", LMK_ALGORITHM_CODE.get(lmk[local_lmk_pointer:local_lmk_pointer + 1], '?'))
+                    local_lmk_pointer = local_lmk_pointer + 1
+                    print("Status: ", LMK_STATUS_CODE.get(lmk[local_lmk_pointer:local_lmk_pointer + 1], '?'))
+                    local_lmk_pointer = local_lmk_pointer + 1
+                    print("Comments: ", lmk[local_lmk_pointer:])
+                    print("")
+        fraud_detection = str.split(response_to_decode[str_pointer:], '\x15')[1]
+        print("Fraud detection Exceeded: ", FRAUD_CODE.get(fraud_detection[0], '?'))
+        print("PIN attacks exceeded: ", FRAUD_CODE.get(fraud_detection[1], '?'))
+        print("")
 
 
 def payshield_error_codes(error_code: str) -> str:
@@ -406,6 +666,42 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
         connection.close()
 
 
+def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str, int, int]:
+    """
+        This function is an helper used by the decode_XX functions.
+        It converts the response_to_decode in ascii, calculates and prins the message size and
+        prints the header, the command returned and the error code.
+
+        Parameters
+        ___________
+        response_to_decode: bytes
+            The response returned by the payShield
+        head_len: int
+            The length of the header
+
+        Returns
+        ___________
+        returns a tuple:
+            message_to_decode: str
+                The message_to_decode converted in ascii
+            msg_len: int
+                The length of the message
+            str_pointer: int
+                the pointer (position) of the last interpreted/parsed character of the message_to_decode
+        """
+    msg_len = int.from_bytes(response_to_decode[:2], byteorder='big', signed=False)
+    print("Message length: ", msg_len)
+    response_to_decode = response_to_decode.decode('ascii', 'replace')
+    str_pointer: int = 2
+    print("Header: ", response_to_decode[str_pointer:str_pointer + head_len])
+    str_pointer = str_pointer + head_len
+    print("Command returned: ", response_to_decode[str_pointer:str_pointer + 2])
+    str_pointer = str_pointer + 2
+    print("Error returned: ", response_to_decode[str_pointer:str_pointer + 2])
+    return response_to_decode, msg_len, str_pointer
+    # End
+
+
 if __name__ == "__main__":
     print("PayShield stress utility, version " + VERSION + ", by Marco S. Zuppone - msz@msz.eu - https://msz.eu")
     print("To get more info about the usage invoke it with the -h option")
@@ -420,14 +716,21 @@ if __name__ == "__main__":
     DECODERS = {
         'NO': decode_no,
         'NC': decode_nc,
-        'N0': decode_n0
+        'N0': decode_n0,
+        'J8': decode_j8,
+        'J2': decode_j2,
+        'J4': decode_j4,
+        'JK': decode_jk
     }
 
-    parser = argparse.ArgumentParser(description="Stress a PayShield appliance with RSA key generation")
+    parser = argparse.ArgumentParser(
+        description="Generates workload on PayShield 10k and 9k for the sake of testing and demonstration.",
+        epilog="For any questions, feedback, suggestions, send money (yes...it's a dream I know) you can contact the "
+               "author at msz@msz.eu")
     parser.add_argument("host", help="Ip address or hostname of the payShield")
     group = parser.add_mutually_exclusive_group()
     parser.add_argument("--port", "-p", help="The host port", default=1500, type=int)
-    group.add_argument("--key", help="RSA key length. Accepted values are 2048 ot 4096",
+    group.add_argument("--key", help="RSA key length. Accepted values are 2048 ot 4096.",
                        default=2048, choices=[2048, 4096], type=int)
     group.add_argument("--nc", help="Just perform a NC test. " + KEY_IGNORED_MSG,
                        action="store_true")
@@ -446,14 +749,14 @@ if __name__ == "__main__":
                        help="Get Instantaneous Health Check Status using JK command. " + KEY_IGNORED_MSG,
                        action="store_true")
     group.add_argument("--randgen",
-                       help="Generate a random value 8 bytes long", action="store_true")
+                       help="Generate a random value 8 bytes long.", action="store_true")
     parser.add_argument("--header",
-                        help="the header string to prepend to the host command. If not specified the default is HEAD",
+                        help="the header string to prepend to the host command. If not specified the default is HEAD.",
                         default="HEAD", type=str)
-    parser.add_argument("--forever", help="if this option is specified the program runs for ever",
+    parser.add_argument("--forever", help="if this option is specified the program runs for ever.",
                         action="store_true")
-    parser.add_argument("--decode", help="if this option is specified the reply of the payShield is interpreted "
-                                         "if a decoder function for that command has been implemented",
+    parser.add_argument("--decode", help="if specified the reply of the payShield is interpreted "
+                                         "if a decoder function for that command has been implemented.",
                         action="store_true")
 
     parser.add_argument("--times", help="how many time to repeat the operation", type=int, default=1000)
