@@ -5,9 +5,9 @@
 
 &nbsp;
 
-The **pressureTest.py** Python script creates a workload on the **Thales payShield 10k** and **9k** appliances. The
-script can be useful during demonstrations of the monitoring features of the appliance and can be used in every case you
-need to generate a workload for testing purposes.
+The **pressureTest.py** Python script creates a workload on the **Thales payShield 10k** and **9k** appliances.  
+The script can be useful during demonstrations of the monitoring features of the appliance and can be used in every case
+you need to generate a workload for testing purposes.
 
 The project is in an early development stage and still a bit clumsy.
 
@@ -19,28 +19,30 @@ It requires **Python 3**. It was tested on **Python 3.7** and **3.8** using a **
 
 ## Usage
 
-**pressureTest.py \[-h\] \[--port PORT\] \[--proto {tcp, udp, tls}\] \[--keyfile CLIENT.KEY\] \[--crtfile CLIENT.CRT\]
-\[--key {2048,4096} | --nc | --j2 | --j4 | --n8 | --jk | --randgen\] \[--head HEADER\] \[--forever\] \[--times TIMES\]
-host**
+    pressureTest.py [-h] [--port PORT] [--key {2048,4096} | --nc | --no | --j2 | --j4 | --j8 | --jk | --randgen]
+                    [--header HEADER] [--forever] [--decode] [--times TIMES] [--proto {tcp,udp,tls}] [--keyfile KEYFILE]
+                    [--crtfile CRTFILE]
+                    host
 
-**host** you need to specify the ip address or the hostname/fqdn of the **payShield** appliance.
+**host** *ip address* or the *hostname/fqdn* of the **payShield** appliance.
 
-**--port** specify the host port, if the parameter is omitted the default value **1500** is used.
+**--port** specifies the host port, if omitted the default value **1500** is used.
 
-**--proto** specify the protocol to use, **tcp**, **udp** or **tls**, if the parameter is omitted the default value **
-tcp** is used. If **tls** is used you might specify the path of the client key file and the certificate using the
-parameters **--keyfile** and **--crtfile**
+**--proto** specify the protocol to use, **tcp**, **udp** or **tls**, if omitted the default value **tcp**
+is used.  
+If **tls** is used you might specify the path of the client key file and the certificate using the parameters **
+--keyfile** and **--crtfile**.
 
-**--keyfile** the path of the client key file, if is not specified the default value is **client.key**. It's only
-considered if the protocol is **tls**
+**--keyfile** the path of the client key file, if is not specified the default value is **client.key**.  
+It's only considered if the protocol is **tls**.
 
-**--crtfile** the path of the client certificate file, if is not specified the default value is **client.crt**. It's
-only considered if the protocol is **tls**
+**--crtfile** the path of the client certificate file, if is not specified the default value is **client.crt**.  
+It's only considered if the protocol is **tls**.
 
-**--key** the length of the RSA key that the appliance will generate. There are only two valid values: **2048** or **
-4096**. If the parameter is not specified **2048** is the default.
+**--key** the length of the RSA to generate. There are only two valid values: **2048** or **4096**.  
+If not specified, **2048** is the default.
 
-**--header** the header string to prefix to the host command, if it is not specified the default value is **HEAD**.
+**--header** the header string to prefix to the host command, if not specified the default value is **HEAD**.
 
 **--nc** performs just an **NC** test. It cannot be used in conjunction with **--key**.
 
