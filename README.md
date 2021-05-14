@@ -65,7 +65,8 @@ If not specified, **2048** is the default.
 
 **--times** how many times execute the test. If it is not specified the default value is **1000** times.
 
-**--decode** decodes the response of the payShield if a decoder function is available for the command.
+**--decode** decodes the response of the payShield if a decoder function is available for the command.  
+The commands **--decode** supports in the release are: **N0**, **NO**, **NC**, **J2**, **J4**, **J8** and **JK**.
 
 ## Example
 

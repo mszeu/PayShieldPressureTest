@@ -669,7 +669,7 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
 def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str, int, int]:
     """
         This function is an helper used by the decode_XX functions.
-        It converts the response_to_decode in ascii, calculates and print the message size and
+        It converts the response_to_decode in ascii, calculates and prins the message size and
         prints the header, the command returned and the error code.
 
         Parameters
@@ -723,11 +723,14 @@ if __name__ == "__main__":
         'JK': decode_jk
     }
 
-    parser = argparse.ArgumentParser(description="Stress a PayShield appliance with RSA key generation")
+    parser = argparse.ArgumentParser(
+        description="Generates workload on PayShield 10k and 9k for the sake of testing and demonstration.",
+        epilog="For any questions, feedback, suggestions, send money (yes...it's a dream I know) you can contact the "
+               "author at msz@msz.eu")
     parser.add_argument("host", help="Ip address or hostname of the payShield")
     group = parser.add_mutually_exclusive_group()
     parser.add_argument("--port", "-p", help="The host port", default=1500, type=int)
-    group.add_argument("--key", help="RSA key length. Accepted values are 2048 ot 4096",
+    group.add_argument("--key", help="RSA key length. Accepted values are 2048 ot 4096.",
                        default=2048, choices=[2048, 4096], type=int)
     group.add_argument("--nc", help="Just perform a NC test. " + KEY_IGNORED_MSG,
                        action="store_true")
@@ -746,14 +749,14 @@ if __name__ == "__main__":
                        help="Get Instantaneous Health Check Status using JK command. " + KEY_IGNORED_MSG,
                        action="store_true")
     group.add_argument("--randgen",
-                       help="Generate a random value 8 bytes long", action="store_true")
+                       help="Generate a random value 8 bytes long.", action="store_true")
     parser.add_argument("--header",
-                        help="the header string to prepend to the host command. If not specified the default is HEAD",
+                        help="the header string to prepend to the host command. If not specified the default is HEAD.",
                         default="HEAD", type=str)
-    parser.add_argument("--forever", help="if this option is specified the program runs for ever",
+    parser.add_argument("--forever", help="if this option is specified the program runs for ever.",
                         action="store_true")
-    parser.add_argument("--decode", help="if this option is specified the reply of the payShield is interpreted "
-                                         "if a decoder function for that command has been implemented",
+    parser.add_argument("--decode", help="if specified the reply of the payShield is interpreted "
+                                         "if a decoder function for that command has been implemented.",
                         action="store_true")
 
     parser.add_argument("--times", help="how many time to repeat the operation", type=int, default=1000)
