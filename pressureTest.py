@@ -348,8 +348,12 @@ def decode_jk(response_to_decode: bytes, head_len: int):
         str_pointer = str_pointer + 2
         print("Number of Old LMK: ", response_to_decode[str_pointer:str_pointer + 2])
         str_pointer = str_pointer + 2
-        if int(lmk_loaded) > 0:
-            print("There are LMK loaded")
+        print("There are ", lmk_loaded, " LMK(s) loaded")
+        try:
+            lmks_loaded_num = int(lmk_loaded)
+        except ValueError:
+            lmks_loaded_num = -1
+        if lmks_loaded_num > 0:
             remaining_to_decode = response_to_decode[str_pointer:]
             lmks_string = str.split(remaining_to_decode, '\x15')[0]
             lmks_array = str.split(lmks_string, '\x14')
@@ -369,6 +373,7 @@ def decode_jk(response_to_decode: bytes, head_len: int):
                     print("Status: ", LMK_STATUS_CODE.get(lmk[local_lmk_pointer:local_lmk_pointer + 1], '?'))
                     local_lmk_pointer = local_lmk_pointer + 1
                     print("Comments: ", lmk[local_lmk_pointer:])
+                    print("")
         fraud_detection = str.split(response_to_decode[str_pointer:], '\x15')[1]
         print("Fraud detection Exceeded: ", FRAUD_CODE.get(fraud_detection[0], '?'))
         print("PIN attacks exceeded: ", FRAUD_CODE.get(fraud_detection[1], '?'))
