@@ -1,3 +1,6 @@
 /venv
 /.idea
 /venv38
+/dist
+/build
+pressureTest.spec
