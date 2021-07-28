@@ -603,7 +603,7 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
             connection.send(message)
             # receive data
             data = connection.recv(buffer_size)
-        if proto == "tls":
+        elif proto == "tls":
             # creates the TCP TLS socket
             connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             ciphers = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:AES128-GCM-SHA256:AES128-SHA256:HIGH:"
@@ -614,7 +614,7 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
             ssl_sock.send(message)
             # receive data
             data = ssl_sock.recv(buffer_size)
-        if proto == "udp":
+        elif proto == "udp":
             # create the UDP socket
             connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             # send data
@@ -800,25 +800,21 @@ if __name__ == "__main__":
                   args.port, " please check that you passed the right value to the "
                              "--port parameter")
 
-    if args.forever:
-        i = 1
-        while True:
+    i = 1
+    while True:
+        if args.forever:
             print("Iteration: ", i)
-            if args.decode:
-                run_test(args.host, args.port, command, args.proto, len(args.header),
-                         DECODERS.get(command[len(args.header):len(args.header) + 2], None))
-            else:
-                run_test(args.host, args.port, command, args.proto, len(args.header), None)
+        else:
+            print("Iteration: ", i, " of ", args.times)
 
-            i = i + 1
-            print("")
-    else:
-        for i in range(0, args.times):
-            print("Iteration: ", i + 1, " of ", args.times)
-            if args.decode:
-                run_test(args.host, args.port, command, args.proto, len(args.header),
-                         DECODERS.get(command[len(args.header):len(args.header) + 2], None))
-            else:
-                run_test(args.host, args.port, command, args.proto, len(args.header), None)
-            print("")
-        print("DONE")
+        if args.decode:
+            run_test(args.host, args.port, command, args.proto, len(args.header),
+                     DECODERS.get(command[len(args.header):len(args.header) + 2], None))
+        else:
+            run_test(args.host, args.port, command, args.proto, len(args.header), None)
+
+        i = i + 1
+        print("")
+        if not args.forever and i > args.times:
+            break
+    print("DONE")
