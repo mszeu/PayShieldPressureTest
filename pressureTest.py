@@ -85,6 +85,7 @@ def decode_no(response_to_decode: bytes, head_len: int):
 
             elif response_to_decode[str_pointer:str_pointer + 1] == '1':
                 print("All security settings relevant to PCI HSM compliance have compliant values..")
+
             elif response_to_decode[str_pointer:str_pointer + 1] == '2':
                 print(
                     "Some of the security settings relevant to PCI HSM compliance have non-compliant values.\n"
