@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Tuple, Dict
 from types import FunctionType
 
-VERSION = "1.1.3"
+VERSION = "1.1.4d"
 
 
 def decode_n0(response_to_decode: bytes, head_len: int):
@@ -57,24 +57,38 @@ def decode_no(response_to_decode: bytes, head_len: int):
     BUFFER_SIZE: Dict[str, str] = {
         '0': '2K bytes', '1': '8K bytes', '2': '16K bytes', '3': '32K bytes'}
     response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
-    if response_to_decode[str_pointer:str_pointer + 2] == '00':
-        str_pointer = str_pointer + 2
-        print("I/O buffer size:", BUFFER_SIZE.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
-        str_pointer = str_pointer + 1
-        if response_to_decode[str_pointer:str_pointer + 1] == '0':
-            print("Type of connection: UDP")
-        elif response_to_decode[str_pointer:str_pointer + 1] == '1':
-            print("Type of connection: TCP")
-        else:
-            print("Unexpected connection type")
-        str_pointer = str_pointer + 1
-        print("Number of TCP sockets:", response_to_decode[str_pointer:str_pointer + 2])
-        str_pointer = str_pointer + 2
-        print("Firmware number:", response_to_decode[str_pointer:str_pointer + 9])
-        str_pointer = str_pointer + 9
-        print("Reserved:", response_to_decode[str_pointer:str_pointer + 1])
-        str_pointer = str_pointer + 1
-        print("Reserved:", response_to_decode[str_pointer:str_pointer + 4])
+    if response_to_decode[str_pointer:str_pointer + 2] == '00':  # No errors
+        if len(response_to_decode) >= 18:  # Mode 00
+            str_pointer = str_pointer + 2
+            print("I/O buffer size:", BUFFER_SIZE.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
+            str_pointer = str_pointer + 1
+            if response_to_decode[str_pointer:str_pointer + 1] == '0':
+                print("Type of connection: UDP")
+            elif response_to_decode[str_pointer:str_pointer + 1] == '1':
+                print("Type of connection: TCP")
+            else:
+                print("Unexpected connection type")
+            str_pointer = str_pointer + 1
+            print("Number of TCP sockets:", response_to_decode[str_pointer:str_pointer + 2])
+            str_pointer = str_pointer + 2
+            print("Firmware number:", response_to_decode[str_pointer:str_pointer + 9])
+            str_pointer = str_pointer + 9
+            print("Reserved:", response_to_decode[str_pointer:str_pointer + 1])
+            str_pointer = str_pointer + 1
+            print("Reserved:", response_to_decode[str_pointer:str_pointer + 4])
+        else:  # Mode 01
+            str_pointer = str_pointer + 2
+            if response_to_decode[str_pointer:str_pointer + 1] == '0':
+                print(
+                    "Some of the security settings relevant to PCI HSM compliance have non-compliant values.\n"
+                    "\" The Enforce key type 002 separation for PCI HSM compliance\" setting is one of these.")
+
+            elif response_to_decode[str_pointer:str_pointer + 1] == '1':
+                print("All security settings relevant to PCI HSM compliance have compliant values..")
+            elif response_to_decode[str_pointer:str_pointer + 1] == '2':
+                print(
+                    "Some of the security settings relevant to PCI HSM compliance have non-compliant values.\n"
+                    "\" The Enforce key type 002 separation for PCI HSM compliance\" setting is not one of these.")
 
 
 def decode_nc(response_to_decode: bytes, head_len: int):
@@ -669,7 +683,7 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
 def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str, int, int]:
     """
         This function is an helper used by the decode_XX functions.
-        It converts the response_to_decode in ascii, calculates and prins the message size and
+        It converts the response_to_decode in ascii, calculates and prints the message size and
         prints the header, the command returned and the error code.
 
         Parameters
@@ -737,6 +751,9 @@ if __name__ == "__main__":
     group.add_argument("--no", help="Retrieves HSM status information using NO command. " +
                                     KEY_IGNORED_MSG,
                        action="store_true")
+    group.add_argument("--fips", help="Checks if the HSM is set in FIPS compliant mode. " +
+                                      KEY_IGNORED_MSG,
+                       action="store_true")
     group.add_argument("--j2", help="Get HSM Loading using J2 command. " + KEY_IGNORED_MSG,
                        action="store_true")
     group.add_argument("--j4",
@@ -776,6 +793,8 @@ if __name__ == "__main__":
         command = args.header + 'NC'
     if args.no:
         command = args.header + 'NO00'
+    if args.fips:
+        command = args.header + 'NO01'
     if args.j2:
         command = args.header + 'J2'
     if args.j4:
@@ -822,3 +841,27 @@ if __name__ == "__main__":
                 run_test(args.host, args.port, command, args.proto, len(args.header), None)
             print("")
         print("DONE")
+
+
+def setup_connection(ip_addr: str, port: int, proto: str = "tcp") -> socket:
+    if proto == "tcp":
+        # creates the TCP socket
+        connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        connection.connect((ip_addr, port))
+        return connection
+
+    if proto == "tls":
+        # creates the TCP TLS socket
+        connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        ciphers = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:AES128-GCM-SHA256:AES128-SHA256:HIGH:"
+        ciphers += "!aNULL:!eNULL:!EXPORT:!DSS:!DES:!RC4:!3DES:!MD5:!PSK"
+        ssl_sock = ssl.wrap_socket(connection, args.keyfile, args.crtfile)
+        ssl_sock.connect((ip_addr, port))
+        return connection
+
+    if proto == "udp":
+        # create the UDP socket
+        connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        return connection
+
+    return None
