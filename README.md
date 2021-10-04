@@ -22,7 +22,7 @@ It requires **Python 3**. It was tested on **Python 3.7** and **3.8** using a **
 
 ## Usage
 
-    pressureTest.py [-h] [--port PORT] [--key {2048,4096} | --nc | --no | --fips | --j2 | --j4 | --j8 | --jk | --randgen]
+    pressureTest.py [-h] [--port PORT] [--key {2048,4096} | --nc | --no | --pci | --j2 | --j4 | --j8 | --jk | --randgen]
                     [--header HEADER] [--forever] [--decode] [--times TIMES] [--proto {tcp,udp,tls}] [--keyfile KEYFILE]
                     [--crtfile CRTFILE]
                     host
@@ -49,7 +49,7 @@ If not specified, **2048** is the default.
 
 **--nc** performs just an **NC** test. It cannot be used in conjunction with **--key**.
 
-**--fips** gathers the FIPS compliance status of the payShield through the **NO** command, type **01**. It cannot be used in conjunction with **--key**.
+**--pci** gathers the PCI compliance status of the payShield through the **NO** command, type **01**. It cannot be used in conjunction with **--key**.
 
 **--no** gathers the status of the payShield through the **NO** command. It cannot be used in conjunction with **--key**.
 

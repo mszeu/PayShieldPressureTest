@@ -58,7 +58,9 @@ def decode_no(response_to_decode: bytes, head_len: int):
         '0': '2K bytes', '1': '8K bytes', '2': '16K bytes', '3': '32K bytes'}
     response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
     if response_to_decode[str_pointer:str_pointer + 2] == '00':  # No errors
-        if len(response_to_decode) >= 18:  # Mode 00
+        if len(response_to_decode) >= (24 + head_len):  # Mode 00
+            # I obtained the value 24 in this way: 2 for the response len, 2 for the error code and the rest is for the
+            # sum of the field len as indicated by the Core Host Command Manual
             str_pointer = str_pointer + 2
             print("I/O buffer size:", BUFFER_SIZE.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
             str_pointer = str_pointer + 1
@@ -81,15 +83,15 @@ def decode_no(response_to_decode: bytes, head_len: int):
             if response_to_decode[str_pointer:str_pointer + 1] == '0':
                 print(
                     "Some of the security settings relevant to PCI HSM compliance have non-compliant values.\n"
-                    "\" The Enforce key type 002 separation for PCI HSM compliance\" setting is one of these.")
+                    "\"The Enforce key type 002 separation for PCI HSM compliance\" setting is one of these.")
 
             elif response_to_decode[str_pointer:str_pointer + 1] == '1':
-                print("All security settings relevant to PCI HSM compliance have compliant values..")
+                print("All security settings relevant to PCI HSM compliance have compliant values.")
 
             elif response_to_decode[str_pointer:str_pointer + 1] == '2':
                 print(
                     "Some of the security settings relevant to PCI HSM compliance have non-compliant values.\n"
-                    "\" The Enforce key type 002 separation for PCI HSM compliance\" setting is not one of these.")
+                    "\"The Enforce key type 002 separation for PCI HSM compliance\" setting is not one of these.")
 
 
 def decode_nc(response_to_decode: bytes, head_len: int):
@@ -618,7 +620,7 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
             connection.send(message)
             # receive data
             data = connection.recv(buffer_size)
-        if proto == "tls":
+        elif proto == "tls":
             # creates the TCP TLS socket
             connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             ciphers = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:AES128-GCM-SHA256:AES128-SHA256:HIGH:"
@@ -629,7 +631,7 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
             ssl_sock.send(message)
             # receive data
             data = ssl_sock.recv(buffer_size)
-        if proto == "udp":
+        elif proto == "udp":
             # create the UDP socket
             connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             # send data
@@ -752,7 +754,7 @@ if __name__ == "__main__":
     group.add_argument("--no", help="Retrieves HSM status information using NO command. " +
                                     KEY_IGNORED_MSG,
                        action="store_true")
-    group.add_argument("--fips", help="Checks if the HSM is set in FIPS compliant mode. " +
+    group.add_argument("--pci", help="Checks if the HSM is set in PCI compliant mode. " +
                                       KEY_IGNORED_MSG,
                        action="store_true")
     group.add_argument("--j2", help="Get HSM Loading using J2 command. " + KEY_IGNORED_MSG,
@@ -794,7 +796,7 @@ if __name__ == "__main__":
         command = args.header + 'NC'
     if args.no:
         command = args.header + 'NO00'
-    if args.fips:
+    if args.pci:
         command = args.header + 'NO01'
     if args.j2:
         command = args.header + 'J2'
