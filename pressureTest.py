@@ -851,7 +851,7 @@ def setup_connection(ip_addr: str, port: int, proto: str = "tcp") -> socket:
         connection.connect((ip_addr, port))
         return connection
 
-    if proto == "tls":
+    elif proto == "tls":
         # creates the TCP TLS socket
         connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         ciphers = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:AES128-GCM-SHA256:AES128-SHA256:HIGH:"
@@ -860,7 +860,7 @@ def setup_connection(ip_addr: str, port: int, proto: str = "tcp") -> socket:
         ssl_sock.connect((ip_addr, port))
         return connection
 
-    if proto == "udp":
+    elif proto == "udp":
         # create the UDP socket
         connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         return connection
