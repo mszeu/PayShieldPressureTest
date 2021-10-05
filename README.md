@@ -18,36 +18,23 @@ It requires **Python 3**. It was tested on **Python 3.7** and **3.8** using a **
 
 ## Version
 
-**1.1.4**
+**1.1.4a**
 
 ## Usage
 
-    pressureTest.py [-h] [--port PORT] [--key {2048,4096} | --nc | --no | --pci | --j2 | --j4 | --j8 | --jk | --randgen --b2]
-                    [--header HEADER] [--forever] [--decode] [--times TIMES] [--proto {tcp,udp,tls}] [--echo]
-                    [--keyfile KEYFILE] [--crtfile CRTFILE]
+    pressureTest.py [-h] [--port PORT] [--key {2048,4096} | --nc | --no | --pci | --j2 | --j4 | --j8 | --jk | --randgen | --b2]
+                    [--header HEADER] [--times TIMES] [--forever] [--decode] [--proto {tcp,udp,tls}] 
+                    [--keyfile KEYFILE] [--crtfile CRTFILE] [--echo]
                     host
+
+###Mandatory parameter(s)
 
 **host** *ip address* or the *hostname/fqdn* of the **payShield** appliance.
 
-**--port** specifies the host port, if omitted the default value **1500** is used.
-
-**--proto** specify the protocol to use, **tcp**, **udp** or **tls**, if omitted the default value **tcp**
-is used.  
-If **tls** is used you might specify the path of the client key file and the certificate using the parameters **
---keyfile** and **--crtfile**.
-
-**--echo** specify the payload sent using the echo command **--b2**, otherwise it is ignored
-
-**--keyfile** the path of the client key file, if is not specified the default value is **client.key**.  
-It's only considered if the protocol is **tls**.
-
-**--crtfile** the path of the client certificate file, if is not specified the default value is **client.crt**.  
-It's only considered if the protocol is **tls**.
+###Mutually exclusive parameters
 
 **--key** the length of the RSA to generate. There are only two valid values: **2048** or **4096**.  
 If not specified, **2048** is the default.
-
-**--header** the header string to prefix to the host command, if not specified the default value is **HEAD**.
 
 **--nc** performs just an **NC** test. 
 
@@ -67,12 +54,31 @@ If not specified, **2048** is the default.
 
 **--b2** Echo received data, specified through the **--echo** parameter, back to the user.
 
+###Optional parameters
+
+**--port** specifies the host port, if omitted the default value **1500** is used.
+
+**--proto** specify the protocol to use, **tcp**, **udp** or **tls**, if omitted the default value **tcp**
+is used.  
+If **tls** is used you might specify the path of the client key file and the certificate using the parameters **
+--keyfile** and **--crtfile**.
+
+**--keyfile** the path of the client key file, if is not specified the default value is **client.key**.  
+It's only considered if the protocol is **tls**.
+
+**--crtfile** the path of the client certificate file, if is not specified the default value is **client.crt**.  
+It's only considered if the protocol is **tls**.
+
+**--header** the header string to prefix to the host command, if not specified the default value is **HEAD**.
+
+**--echo** specify the payload sent using the echo command **--b2**, otherwise it is ignored
+
 **--forever** the test will run forever. Use **CTRL-C** to terminate it.
 
 **--times** how many times execute the test. If it is not specified the default value is **1000** times.
 
 **--decode** decodes the response of the payShield if a decoder function is available for the command.  
-The commands **--decode** supports in the release are: **N0**, **NO**, **NC**, **J2**, **J4**, **J8** and **JK**.
+The commands **--decode** supports in the release are: **B2**, **N0**, **NO**, **NC**, **J2**, **J4**, **J8** and **JK**.
 
 ## Example
 
