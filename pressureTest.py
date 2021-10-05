@@ -724,7 +724,6 @@ if __name__ == "__main__":
     print("To get more info about the usage invoke it with the -h option")
     print("This software is open source and it is under the Affero AGPL 3.0 license")
     print("")
-    KEY_IGNORED_MSG = "If this option is specified --key is ignored"
 
     # List of decoder functions used to interpreter the result.
     # The reference to the function is used as parameter in the run_test function.
@@ -749,24 +748,22 @@ if __name__ == "__main__":
     parser.add_argument("--port", "-p", help="The host port", default=1500, type=int)
     group.add_argument("--key", help="RSA key length. Accepted values are 2048 and 4096.",
                        default=2048, choices=[2048, 4096], type=int)
-    group.add_argument("--nc", help="Just perform a NC test. " + KEY_IGNORED_MSG,
+    group.add_argument("--nc", help="Just perform a NC test. ",
                        action="store_true")
-    group.add_argument("--no", help="Retrieves HSM status information using NO command. " +
-                                    KEY_IGNORED_MSG,
+    group.add_argument("--no", help="Retrieves HSM status information using NO command. ",
                        action="store_true")
-    group.add_argument("--pci", help="Checks if the HSM is set in PCI compliant mode. " +
-                                     KEY_IGNORED_MSG,
+    group.add_argument("--pci", help="Checks if the HSM is set in PCI compliant mode. ",
                        action="store_true")
-    group.add_argument("--j2", help="Get HSM Loading using J2 command. " + KEY_IGNORED_MSG,
+    group.add_argument("--j2", help="Get HSM Loading using J2 command. ",
                        action="store_true")
     group.add_argument("--j4",
-                       help="Get Host Command Volumes using J4 command. " + KEY_IGNORED_MSG,
+                       help="Get Host Command Volumes using J4 command. ",
                        action="store_true")
     group.add_argument("--j8",
-                       help="Get Health Check Accumulated Counts using J8 command. " + KEY_IGNORED_MSG,
+                       help="Get Health Check Accumulated Counts using J8 command. ",
                        action="store_true")
     group.add_argument("--jk",
-                       help="Get Instantaneous Health Check Status using JK command. " + KEY_IGNORED_MSG,
+                       help="Get Instantaneous Health Check Status using JK command. ",
                        action="store_true")
     group.add_argument("--b2",
                        help="Echo received data back to the user.", action="store_true")
@@ -791,26 +788,27 @@ if __name__ == "__main__":
     parser.add_argument("--echo", help="the payload sent using the echo command B2, otherwise it is ignored", type=str,
                         default="PayShieldStress Echo Test", action="store")
     args = parser.parse_args()
-    # the order of the IF here is important due to the default arguments
+    # the order of the IF here is important due to the default arguments.
+    # All the mutually exclusive options need to be in this block where ELIF statements are used.
     if args.key == 2048:
         command = args.header + 'EI2204801#0000'
-    else:
+    elif args.key == 4096:
         command = args.header + 'EI2409601#0000'
-    if args.nc:
+    elif args.nc:
         command = args.header + 'NC'
-    if args.no:
+    elif args.no:
         command = args.header + 'NO00'
-    if args.pci:
+    elif args.pci:
         command = args.header + 'NO01'
-    if args.j2:
+    elif args.j2:
         command = args.header + 'J2'
-    if args.j4:
+    elif args.j4:
         command = args.header + 'J4'
-    if args.j8:
+    elif args.j8:
         command = args.header + 'J8'
-    if args.jk:
+    elif args.jk:
         command = args.header + 'JK'
-    if args.randgen:
+    elif args.randgen:
         command = args.header + 'N0008'
     if args.b2:
         # we need to calculate the hexadecimal representation of the length of the payload string
