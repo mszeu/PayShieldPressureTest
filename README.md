@@ -14,7 +14,7 @@ you need to generate a workload for testing purposes.
 
 The project is in an early development stage and still a bit clumsy.
 
-It requires **Python 3**. It was tested on **Python 3.7** and **3.8** using a **payShield 10k** with firmware **1.3a**
+It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** using a **payShield 10k** with firmware **1.3a**
 
 ## Version
 
