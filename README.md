@@ -22,9 +22,9 @@ It requires **Python 3**. It was tested on **Python 3.7** and **3.8** using a **
 
 ## Usage
 
-    pressureTest.py [-h] [--port PORT] [--key {2048,4096} | --nc | --no | --pci | --j2 | --j4 | --j8 | --jk | --randgen]
-                    [--header HEADER] [--forever] [--decode] [--times TIMES] [--proto {tcp,udp,tls}] [--keyfile KEYFILE]
-                    [--crtfile CRTFILE]
+    pressureTest.py [-h] [--port PORT] [--key {2048,4096} | --nc | --no | --pci | --j2 | --j4 | --j8 | --jk | --randgen --b2]
+                    [--header HEADER] [--forever] [--decode] [--times TIMES] [--proto {tcp,udp,tls}] [--echo]
+                    [--keyfile KEYFILE] [--crtfile CRTFILE]
                     host
 
 **host** *ip address* or the *hostname/fqdn* of the **payShield** appliance.
@@ -35,6 +35,8 @@ It requires **Python 3**. It was tested on **Python 3.7** and **3.8** using a **
 is used.  
 If **tls** is used you might specify the path of the client key file and the certificate using the parameters **
 --keyfile** and **--crtfile**.
+
+**--echo** specify the payload sent using the echo command **--b2**, otherwise it is ignored
 
 **--keyfile** the path of the client key file, if is not specified the default value is **client.key**.  
 It's only considered if the protocol is **tls**.
@@ -47,21 +49,23 @@ If not specified, **2048** is the default.
 
 **--header** the header string to prefix to the host command, if not specified the default value is **HEAD**.
 
-**--nc** performs just an **NC** test. It cannot be used in conjunction with **--key**.
+**--nc** performs just an **NC** test. 
 
-**--pci** gathers the PCI compliance status of the payShield through the **NO** command, type **01**. It cannot be used in conjunction with **--key**.
+**--pci** gathers the PCI compliance status of the payShield through the **NO** command, type **01**. 
 
-**--no** gathers the status of the payShield through the **NO** command. It cannot be used in conjunction with **--key**.
+**--no** gathers the status of the payShield through the **NO** command. 
 
-**--j2** get HSM Loading using **J2** command. It cannot be used in conjunction with **--key**.
+**--j2** get HSM Loading using **J2** command. 
 
-**--j4** get Host Command Volumes using **J4** command. It cannot be used in conjunction with **--key**.
+**--j4** get Host Command Volumes using **J4** command. 
 
-**--j8** get Health Check Accumulated Counts using **J8** command. It cannot be used in conjunction with **--key**.
+**--j8** get Health Check Accumulated Counts using **J8** command. 
 
-**--jk** get Instantaneous Health Check Status using **JK** command. It cannot be used in conjunction with **--key**.
+**--jk** get Instantaneous Health Check Status using **JK** command. 
 
-**--randgen** Generate a random value 8 bytes long using **N0** command. It cannot be used in conjunction with **--key**.
+**--randgen** Generate a random value 8 bytes long using **N0** command.
+
+**--b2** Echo received data, specified through the **--echo** parameter, back to the user.
 
 **--forever** the test will run forever. Use **CTRL-C** to terminate it.
 

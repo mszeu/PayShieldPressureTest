@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Tuple, Dict
 from types import FunctionType
 
-VERSION = "1.1.4d"
+VERSION = "1.1.4"
 
 
 def decode_n0(response_to_decode: bytes, head_len: int):
