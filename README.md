@@ -27,11 +27,11 @@ It requires **Python 3**. It was tested on **Python 3.7** and **3.8** using a **
                     [--keyfile KEYFILE] [--crtfile CRTFILE] [--echo]
                     host
 
-###Mandatory parameter(s)
+### Mandatory parameter(s)
 
 **host** *ip address* or the *hostname/fqdn* of the **payShield** appliance.
 
-###Mutually exclusive parameters
+### Mutually exclusive parameters
 
 **--key** the length of the RSA to generate. There are only two valid values: **2048** or **4096**.  
 If not specified, **2048** is the default.
@@ -54,7 +54,7 @@ If not specified, **2048** is the default.
 
 **--b2** Echo received data, specified through the **--echo** parameter, back to the user.
 
-###Optional parameters
+### Optional parameters
 
 **--port** specifies the host port, if omitted the default value **1500** is used.
 
