@@ -162,6 +162,96 @@ def decode_j8(response_to_decode: bytes, head_len: int):
         print("Pin attacks: ", response_to_decode[str_pointer:str_pointer + 8])
 
 
+def decode_nc(response_to_decode: bytes, head_len: int):
+    """
+    It decodes the result of the command NC an prints the meaning of the returned output
+    The message trailer is not considered
+
+    Parameters
+    ___________
+    response_to_decode: bytes
+        The response returned by the payShield
+    head_len: int
+        The length of the header
+
+    Returns
+    ___________
+    nothing
+    """
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
+    if response_to_decode[str_pointer:str_pointer + 2] == '00':
+        str_pointer = str_pointer + 2
+        print("LMK CRC:", response_to_decode[str_pointer:str_pointer + 16])
+        str_pointer = str_pointer + 16
+        print("Firmware number:", response_to_decode[str_pointer:str_pointer + 9])
+
+
+def decode_j8(response_to_decode: bytes, head_len: int):
+    """
+    It decodes the result of the command J8 an prints the meaning of the returned output
+    The message trailer is not considered
+
+    Parameters
+    ___________
+    response_to_decode: bytes
+        The response returned by the payShield
+    head_len: int
+        The length of the header
+
+    Returns
+    ___________
+    nothing
+    """
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
+    if response_to_decode[str_pointer:str_pointer + 2] == '00':
+        str_pointer = str_pointer + 2
+        print("Serial Number: ", response_to_decode[str_pointer:str_pointer + 12])
+        str_pointer = str_pointer + 12
+        print("Start Date: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Start Time: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("End Date: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("End Time: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Current Date: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Current Time: ", response_to_decode[str_pointer:str_pointer + 6])
+        str_pointer = str_pointer + 6
+        print("Reboots: ", response_to_decode[str_pointer:str_pointer + 10])
+        str_pointer = str_pointer + 10
+        print("Tampers: ", response_to_decode[str_pointer:str_pointer + 10])
+        str_pointer = str_pointer + 10
+        print("Pin verifies/minute: ", response_to_decode[str_pointer:str_pointer + 7])
+        str_pointer = str_pointer + 7
+        print("Pin verifies/hour: ", response_to_decode[str_pointer:str_pointer + 5])
+        str_pointer = str_pointer + 5
+        print("Pin attacks: ", response_to_decode[str_pointer:str_pointer + 8])
+
+
+def decode_b2(response_to_decode: bytes, head_len: int):
+    """
+    It decodes the result of the command B2 an prints the meaning of the returned output
+    The message trailer is not considered
+
+    Parameters
+    ___________
+    response_to_decode: bytes
+        The response returned by the payShield
+    head_len: int
+        The length of the header
+
+    Returns
+    ___________
+    nothing
+    """
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
+    if response_to_decode[str_pointer:str_pointer + 2] == '00':  # no errors
+        str_pointer = str_pointer + 2
+        print("Payload echoed: ", response_to_decode[str_pointer:])
+
+
 def decode_j2(response_to_decode: bytes, head_len: int):
     """
     It decodes the result of the command J2 an prints the meaning of the returned output
@@ -736,7 +826,8 @@ if __name__ == "__main__":
         'J8': decode_j8,
         'J2': decode_j2,
         'J4': decode_j4,
-        'JK': decode_jk
+        'JK': decode_jk,
+        'B2': decode_b2
     }
 
     parser = argparse.ArgumentParser(
@@ -818,7 +909,7 @@ if __name__ == "__main__":
         # I hope no one would be so crazy to exceed that quantity.
         h_padding = '0000'
         len_echo_message = len(args.echo)
-        hex_string_len = hex(len_echo_message).lstrip('0x')
+        hex_string_len = hex(len_echo_message).lstrip('0x').upper()
         hex_string_len = h_padding[:4 - len(hex_string_len)] + hex_string_len
         command = args.header + 'B2' + hex_string_len + args.echo
     if args.proto == 'tls':
