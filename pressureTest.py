@@ -747,7 +747,7 @@ if __name__ == "__main__":
     parser.add_argument("host", help="Ip address or hostname of the payShield")
     group = parser.add_mutually_exclusive_group()
     parser.add_argument("--port", "-p", help="The host port", default=1500, type=int)
-    group.add_argument("--key", help="RSA key length. Accepted values are 2048 ot 4096.",
+    group.add_argument("--key", help="RSA key length. Accepted values are 2048 and 4096.",
                        default=2048, choices=[2048, 4096], type=int)
     group.add_argument("--nc", help="Just perform a NC test. " + KEY_IGNORED_MSG,
                        action="store_true")
@@ -755,7 +755,7 @@ if __name__ == "__main__":
                                     KEY_IGNORED_MSG,
                        action="store_true")
     group.add_argument("--pci", help="Checks if the HSM is set in PCI compliant mode. " +
-                                      KEY_IGNORED_MSG,
+                                     KEY_IGNORED_MSG,
                        action="store_true")
     group.add_argument("--j2", help="Get HSM Loading using J2 command. " + KEY_IGNORED_MSG,
                        action="store_true")
@@ -768,6 +768,8 @@ if __name__ == "__main__":
     group.add_argument("--jk",
                        help="Get Instantaneous Health Check Status using JK command. " + KEY_IGNORED_MSG,
                        action="store_true")
+    group.add_argument("--b2",
+                       help="Echo received data back to the user.", action="store_true")
     group.add_argument("--randgen",
                        help="Generate a random value 8 bytes long.", action="store_true")
     parser.add_argument("--header",
@@ -786,6 +788,8 @@ if __name__ == "__main__":
                         default="client.key")
     parser.add_argument("--crtfile", help="client certificate file, used if the protocol is TLS", type=Path,
                         default="client.crt")
+    parser.add_argument("--echo", help="the payload sent using the echo command B2, otherwise it is ignored", type=str,
+                        default="PayShieldStress Echo Test", action="store")
     args = parser.parse_args()
     # the order of the IF here is important due to the default arguments
     if args.key == 2048:
@@ -808,6 +812,17 @@ if __name__ == "__main__":
         command = args.header + 'JK'
     if args.randgen:
         command = args.header + 'N0008'
+    if args.b2:
+        # we need to calculate the hexadecimal representation of the length of the payload string
+        # the length of the string field is 4 char long so we need to format it accordingly
+        # Example: 0001 or 000FA etc.
+        # Note: this padding algorithm works for echo payloads up to the length of 0xFFFF.
+        # I hope no one would be so crazy to exceed that quantity.
+        h_padding = '0000'
+        len_echo_message = len(args.echo)
+        hex_string_len = hex(len_echo_message).lstrip('0x')
+        hex_string_len = h_padding[:4 - len(hex_string_len)] + hex_string_len
+        command = args.header + 'B2' + hex_string_len + args.echo
     if args.proto == 'tls':
         # check that the cert and key files are accessible
         if not (args.keyfile.exists() and args.crtfile.exists()):
