@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Tuple, Dict
 from types import FunctionType
 
-VERSION = "1.1.3"
+VERSION = "1.1.4"
 
 
 def decode_n0(response_to_decode: bytes, head_len: int):
@@ -57,24 +57,41 @@ def decode_no(response_to_decode: bytes, head_len: int):
     BUFFER_SIZE: Dict[str, str] = {
         '0': '2K bytes', '1': '8K bytes', '2': '16K bytes', '3': '32K bytes'}
     response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
-    if response_to_decode[str_pointer:str_pointer + 2] == '00':
-        str_pointer = str_pointer + 2
-        print("I/O buffer size:", BUFFER_SIZE.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
-        str_pointer = str_pointer + 1
-        if response_to_decode[str_pointer:str_pointer + 1] == '0':
-            print("Type of connection: UDP")
-        elif response_to_decode[str_pointer:str_pointer + 1] == '1':
-            print("Type of connection: TCP")
-        else:
-            print("Unexpected connection type")
-        str_pointer = str_pointer + 1
-        print("Number of TCP sockets:", response_to_decode[str_pointer:str_pointer + 2])
-        str_pointer = str_pointer + 2
-        print("Firmware number:", response_to_decode[str_pointer:str_pointer + 9])
-        str_pointer = str_pointer + 9
-        print("Reserved:", response_to_decode[str_pointer:str_pointer + 1])
-        str_pointer = str_pointer + 1
-        print("Reserved:", response_to_decode[str_pointer:str_pointer + 4])
+    if response_to_decode[str_pointer:str_pointer + 2] == '00':  # No errors
+        if len(response_to_decode) >= (24 + head_len):  # Mode 00
+            # I obtained the value 24 in this way: 2 for the response len, 2 for the error code and the rest is for the
+            # sum of the field len as indicated by the Core Host Command Manual
+            str_pointer = str_pointer + 2
+            print("I/O buffer size:", BUFFER_SIZE.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
+            str_pointer = str_pointer + 1
+            if response_to_decode[str_pointer:str_pointer + 1] == '0':
+                print("Type of connection: UDP")
+            elif response_to_decode[str_pointer:str_pointer + 1] == '1':
+                print("Type of connection: TCP")
+            else:
+                print("Unexpected connection type")
+            str_pointer = str_pointer + 1
+            print("Number of TCP sockets:", response_to_decode[str_pointer:str_pointer + 2])
+            str_pointer = str_pointer + 2
+            print("Firmware number:", response_to_decode[str_pointer:str_pointer + 9])
+            str_pointer = str_pointer + 9
+            print("Reserved:", response_to_decode[str_pointer:str_pointer + 1])
+            str_pointer = str_pointer + 1
+            print("Reserved:", response_to_decode[str_pointer:str_pointer + 4])
+        else:  # Mode 01
+            str_pointer = str_pointer + 2
+            if response_to_decode[str_pointer:str_pointer + 1] == '0':
+                print(
+                    "Some of the security settings relevant to PCI HSM compliance have non-compliant values.\n"
+                    "\"The Enforce key type 002 separation for PCI HSM compliance\" setting is one of these.")
+
+            elif response_to_decode[str_pointer:str_pointer + 1] == '1':
+                print("All security settings relevant to PCI HSM compliance have compliant values.")
+
+            elif response_to_decode[str_pointer:str_pointer + 1] == '2':
+                print(
+                    "Some of the security settings relevant to PCI HSM compliance have non-compliant values.\n"
+                    "\"The Enforce key type 002 separation for PCI HSM compliance\" setting is not one of these.")
 
 
 def decode_nc(response_to_decode: bytes, head_len: int):
@@ -603,7 +620,7 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
             connection.send(message)
             # receive data
             data = connection.recv(buffer_size)
-        if proto == "tls":
+        elif proto == "tls":
             # creates the TCP TLS socket
             connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             ciphers = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:AES128-GCM-SHA256:AES128-SHA256:HIGH:"
@@ -614,7 +631,7 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
             ssl_sock.send(message)
             # receive data
             data = ssl_sock.recv(buffer_size)
-        if proto == "udp":
+        elif proto == "udp":
             # create the UDP socket
             connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             # send data
@@ -669,7 +686,7 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
 def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str, int, int]:
     """
         This function is an helper used by the decode_XX functions.
-        It converts the response_to_decode in ascii, calculates and prins the message size and
+        It converts the response_to_decode in ascii, calculates and prints the message size and
         prints the header, the command returned and the error code.
 
         Parameters
@@ -707,7 +724,6 @@ if __name__ == "__main__":
     print("To get more info about the usage invoke it with the -h option")
     print("This software is open source and it is under the Affero AGPL 3.0 license")
     print("")
-    KEY_IGNORED_MSG = "If this option is specified --key is ignored"
 
     # List of decoder functions used to interpreter the result.
     # The reference to the function is used as parameter in the run_test function.
@@ -730,24 +746,27 @@ if __name__ == "__main__":
     parser.add_argument("host", help="Ip address or hostname of the payShield")
     group = parser.add_mutually_exclusive_group()
     parser.add_argument("--port", "-p", help="The host port", default=1500, type=int)
-    group.add_argument("--key", help="RSA key length. Accepted values are 2048 ot 4096.",
+    group.add_argument("--key", help="RSA key length. Accepted values are 2048 and 4096.",
                        default=2048, choices=[2048, 4096], type=int)
-    group.add_argument("--nc", help="Just perform a NC test. " + KEY_IGNORED_MSG,
+    group.add_argument("--nc", help="Just perform a NC test. ",
                        action="store_true")
-    group.add_argument("--no", help="Retrieves HSM status information using NO command. " +
-                                    KEY_IGNORED_MSG,
+    group.add_argument("--no", help="Retrieves HSM status information using NO command. ",
                        action="store_true")
-    group.add_argument("--j2", help="Get HSM Loading using J2 command. " + KEY_IGNORED_MSG,
+    group.add_argument("--pci", help="Checks if the HSM is set in PCI compliant mode. ",
+                       action="store_true")
+    group.add_argument("--j2", help="Get HSM Loading using J2 command. ",
                        action="store_true")
     group.add_argument("--j4",
-                       help="Get Host Command Volumes using J4 command. " + KEY_IGNORED_MSG,
+                       help="Get Host Command Volumes using J4 command. ",
                        action="store_true")
     group.add_argument("--j8",
-                       help="Get Health Check Accumulated Counts using J8 command. " + KEY_IGNORED_MSG,
+                       help="Get Health Check Accumulated Counts using J8 command. ",
                        action="store_true")
     group.add_argument("--jk",
-                       help="Get Instantaneous Health Check Status using JK command. " + KEY_IGNORED_MSG,
+                       help="Get Instantaneous Health Check Status using JK command. ",
                        action="store_true")
+    group.add_argument("--b2",
+                       help="Echo received data back to the user.", action="store_true")
     group.add_argument("--randgen",
                        help="Generate a random value 8 bytes long.", action="store_true")
     parser.add_argument("--header",
@@ -766,26 +785,42 @@ if __name__ == "__main__":
                         default="client.key")
     parser.add_argument("--crtfile", help="client certificate file, used if the protocol is TLS", type=Path,
                         default="client.crt")
+    parser.add_argument("--echo", help="the payload sent using the echo command B2, otherwise it is ignored", type=str,
+                        default="PayShieldStress Echo Test", action="store")
     args = parser.parse_args()
-    # the order of the IF here is important due to the default arguments
+    # the order of the IF here is important due to the default arguments.
+    # All the mutually exclusive options need to be in this block where ELIF statements are used.
     if args.key == 2048:
         command = args.header + 'EI2204801#0000'
-    else:
+    elif args.key == 4096:
         command = args.header + 'EI2409601#0000'
-    if args.nc:
+    elif args.nc:
         command = args.header + 'NC'
-    if args.no:
+    elif args.no:
         command = args.header + 'NO00'
-    if args.j2:
+    elif args.pci:
+        command = args.header + 'NO01'
+    elif args.j2:
         command = args.header + 'J2'
-    if args.j4:
+    elif args.j4:
         command = args.header + 'J4'
-    if args.j8:
+    elif args.j8:
         command = args.header + 'J8'
-    if args.jk:
+    elif args.jk:
         command = args.header + 'JK'
-    if args.randgen:
+    elif args.randgen:
         command = args.header + 'N0008'
+    if args.b2:
+        # we need to calculate the hexadecimal representation of the length of the payload string
+        # the length of the string field is 4 char long so we need to format it accordingly
+        # Example: 0001 or 000FA etc.
+        # Note: this padding algorithm works for echo payloads up to the length of 0xFFFF.
+        # I hope no one would be so crazy to exceed that quantity.
+        h_padding = '0000'
+        len_echo_message = len(args.echo)
+        hex_string_len = hex(len_echo_message).lstrip('0x')
+        hex_string_len = h_padding[:4 - len(hex_string_len)] + hex_string_len
+        command = args.header + 'B2' + hex_string_len + args.echo
     if args.proto == 'tls':
         # check that the cert and key files are accessible
         if not (args.keyfile.exists() and args.crtfile.exists()):
@@ -822,3 +857,27 @@ if __name__ == "__main__":
                 run_test(args.host, args.port, command, args.proto, len(args.header), None)
             print("")
         print("DONE")
+
+
+def setup_connection(ip_addr: str, port: int, proto: str = "tcp") -> socket:
+    if proto == "tcp":
+        # creates the TCP socket
+        connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        connection.connect((ip_addr, port))
+        return connection
+
+    elif proto == "tls":
+        # creates the TCP TLS socket
+        connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        ciphers = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:AES128-GCM-SHA256:AES128-SHA256:HIGH:"
+        ciphers += "!aNULL:!eNULL:!EXPORT:!DSS:!DES:!RC4:!3DES:!MD5:!PSK"
+        ssl_sock = ssl.wrap_socket(connection, args.keyfile, args.crtfile)
+        ssl_sock.connect((ip_addr, port))
+        return connection
+
+    elif proto == "udp":
+        # create the UDP socket
+        connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        return connection
+
+    return None
