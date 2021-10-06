@@ -63,8 +63,7 @@ Depending on the firmware version the functionality may require a license and/or
 
 **--proto** specify the protocol to use, **tcp**, **udp** or **tls**, if omitted the default value **tcp**
 is used.  
-If **tls** is used you might specify the path of the client key file and the certificate using the parameters **
---keyfile** and **--crtfile**.
+If **tls** is used you might specify the path of the client key file and the certificate using the parameters **--keyfile** and **--crtfile**.
 
 **--keyfile** the path of the client key file, if is not specified the default value is **client.key**.  
 It's only considered if the protocol is **tls**.
@@ -135,4 +134,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.** See the
 **GNU Affero General Public License** for more details.
 
 ## Questions, bugs & suggestions
-For any questions, feedback, suggestions, send money ***(yes...it's a dream I know)*** you can contact the author at **msz@msz.eu**
+For any questions, feedback, suggestions, send money ***(yes...it's a dream I know)*** you can contact the author at [msz@msz.eu](mailto:msz@msz.eu)
