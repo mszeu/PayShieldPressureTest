@@ -837,8 +837,8 @@ if __name__ == "__main__":
     parser.add_argument("host", help="Ip address or hostname of the payShield")
     group = parser.add_mutually_exclusive_group()
     parser.add_argument("--port", "-p", help="The host port", default=1500, type=int)
-    group.add_argument("--key", help="RSA key length. Accepted values are 2048 and 4096.",
-                       default=2048, choices=[2048, 4096], type=int)
+    group.add_argument("--key", help="RSA key length. Accepted values are between 320 and 4096.",
+                       default=2048, type=int)
     group.add_argument("--nc", help="Just perform a NC test. ",
                        action="store_true")
     group.add_argument("--no", help="Retrieves HSM status information using NO command. ",
@@ -881,10 +881,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # the order of the IF here is important due to the default arguments.
     # All the mutually exclusive options need to be in this block where ELIF statements are used.
-    if args.key == 2048:
-        command = args.header + 'EI2204801#0000'
-    elif args.key == 4096:
-        command = args.header + 'EI2409601#0000'
+
+    if 320 <= args.key <= 4096:
+        k_len_str = str(args.key)
+        if len(k_len_str) <= 3:
+            k_len_str = '0' + k_len_str
+        command = args.header + 'EI2' + k_len_str + '01#0000'
+    elif args.key < 320 or args.key > 4096:
+        print("The key length value needs to be between 320 and 4096")
+        exit()
     elif args.nc:
         command = args.header + 'NC'
     elif args.no:
