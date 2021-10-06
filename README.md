@@ -14,15 +14,16 @@ you need to generate a workload for testing purposes.
 
 The project is in an early development stage and still a bit clumsy.
 
-It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** using a **payShield 10k** with firmware **1.3a**
+It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** using a **payShield 10k** with firmware **1.3d**
 
 ## Version
 
-**1.1.4a**
+**1.1.5**
 
 ## Usage
 
-    pressureTest.py [-h] [--port PORT] [--key {2048,4096} | --nc | --no | --pci | --j2 | --j4 | --j8 | --jk | --randgen | --b2]
+    pressureTest.py [-h] [--port PORT] [--key {2048,4096} | --nc | --no | --pci | --j2 | --j4 | --j8 | --jk 
+                    | --randgen | --b2 | --ecc]
                     [--header HEADER] [--times TIMES] [--forever] [--decode] [--proto {tcp,udp,tls}] 
                     [--keyfile KEYFILE] [--crtfile CRTFILE] [--echo]
                     host
@@ -33,8 +34,7 @@ It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** u
 
 ### Mutually exclusive parameters
 
-**--key** the length of the RSA to generate. There are only two valid values: **2048** or **4096**.  
-If not specified, **2048** is the default.
+**--key** the length of the RSA to generate. There value need to be between **320** and **4096**.
 
 **--nc** performs just an **NC** test. 
 
@@ -53,6 +53,9 @@ If not specified, **2048** is the default.
 **--randgen** Generate a random value 8 bytes long using **N0** command.
 
 **--b2** Echo received data, specified through the **--echo** parameter, back to the user.
+
+**--ecc** Generate an ECC public/private key pair using the Elliptic Curve algorithm curve NIST P-521.
+Depending on the firmware version the functionality may require a license and/or a firmware update
 
 ### Optional parameters
 
@@ -112,6 +115,8 @@ The commands **--decode** supports in the release are: **B2**, **N0**, **NO**, *
 
 The **EI** command used to generate the RSA key requires authorization, and the generation of 4096-bit keys is possible only for keyblock LMKs.
 
+The **--ecc** parameter uses the **FY** command to generate ECC keypairs: 
+Depending on the firmware version the functionality may require a license and/or a firmware update.
 
 ## COPYRIGHT & LICENSE
   Please refer to the **LICENSE** file that is part of this project.

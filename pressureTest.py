@@ -860,7 +860,8 @@ if __name__ == "__main__":
     group.add_argument("--randgen",
                        help="Generate a random value 8 bytes long.", action="store_true")
     group.add_argument("--ecc",
-                       help="Generate an ECC public/private key pair using the Elliptic Curve algorithm curve NIST P-521.",
+                       help="Generate an ECC public/private key pair using the Elliptic Curve algorithm curve NIST "
+                            "P-521.",
                        action="store_true")
     parser.add_argument("--header",
                         help="the header string to prepend to the host command. If not specified the default is HEAD.",
