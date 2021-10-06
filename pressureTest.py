@@ -360,7 +360,7 @@ def decode_jk(response_to_decode: bytes, head_len: int):
     nothing
     """
     # structures to decode the result
-    # We cam use CONSOLE_STATUS_CODE to check the status of the payShield Manager as well.
+    # We can use CONSOLE_STATUS_CODE to check the status of the payShield Manager as well.
 
     CONSOLE_STATUS_CODE = {
         '0': 'unknown',
@@ -910,6 +910,8 @@ if __name__ == "__main__":
         h_padding = '0000'
         len_echo_message = len(args.echo)
         hex_string_len = hex(len_echo_message).lstrip('0x').upper()
+        # using lstrip() to strip the '0x' prefix is acceptable due to the expected pattern
+        # Ideally you should use removeprefix() but it was introduced in python 3.9 and I want to keep compatibility
         hex_string_len = h_padding[:4 - len(hex_string_len)] + hex_string_len
         command = args.header + 'B2' + hex_string_len + args.echo
     if args.proto == 'tls':
