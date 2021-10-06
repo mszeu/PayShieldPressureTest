@@ -880,7 +880,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # the order of the IF here is important due to the default arguments.
     # All the mutually exclusive options need to be in this block where ELIF statements are used.
-    print("")
+    command = ''
     if args.key is not None:
         if 320 <= args.key <= 4096:
             k_len_str = str(args.key)
@@ -919,6 +919,13 @@ if __name__ == "__main__":
         # Ideally you should use removeprefix() but it was introduced in python 3.9 and I want to keep compatibility
         hex_string_len = h_padding[:4 - len(hex_string_len)] + hex_string_len
         command = args.header + 'B2' + hex_string_len + args.echo
+
+    # IMPORTANT: At this point the 'command' need to contain something.
+    # If you want to add to the tool command link arguments about commands do it before this comment block
+    # Now we verify if the command variable is empty. In this case we thrown an error.
+    if len(command) == 0:
+        print("You forgot to specify the action you want to to perform on the payShield")
+        exit()
     if args.proto == 'tls':
         # check that the cert and key files are accessible
         if not (args.keyfile.exists() and args.crtfile.exists()):
