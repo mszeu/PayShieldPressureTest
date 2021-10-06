@@ -911,7 +911,7 @@ if __name__ == "__main__":
     elif args.randgen:
         command = args.header + 'N0008'
     elif args.ecc:
-        command = args.header + 'FY010203'
+        command = args.header + 'FY010203#S00S00'
     if args.b2:
         # we need to calculate the hexadecimal representation of the length of the payload string
         # the length of the string field is 4 char long so we need to format it accordingly
