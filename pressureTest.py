@@ -859,6 +859,9 @@ if __name__ == "__main__":
                        help="Echo received data back to the user.", action="store_true")
     group.add_argument("--randgen",
                        help="Generate a random value 8 bytes long.", action="store_true")
+    group.add_argument("--ecc",
+                       help="Generate an ECC public/private key pair using the Elliptic Curve algorithm curve NIST P-521.",
+                       action="store_true")
     parser.add_argument("--header",
                         help="the header string to prepend to the host command. If not specified the default is HEAD.",
                         default="HEAD", type=str)
@@ -906,6 +909,8 @@ if __name__ == "__main__":
         command = args.header + 'JK'
     elif args.randgen:
         command = args.header + 'N0008'
+    elif args.ecc:
+        command = args.header + 'FY010203'
     if args.b2:
         # we need to calculate the hexadecimal representation of the length of the payload string
         # the length of the string field is 4 char long so we need to format it accordingly
