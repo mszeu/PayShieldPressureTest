@@ -14,18 +14,20 @@ you need to generate a workload for testing purposes.
 
 The project is in an early development stage and still a bit clumsy.
 
-It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** using a **payShield 10k** with firmware **1.3a**
+It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** using a **payShield 10k** with firmware **1.3d**
 
 ## Version
 
-**1.1.4a**
+**1.1.5**
 
 ## Usage
 
-    pressureTest.py [-h] [--port PORT] [--key {2048,4096} | --nc | --no | --pci | --j2 | --j4 | --j8 | --jk | --randgen | --b2]
-                    [--header HEADER] [--times TIMES] [--forever] [--decode] [--proto {tcp,udp,tls}] 
-                    [--keyfile KEYFILE] [--crtfile CRTFILE] [--echo]
-                    host
+    pressureTest.py [-h] [--port PORT]
+                  [--key KEY | --nc | --no | --pci | --j2 | --j4 | --j8 | --jk | --b2 | --randgen | --ecc]
+                  [--ecc-curve {0,1,2}] [--key-use {S,X,N}] [--key-exportability {N,E,S}] [--header HEADER]
+                  [--forever] [--decode] [--times TIMES] [--proto {tcp,udp,tls}] [--keyfile KEYFILE] 
+                  [--crtfile CRTFILE] [--echo ECHO]
+                  host
 
 ### Mandatory parameter(s)
 
@@ -33,35 +35,38 @@ It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** u
 
 ### Mutually exclusive parameters
 
-**--key** the length of the RSA to generate. There are only two valid values: **2048** or **4096**.  
-If not specified, **2048** is the default.
+**--key** the length of the RSA to generate. There value need to be between **320** and **4096**.
 
 **--nc** performs just an **NC** test. 
 
 **--pci** gathers the PCI compliance status of the payShield through the **NO** command, type **01**. 
 
-**--no** gathers the status of the payShield through the **NO** command. 
+**--no** gathers the status of the payShield through the **NO** command, type **00**. 
 
-**--j2** get HSM Loading using **J2** command. 
+**--j2** gets HSM Loading using **J2** command. 
 
-**--j4** get Host Command Volumes using **J4** command. 
+**--j4** gets Host Command Volumes using **J4** command. 
 
-**--j8** get Health Check Accumulated Counts using **J8** command. 
+**--j8** gets Health Check Accumulated Counts using **J8** command. 
 
-**--jk** get Instantaneous Health Check Status using **JK** command. 
+**--jk** gets Instantaneous Health Check Status using **JK** command. 
 
-**--randgen** Generate a random value 8 bytes long using **N0** command.
+**--randgen** Generates a random value 8 bytes long using **N0** command.
 
-**--b2** Echo received data, specified through the **--echo** parameter, back to the user.
+**--b2** Echoes received data, specified through the **--echo** parameter, back to the user.
+
+**--ecc** Generates an ECC public/private key pair using the Elliptic Curve algorithm.  
+By default, the curve used is curve used is NIST P-521, the exportability is 'S' (Sensitive)
+and the key usage is 'S' (Only digital signature).  
+Use the parameters **--ecc-curve**, **--key-use** and **--key-exportability** to change the default values. 
 
 ### Optional parameters
 
 **--port** specifies the host port, if omitted the default value **1500** is used.
 
-**--proto** specify the protocol to use, **tcp**, **udp** or **tls**, if omitted the default value **tcp**
+**--proto** specifies the protocol to use, **tcp**, **udp** or **tls**, if omitted the default value **tcp**
 is used.  
-If **tls** is used you might specify the path of the client key file and the certificate using the parameters **
---keyfile** and **--crtfile**.
+If **tls** is used you might specify the path of the client key file and the certificate using the parameters **--keyfile** and **--crtfile**.
 
 **--keyfile** the path of the client key file, if is not specified the default value is **client.key**.  
 It's only considered if the protocol is **tls**.
@@ -71,20 +76,38 @@ It's only considered if the protocol is **tls**.
 
 **--header** the header string to prefix to the host command, if not specified the default value is **HEAD**.
 
-**--echo** specify the payload sent using the echo command **--b2**, otherwise it is ignored
+**--echo** specifies the payload sent using the echo command **--b2**, otherwise it is ignored
 
 **--forever** the test will run forever. Use **CTRL-C** to terminate it.
 
 **--times** how many times execute the test. If it is not specified the default value is **1000** times.
 
 **--decode** decodes the response of the payShield if a decoder function is available for the command.  
-The commands **--decode** supports in the release are: **B2**, **N0**, **NO**, **NC**, **J2**, **J4**, **J8** and **JK**.
+The commands **--decode** supports in the release are: **B2**, **N0**, **NO**, **NC**, **J2**, **J4**, **J8**, **JK** and **FY (ECC)**.
 
+**--ecc-curve** sets the ECC curve to use when **--ecc** is used. The default is NIST P-521.  
+The possible choices are:
+ - 0: FIPS 186-3 – NIST P-256
+ - 1: FIPS 186-3 – NIST P-384
+ - 2: FIPS 186-3 – NIST P-521
+
+**--key-use** sets the key usage. The default one is **'S'** (Signature only).   
+The possible choices are:
+ - S: The key may only be used to perform digital signature generation operations. 
+ - X: The key may only be used to derive other keys. 
+ - N: No special restrictions apply.
+
+**--key-exportability** sets the key exportability. The default is **'S'** (Sensitive).  
+The possible choices are:
+ - E: May only be exported in a trusted key block, provided the wrapping key itself is in a trusted format.
+ - N: No export permitted.
+ - S: Sensitive; all other export possibilities are permitted, provided such export has been enabled (existing Authorized State requirements remain).
+ 
 ## Example
 
     C:\Test>python pressureTest.py 192.168.0.36 --nc --times 2
 
-    PayShield stress utility, version 1.1.3, by Marco S. Zuppone - msz@msz.eu - https://msz.eu
+    PayShield stress utility, version 1.1.5, by Marco S. Zuppone - msz@msz.eu - https://msz.eu
     To get more info about the usage invoke it with the -h option This software is open source, and it is under the Affero
     AGPL 3.0 license
 
@@ -112,6 +135,8 @@ The commands **--decode** supports in the release are: **B2**, **N0**, **NO**, *
 
 The **EI** command used to generate the RSA key requires authorization, and the generation of 4096-bit keys is possible only for keyblock LMKs.
 
+The **--ecc** parameter uses the **FY** command to generate ECC keypairs: 
+Depending on the firmware version the functionality may require a license and/or a firmware update.
 
 ## COPYRIGHT & LICENSE
   Please refer to the **LICENSE** file that is part of this project.
@@ -130,4 +155,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.** See the
 **GNU Affero General Public License** for more details.
 
 ## Questions, bugs & suggestions
-For any questions, feedback, suggestions, send money ***(yes...it's a dream I know)*** you can contact the author at **msz@msz.eu**
+For any questions, feedback, suggestions, send money ***(yes...it's a dream, I know)*** you can contact the author at [msz@msz.eu](mailto:msz@msz.eu)

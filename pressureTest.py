@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Tuple, Dict
 from types import FunctionType
 
-VERSION = "1.1.4a"
+VERSION = "1.1.5"
 
 
 def decode_n0(response_to_decode: bytes, head_len: int):
@@ -92,74 +92,6 @@ def decode_no(response_to_decode: bytes, head_len: int):
                 print(
                     "Some of the security settings relevant to PCI HSM compliance have non-compliant values.\n"
                     "\"The Enforce key type 002 separation for PCI HSM compliance\" setting is not one of these.")
-
-
-def decode_nc(response_to_decode: bytes, head_len: int):
-    """
-    It decodes the result of the command NC an prints the meaning of the returned output
-    The message trailer is not considered
-
-    Parameters
-    ___________
-    response_to_decode: bytes
-        The response returned by the payShield
-    head_len: int
-        The length of the header
-
-    Returns
-    ___________
-    nothing
-    """
-    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
-    if response_to_decode[str_pointer:str_pointer + 2] == '00':
-        str_pointer = str_pointer + 2
-        print("LMK CRC:", response_to_decode[str_pointer:str_pointer + 16])
-        str_pointer = str_pointer + 16
-        print("Firmware number:", response_to_decode[str_pointer:str_pointer + 9])
-
-
-def decode_j8(response_to_decode: bytes, head_len: int):
-    """
-    It decodes the result of the command J8 an prints the meaning of the returned output
-    The message trailer is not considered
-
-    Parameters
-    ___________
-    response_to_decode: bytes
-        The response returned by the payShield
-    head_len: int
-        The length of the header
-
-    Returns
-    ___________
-    nothing
-    """
-    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
-    if response_to_decode[str_pointer:str_pointer + 2] == '00':
-        str_pointer = str_pointer + 2
-        print("Serial Number: ", response_to_decode[str_pointer:str_pointer + 12])
-        str_pointer = str_pointer + 12
-        print("Start Date: ", response_to_decode[str_pointer:str_pointer + 6])
-        str_pointer = str_pointer + 6
-        print("Start Time: ", response_to_decode[str_pointer:str_pointer + 6])
-        str_pointer = str_pointer + 6
-        print("End Date: ", response_to_decode[str_pointer:str_pointer + 6])
-        str_pointer = str_pointer + 6
-        print("End Time: ", response_to_decode[str_pointer:str_pointer + 6])
-        str_pointer = str_pointer + 6
-        print("Current Date: ", response_to_decode[str_pointer:str_pointer + 6])
-        str_pointer = str_pointer + 6
-        print("Current Time: ", response_to_decode[str_pointer:str_pointer + 6])
-        str_pointer = str_pointer + 6
-        print("Reboots: ", response_to_decode[str_pointer:str_pointer + 10])
-        str_pointer = str_pointer + 10
-        print("Tampers: ", response_to_decode[str_pointer:str_pointer + 10])
-        str_pointer = str_pointer + 10
-        print("Pin verifies/minute: ", response_to_decode[str_pointer:str_pointer + 7])
-        str_pointer = str_pointer + 7
-        print("Pin verifies/hour: ", response_to_decode[str_pointer:str_pointer + 5])
-        str_pointer = str_pointer + 5
-        print("Pin attacks: ", response_to_decode[str_pointer:str_pointer + 8])
 
 
 def decode_nc(response_to_decode: bytes, head_len: int):
@@ -360,7 +292,7 @@ def decode_jk(response_to_decode: bytes, head_len: int):
     nothing
     """
     # structures to decode the result
-    # We cam use CONSOLE_STATUS_CODE to check the status of the payShield Manager as well.
+    # We can use CONSOLE_STATUS_CODE to check the status of the payShield Manager as well.
 
     CONSOLE_STATUS_CODE = {
         '0': 'unknown',
@@ -487,6 +419,36 @@ def decode_jk(response_to_decode: bytes, head_len: int):
         print("")
 
 
+def decode_ecc(response_to_decode: bytes, head_len: int):
+    """
+        It decodes the result of the command FY an prints the meaning of the returned output
+
+        Parameters
+        ___________
+        response_to_decode: bytes
+            The response returned by the payShield
+        head_len: int
+            The length of the header
+
+        Returns
+        ___________
+        nothing
+        """
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
+    if response_to_decode[str_pointer:str_pointer + 2] == '00':
+        str_pointer = str_pointer + 2
+        key_len = int(response_to_decode[str_pointer:str_pointer + 4])
+        print("ECC Public Key Length: ", key_len)
+        str_pointer = str_pointer + 4
+        print("ECC Public Key",
+              binascii.hexlify((response_to_decode[str_pointer:str_pointer + key_len]).encode())
+              .decode('ascii', 'ignore'))
+        print("Public/private separator: ", response_to_decode[str_pointer + key_len:str_pointer + key_len + 1])
+        str_pointer = str_pointer + key_len + 1
+        print("ECC Private Key under LMK",
+              response_to_decode[str_pointer:])
+
+
 def payshield_error_codes(error_code: str) -> str:
     """This function maps the result code with the error message.
         I derived the list of errors and messages from the following manual:
@@ -595,7 +557,11 @@ def payshield_error_codes(error_code: str) -> str:
         'BB': 'Invalid wrapping key',
         'BC': 'Repeated optional block',
         'BD': 'Incompatible key types',
-        'BE': 'Invalid key block header ID'}
+        'BE': 'Invalid key block header ID',
+        'D2': 'Invalid curve reference',
+        'D3': 'Invalid Key Encoding',
+        'E0': 'Invalid command version number'
+    }
 
     return PAYSHIELD_ERROR_CODE.get(error_code, "Unknown error")
 
@@ -827,7 +793,8 @@ if __name__ == "__main__":
         'J2': decode_j2,
         'J4': decode_j4,
         'JK': decode_jk,
-        'B2': decode_b2
+        'B2': decode_b2,
+        'FY': decode_ecc
     }
 
     parser = argparse.ArgumentParser(
@@ -837,8 +804,7 @@ if __name__ == "__main__":
     parser.add_argument("host", help="Ip address or hostname of the payShield")
     group = parser.add_mutually_exclusive_group()
     parser.add_argument("--port", "-p", help="The host port", default=1500, type=int)
-    group.add_argument("--key", help="RSA key length. Accepted values are 2048 and 4096.",
-                       default=2048, choices=[2048, 4096], type=int)
+    group.add_argument("--key", help="RSA key length. Accepted values are between 320 and 4096.", type=int)
     group.add_argument("--nc", help="Just perform a NC test. ",
                        action="store_true")
     group.add_argument("--no", help="Retrieves HSM status information using NO command. ",
@@ -860,6 +826,15 @@ if __name__ == "__main__":
                        help="Echo received data back to the user.", action="store_true")
     group.add_argument("--randgen",
                        help="Generate a random value 8 bytes long.", action="store_true")
+    group.add_argument("--ecc",
+                       help="Generate an ECC public/private key pair using the Elliptic Curve algorithm curve NIST "
+                            "P-521.",
+                       action="store_true")
+    parser.add_argument("--ecc-curve", help="select the ECC curve.", default='0', type=str, choices=['0', '1', '2'])
+    parser.add_argument("--key-use", help="select the key mode of use.", default='S', type=str.upper,
+                        choices=['S', 'X', 'N'])
+    parser.add_argument("--key-exportability", help="select the key exportability.", default='S', type=str.upper,
+                        choices=['N', 'E', 'S'])
     parser.add_argument("--header",
                         help="the header string to prepend to the host command. If not specified the default is HEAD.",
                         default="HEAD", type=str)
@@ -881,10 +856,16 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # the order of the IF here is important due to the default arguments.
     # All the mutually exclusive options need to be in this block where ELIF statements are used.
-    if args.key == 2048:
-        command = args.header + 'EI2204801#0000'
-    elif args.key == 4096:
-        command = args.header + 'EI2409601#0000'
+    command = ''
+    if args.key is not None:
+        if 320 <= args.key <= 4096:
+            k_len_str = str(args.key)
+            if len(k_len_str) <= 3:
+                k_len_str = '0' + k_len_str
+            command = args.header + 'EI2' + k_len_str + '01#0000'
+        elif args.key < 320 or args.key > 4096:
+            print("The key length value needs to be between 320 and 4096")
+            exit()
     elif args.nc:
         command = args.header + 'NC'
     elif args.no:
@@ -901,6 +882,8 @@ if __name__ == "__main__":
         command = args.header + 'JK'
     elif args.randgen:
         command = args.header + 'N0008'
+    elif args.ecc:
+        command = args.header + 'FY010' + args.ecc_curve + '03#' + args.key_use + '00' + args.key_exportability + '00'
     if args.b2:
         # we need to calculate the hexadecimal representation of the length of the payload string
         # the length of the string field is 4 char long so we need to format it accordingly
@@ -910,8 +893,17 @@ if __name__ == "__main__":
         h_padding = '0000'
         len_echo_message = len(args.echo)
         hex_string_len = hex(len_echo_message).lstrip('0x').upper()
+        # using lstrip() to strip the '0x' prefix is acceptable due to the expected pattern
+        # Ideally you should use removeprefix() but it was introduced in python 3.9 and I want to keep compatibility
         hex_string_len = h_padding[:4 - len(hex_string_len)] + hex_string_len
         command = args.header + 'B2' + hex_string_len + args.echo
+
+    # IMPORTANT: At this point the 'command' need to contain something.
+    # If you want to add to the tool command link arguments about commands do it before this comment block
+    # Now we verify if the command variable is empty. In this case we thrown an error.
+    if len(command) == 0:
+        print("You forgot to specify the action you want to to perform on the payShield")
+        exit()
     if args.proto == 'tls':
         # check that the cert and key files are accessible
         if not (args.keyfile.exists() and args.crtfile.exists()):
