@@ -22,11 +22,11 @@ It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** u
 
 ## Usage
 
-    pressureTest.py [-h] [--port PORT] [--key {2048,4096} | --nc | --no | --pci | --j2 | --j4 | --j8 | --jk 
-                    | --randgen | --b2 | --ecc]
-                    [--header HEADER] [--times TIMES] [--forever] [--decode] [--proto {tcp,udp,tls}] 
-                    [--keyfile KEYFILE] [--crtfile CRTFILE] [--echo]
-                    host
+    usage: pressureTest.py [-h] [--port PORT]
+                       [--key KEY | --nc | --no | --pci | --j2 | --j4 | --j8 | --jk | --b2 | --randgen | --ecc]
+                       [--ecc-curve {0,1,2}] [--key-use {S,X,N}] [--key-exportability {N,E,S}] [--header HEADER] [--forever]
+                       [--decode] [--times TIMES] [--proto {tcp,udp,tls}] [--keyfile KEYFILE] [--crtfile CRTFILE] [--echo ECHO]
+                       host
 
 ### Mandatory parameter(s)
 
@@ -54,8 +54,10 @@ It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** u
 
 **--b2** Echo received data, specified through the **--echo** parameter, back to the user.
 
-**--ecc** Generate an ECC public/private key pair using the Elliptic Curve algorithm curve NIST P-521.
-Depending on the firmware version the functionality may require a license and/or a firmware update
+**--ecc** Generate an ECC public/private key pair using the Elliptic Curve algorithm.
+By default, the curve used is curve used is NIST P-521, the exportability is 'S' (Sensitive)
+and the key usage is 'S' (Only digital signature).
+Use the parameters **--ecc-curve**, **--key-use** and **--key-exportability** to change the default values. 
 
 ### Optional parameters
 
@@ -82,6 +84,23 @@ It's only considered if the protocol is **tls**.
 **--decode** decodes the response of the payShield if a decoder function is available for the command.  
 The commands **--decode** supports in the release are: **B2**, **N0**, **NO**, **NC**, **J2**, **J4**, **J8** and **JK**.
 
+**--ecc-curve** sets the ECC curve to use when **--ecc** is used. The possible choices are:
+ - 0: FIPS 186-3 – NIST P-256
+ - 1: FIPS 186-3 – NIST P-384
+ - 2: FIPS 186-3 – NIST P-521
+
+**--key-use** sets the key usage. The default one is 'S' (Signature only).
+The possible choices are:
+ - S: The key may only be used to perform digital signature generation operations. 
+ - X: The key may only be used to derive other keys. 
+ - N: No special restrictions apply.
+
+**--key-exportability** sets the key exportability. The default is 'S' (Sensitive). 
+The possible choices are:
+ - E: May only be exported in a trusted key block, provided the wrapping key itself is in a trusted format.
+ - N: No export permitted.
+ - S: Sensitive; all other export possibilities are permitted, provided such export has been enabled (existing Authorized State requirements remain).
+ 
 ## Example
 
     C:\Test>python pressureTest.py 192.168.0.36 --nc --times 2
