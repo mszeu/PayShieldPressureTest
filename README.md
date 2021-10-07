@@ -23,10 +23,10 @@ It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** u
 ## Usage
 
     usage: pressureTest.py [-h] [--port PORT]
-                       [--key KEY | --nc | --no | --pci | --j2 | --j4 | --j8 | --jk | --b2 | --randgen | --ecc]
-                       [--ecc-curve {0,1,2}] [--key-use {S,X,N}] [--key-exportability {N,E,S}] [--header HEADER] [--forever]
-                       [--decode] [--times TIMES] [--proto {tcp,udp,tls}] [--keyfile KEYFILE] [--crtfile CRTFILE] [--echo ECHO]
-                       host
+                  [--key KEY | --nc | --no | --pci | --j2 | --j4 | --j8 | --jk | --b2 | --randgen | --ecc]
+                  [--ecc-curve {0,1,2}] [--key-use {S,X,N}] [--key-exportability {N,E,S}] [--header HEADER] [--forever]
+                  [--decode] [--times TIMES] [--proto {tcp,udp,tls}] [--keyfile KEYFILE] [--crtfile CRTFILE] [--echo ECHO]
+                  host
 
 ### Mandatory parameter(s)
 
