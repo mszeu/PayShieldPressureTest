@@ -118,32 +118,6 @@ def decode_nc(response_to_decode: bytes, head_len: int):
         print("Firmware number:", response_to_decode[str_pointer:str_pointer + 9])
 
 
-
-
-def decode_nc(response_to_decode: bytes, head_len: int):
-    """
-    It decodes the result of the command NC an prints the meaning of the returned output
-    The message trailer is not considered
-
-    Parameters
-    ___________
-    response_to_decode: bytes
-        The response returned by the payShield
-    head_len: int
-        The length of the header
-
-    Returns
-    ___________
-    nothing
-    """
-    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
-    if response_to_decode[str_pointer:str_pointer + 2] == '00':
-        str_pointer = str_pointer + 2
-        print("LMK CRC:", response_to_decode[str_pointer:str_pointer + 16])
-        str_pointer = str_pointer + 16
-        print("Firmware number:", response_to_decode[str_pointer:str_pointer + 9])
-
-
 def decode_j8(response_to_decode: bytes, head_len: int):
     """
     It decodes the result of the command J8 an prints the meaning of the returned output
