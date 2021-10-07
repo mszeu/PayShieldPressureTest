@@ -41,7 +41,7 @@ It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** u
 
 **--pci** gathers the PCI compliance status of the payShield through the **NO** command, type **01**. 
 
-**--no** gathers the status of the payShield through the **NO** command. 
+**--no** gathers the status of the payShield through the **NO** command, type **00**. 
 
 **--j2** gets HSM Loading using **J2** command. 
 
@@ -155,4 +155,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.** See the
 **GNU Affero General Public License** for more details.
 
 ## Questions, bugs & suggestions
-For any questions, feedback, suggestions, send money ***(yes...it's a dream,t I know)*** you can contact the author at [msz@msz.eu](mailto:msz@msz.eu)
+For any questions, feedback, suggestions, send money ***(yes...it's a dream, I know)*** you can contact the author at [msz@msz.eu](mailto:msz@msz.eu)
