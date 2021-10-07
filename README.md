@@ -82,7 +82,7 @@ It's only considered if the protocol is **tls**.
 **--times** how many times execute the test. If it is not specified the default value is **1000** times.
 
 **--decode** decodes the response of the payShield if a decoder function is available for the command.  
-The commands **--decode** supports in the release are: **B2**, **N0**, **NO**, **NC**, **J2**, **J4**, **J8** and **JK**.
+The commands **--decode** supports in the release are: **B2**, **N0**, **NO**, **NC**, **J2**, **J4**, **J8**, **JK** and **FY (ECC)**.
 
 **--ecc-curve** sets the ECC curve to use when **--ecc** is used. The default is NIST P-521.  
 The possible choices are:
