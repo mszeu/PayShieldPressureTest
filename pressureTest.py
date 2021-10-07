@@ -419,6 +419,36 @@ def decode_jk(response_to_decode: bytes, head_len: int):
         print("")
 
 
+def decode_ecc(response_to_decode: bytes, head_len: int):
+    """
+        It decodes the result of the command FY an prints the meaning of the returned output
+
+        Parameters
+        ___________
+        response_to_decode: bytes
+            The response returned by the payShield
+        head_len: int
+            The length of the header
+
+        Returns
+        ___________
+        nothing
+        """
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
+    if response_to_decode[str_pointer:str_pointer + 2] == '00':
+        str_pointer = str_pointer + 2
+        key_len = int(response_to_decode[str_pointer:str_pointer + 4])
+        print("ECC Public Key Length: ", key_len)
+        str_pointer = str_pointer + 4
+        print("ECC Public Key",
+              binascii.hexlify((response_to_decode[str_pointer:str_pointer + key_len]).encode())
+              .decode('ascii', 'ignore'))
+        print("Public/private separator: ", response_to_decode[str_pointer + key_len:str_pointer + key_len + 1])
+        str_pointer = str_pointer + key_len + 1
+        print("ECC Private Key under LMK",
+              response_to_decode[str_pointer:])
+
+
 def payshield_error_codes(error_code: str) -> str:
     """This function maps the result code with the error message.
         I derived the list of errors and messages from the following manual:
@@ -527,7 +557,11 @@ def payshield_error_codes(error_code: str) -> str:
         'BB': 'Invalid wrapping key',
         'BC': 'Repeated optional block',
         'BD': 'Incompatible key types',
-        'BE': 'Invalid key block header ID'}
+        'BE': 'Invalid key block header ID',
+        'D2': 'Invalid curve reference',
+        'D3': 'Invalid Key Encoding',
+        'E0': 'Invalid command version number'
+    }
 
     return PAYSHIELD_ERROR_CODE.get(error_code, "Unknown error")
 
@@ -759,7 +793,8 @@ if __name__ == "__main__":
         'J2': decode_j2,
         'J4': decode_j4,
         'JK': decode_jk,
-        'B2': decode_b2
+        'B2': decode_b2,
+        'FY': decode_ecc
     }
 
     parser = argparse.ArgumentParser(
@@ -848,7 +883,7 @@ if __name__ == "__main__":
     elif args.randgen:
         command = args.header + 'N0008'
     elif args.ecc:
-        command = args.header + 'FY010'+args.ecc_curve+'03#'+args.key_use+'00'+args.key_exportability+'00'
+        command = args.header + 'FY010' + args.ecc_curve + '03#' + args.key_use + '00' + args.key_exportability + '00'
     if args.b2:
         # we need to calculate the hexadecimal representation of the length of the payload string
         # the length of the string field is 4 char long so we need to format it accordingly
