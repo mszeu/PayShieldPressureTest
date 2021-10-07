@@ -42,28 +42,28 @@ It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** u
 
 **--no** gathers the status of the payShield through the **NO** command. 
 
-**--j2** get HSM Loading using **J2** command. 
+**--j2** gets HSM Loading using **J2** command. 
 
-**--j4** get Host Command Volumes using **J4** command. 
+**--j4** gets Host Command Volumes using **J4** command. 
 
-**--j8** get Health Check Accumulated Counts using **J8** command. 
+**--j8** gets Health Check Accumulated Counts using **J8** command. 
 
-**--jk** get Instantaneous Health Check Status using **JK** command. 
+**--jk** gets Instantaneous Health Check Status using **JK** command. 
 
-**--randgen** Generate a random value 8 bytes long using **N0** command.
+**--randgen** Generates a random value 8 bytes long using **N0** command.
 
-**--b2** Echo received data, specified through the **--echo** parameter, back to the user.
+**--b2** Echoes received data, specified through the **--echo** parameter, back to the user.
 
-**--ecc** Generate an ECC public/private key pair using the Elliptic Curve algorithm.
+**--ecc** Generates an ECC public/private key pair using the Elliptic Curve algorithm.  
 By default, the curve used is curve used is NIST P-521, the exportability is 'S' (Sensitive)
-and the key usage is 'S' (Only digital signature).
+and the key usage is 'S' (Only digital signature).  
 Use the parameters **--ecc-curve**, **--key-use** and **--key-exportability** to change the default values. 
 
 ### Optional parameters
 
 **--port** specifies the host port, if omitted the default value **1500** is used.
 
-**--proto** specify the protocol to use, **tcp**, **udp** or **tls**, if omitted the default value **tcp**
+**--proto** specifies the protocol to use, **tcp**, **udp** or **tls**, if omitted the default value **tcp**
 is used.  
 If **tls** is used you might specify the path of the client key file and the certificate using the parameters **--keyfile** and **--crtfile**.
 
@@ -75,7 +75,7 @@ It's only considered if the protocol is **tls**.
 
 **--header** the header string to prefix to the host command, if not specified the default value is **HEAD**.
 
-**--echo** specify the payload sent using the echo command **--b2**, otherwise it is ignored
+**--echo** specifies the payload sent using the echo command **--b2**, otherwise it is ignored
 
 **--forever** the test will run forever. Use **CTRL-C** to terminate it.
 
@@ -84,18 +84,19 @@ It's only considered if the protocol is **tls**.
 **--decode** decodes the response of the payShield if a decoder function is available for the command.  
 The commands **--decode** supports in the release are: **B2**, **N0**, **NO**, **NC**, **J2**, **J4**, **J8** and **JK**.
 
-**--ecc-curve** sets the ECC curve to use when **--ecc** is used. The possible choices are:
+**--ecc-curve** sets the ECC curve to use when **--ecc** is used.  
+The possible choices are:
  - 0: FIPS 186-3 – NIST P-256
  - 1: FIPS 186-3 – NIST P-384
  - 2: FIPS 186-3 – NIST P-521
 
-**--key-use** sets the key usage. The default one is 'S' (Signature only).
+**--key-use** sets the key usage. The default one is 'S' (Signature only).   
 The possible choices are:
  - S: The key may only be used to perform digital signature generation operations. 
  - X: The key may only be used to derive other keys. 
  - N: No special restrictions apply.
 
-**--key-exportability** sets the key exportability. The default is 'S' (Sensitive). 
+**--key-exportability** sets the key exportability. The default is 'S' (Sensitive).  
 The possible choices are:
  - E: May only be exported in a trusted key block, provided the wrapping key itself is in a trusted format.
  - N: No export permitted.
