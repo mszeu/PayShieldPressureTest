@@ -22,10 +22,11 @@ It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** u
 
 ## Usage
 
-    usage: pressureTest.py [-h] [--port PORT]
+    pressureTest.py [-h] [--port PORT]
                   [--key KEY | --nc | --no | --pci | --j2 | --j4 | --j8 | --jk | --b2 | --randgen | --ecc]
-                  [--ecc-curve {0,1,2}] [--key-use {S,X,N}] [--key-exportability {N,E,S}] [--header HEADER] [--forever]
-                  [--decode] [--times TIMES] [--proto {tcp,udp,tls}] [--keyfile KEYFILE] [--crtfile CRTFILE] [--echo ECHO]
+                  [--ecc-curve {0,1,2}] [--key-use {S,X,N}] [--key-exportability {N,E,S}] [--header HEADER]
+                  [--forever] [--decode] [--times TIMES] [--proto {tcp,udp,tls}] [--keyfile KEYFILE] 
+                  [--crtfile CRTFILE] [--echo ECHO]
                   host
 
 ### Mandatory parameter(s)
@@ -154,4 +155,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.** See the
 **GNU Affero General Public License** for more details.
 
 ## Questions, bugs & suggestions
-For any questions, feedback, suggestions, send money ***(yes...it's a dream I know)*** you can contact the author at [msz@msz.eu](mailto:msz@msz.eu)
+For any questions, feedback, suggestions, send money ***(yes...it's a dream,t I know)*** you can contact the author at [msz@msz.eu](mailto:msz@msz.eu)
