@@ -84,19 +84,19 @@ It's only considered if the protocol is **tls**.
 **--decode** decodes the response of the payShield if a decoder function is available for the command.  
 The commands **--decode** supports in the release are: **B2**, **N0**, **NO**, **NC**, **J2**, **J4**, **J8** and **JK**.
 
-**--ecc-curve** sets the ECC curve to use when **--ecc** is used.  
+**--ecc-curve** sets the ECC curve to use when **--ecc** is used. The default is NIST P-521.  
 The possible choices are:
  - 0: FIPS 186-3 – NIST P-256
  - 1: FIPS 186-3 – NIST P-384
  - 2: FIPS 186-3 – NIST P-521
 
-**--key-use** sets the key usage. The default one is 'S' (Signature only).   
+**--key-use** sets the key usage. The default one is **'S'** (Signature only).   
 The possible choices are:
  - S: The key may only be used to perform digital signature generation operations. 
  - X: The key may only be used to derive other keys. 
  - N: No special restrictions apply.
 
-**--key-exportability** sets the key exportability. The default is 'S' (Sensitive).  
+**--key-exportability** sets the key exportability. The default is **'S'** (Sensitive).  
 The possible choices are:
  - E: May only be exported in a trusted key block, provided the wrapping key itself is in a trusted format.
  - N: No export permitted.
