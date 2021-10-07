@@ -863,6 +863,11 @@ if __name__ == "__main__":
                        help="Generate an ECC public/private key pair using the Elliptic Curve algorithm curve NIST "
                             "P-521.",
                        action="store_true")
+    parser.add_argument("--ecc-curve", help="select the ECC curve.", default='0', type=str, choices=['0', '1', '2'])
+    parser.add_argument("--key-use", help="select the key mode of use.", default='S', type=str.upper,
+                        choices=['S', 'X', 'N'])
+    parser.add_argument("--key-exportability", help="select the key exportability.", default='S', type=str.upper,
+                        choices=['N', 'E', 'S'])
     parser.add_argument("--header",
                         help="the header string to prepend to the host command. If not specified the default is HEAD.",
                         default="HEAD", type=str)
@@ -911,7 +916,7 @@ if __name__ == "__main__":
     elif args.randgen:
         command = args.header + 'N0008'
     elif args.ecc:
-        command = args.header + 'FY010203#S00S00'
+        command = args.header + 'FY010'+args.ecc_curve+'03#'+args.key_use+'00'+args.key_exportability+'00'
     if args.b2:
         # we need to calculate the hexadecimal representation of the length of the payload string
         # the length of the string field is 4 char long so we need to format it accordingly
