@@ -106,7 +106,7 @@ The possible choices are:
 
     C:\Test>python pressureTest.py 192.168.0.36 --nc --times 2
 
-    PayShield stress utility, version 1.1.3, by Marco S. Zuppone - msz@msz.eu - https://msz.eu
+    PayShield stress utility, version 1.1.5, by Marco S. Zuppone - msz@msz.eu - https://msz.eu
     To get more info about the usage invoke it with the -h option This software is open source, and it is under the Affero
     AGPL 3.0 license
 
