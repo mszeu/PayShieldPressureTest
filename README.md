@@ -23,7 +23,7 @@ It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** u
 ## Usage
 
     pressureTest.py [-h] [--port PORT]
-                  [--key KEY | --nc | --no | --pci | --j2 | --j4 | --j8 | --jk | --b2 | --randgen | --ecc]
+                  [--key KEY | --nc | --no | --ni | --pci | --j2 | --j4 | --j8 | --jk | --b2 | --randgen | --ecc]
                   [--ecc-curve {0,1,2}] [--key-use {S,X,N}] [--key-exportability {N,E,S}] [--header HEADER]
                   [--forever] [--decode] [--times TIMES] [--proto {tcp,udp,tls}] [--keyfile KEYFILE] 
                   [--crtfile CRTFILE] [--echo ECHO]
@@ -42,6 +42,8 @@ It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** u
 **--pci** gathers the PCI compliance status of the payShield through the **NO** command, type **01**. 
 
 **--no** gathers the status of the payShield through the **NO** command, type **00**. 
+
+**--ni** gathers the status of the Ethernet Host Port 1 through the **NI** command. 
 
 **--j2** gets HSM Loading using **J2** command. 
 
