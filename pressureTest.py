@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Tuple, Dict
 from types import FunctionType
 
-VERSION = "1.1.5"
+VERSION = "1.1.6"
 
 
 def decode_n0(response_to_decode: bytes, head_len: int):
@@ -92,6 +92,48 @@ def decode_no(response_to_decode: bytes, head_len: int):
                 print(
                     "Some of the security settings relevant to PCI HSM compliance have non-compliant values.\n"
                     "\"The Enforce key type 002 separation for PCI HSM compliance\" setting is not one of these.")
+
+
+def decode_ni(response_to_decode: bytes, head_len: int):
+    """
+    It decodes the result of the command NI an prints the meaning of the returned output
+
+    Parameters
+    ___________
+    response_to_decode: bytes
+        The response returned by the payShield
+    head_len: int
+        The length of the header
+
+    Returns
+    ___________
+    nothing
+    """
+    NET_PROTO: Dict[str, str] = {'0': 'TCP', '1': 'UDP'}
+    SPECIFIC_ERROR: Dict[str, str] = {'01': 'Failed to execute NETSTAT',
+                                      '82': 'Invalid Ethernet Statistics value'}
+    NET_CONNECTION_STATUS: Dict[str, str] = {'0': 'ESTABLISHED', '1': 'CLOSED'}
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
+    if response_to_decode[str_pointer:str_pointer + 2] == '00':  # No errors
+        str_pointer = str_pointer + 2
+        print("Records to follow:", response_to_decode[str_pointer:str_pointer + 4])
+        str_pointer = str_pointer + 4
+        print("Protocol:", NET_PROTO.get(response_to_decode[str_pointer:str_pointer + 1],
+                                         "Unknown"))
+        str_pointer = str_pointer + 1
+        print("Local port number:", response_to_decode[str_pointer:str_pointer + 4])
+        str_pointer = str_pointer + 4
+        print("IP Address", response_to_decode[str_pointer:str_pointer + 8])
+        str_pointer = str_pointer + 8
+        print("Remote port number:", response_to_decode[str_pointer:str_pointer + 4])
+        str_pointer = str_pointer + 4
+        print("Connection Status:", NET_CONNECTION_STATUS.get(response_to_decode[str_pointer:str_pointer + 1]),
+              'Reserved')
+        str_pointer = str_pointer + 1
+        print("Duration:", response_to_decode[str_pointer:str_pointer + 8])
+    else:
+        if SPECIFIC_ERROR.get(response_to_decode[str_pointer:str_pointer + 2]) is not None:
+            print("Command specific error:", SPECIFIC_ERROR.get(response_to_decode[str_pointer:str_pointer + 2]))
 
 
 def decode_nc(response_to_decode: bytes, head_len: int):
@@ -794,7 +836,8 @@ if __name__ == "__main__":
         'J4': decode_j4,
         'JK': decode_jk,
         'B2': decode_b2,
-        'FY': decode_ecc
+        'FY': decode_ecc,
+        'NI': decode_ni
     }
 
     parser = argparse.ArgumentParser(
@@ -808,6 +851,8 @@ if __name__ == "__main__":
     group.add_argument("--nc", help="Just perform a NC test. ",
                        action="store_true")
     group.add_argument("--no", help="Retrieves HSM status information using NO command. ",
+                       action="store_true")
+    group.add_argument("--ni", help="return information about the Ethernet Host and Management Ports",
                        action="store_true")
     group.add_argument("--pci", help="Checks if the HSM is set in PCI compliant mode. ",
                        action="store_true")
@@ -870,6 +915,8 @@ if __name__ == "__main__":
         command = args.header + 'NC'
     elif args.no:
         command = args.header + 'NO00'
+    elif args.ni:
+        command = args.header + 'NI11'
     elif args.pci:
         command = args.header + 'NO01'
     elif args.j2:
