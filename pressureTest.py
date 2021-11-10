@@ -56,6 +56,7 @@ def decode_no(response_to_decode: bytes, head_len: int):
     """
     BUFFER_SIZE: Dict[str, str] = {
         '0': '2K bytes', '1': '8K bytes', '2': '16K bytes', '3': '32K bytes'}
+    NET_PROTO: Dict[str, str] = {'0': 'TCP', '1': 'UDP'}
     response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
     if response_to_decode[str_pointer:str_pointer + 2] == '00':  # No errors
         if len(response_to_decode) >= (24 + head_len):  # Mode 00
@@ -64,12 +65,7 @@ def decode_no(response_to_decode: bytes, head_len: int):
             str_pointer = str_pointer + 2
             print("I/O buffer size:", BUFFER_SIZE.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
             str_pointer = str_pointer + 1
-            if response_to_decode[str_pointer:str_pointer + 1] == '0':
-                print("Type of connection: UDP")
-            elif response_to_decode[str_pointer:str_pointer + 1] == '1':
-                print("Type of connection: TCP")
-            else:
-                print("Unexpected connection type")
+            print("Type of connection:", NET_PROTO.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
             str_pointer = str_pointer + 1
             print("Number of TCP sockets:", response_to_decode[str_pointer:str_pointer + 2])
             str_pointer = str_pointer + 2
@@ -852,7 +848,7 @@ if __name__ == "__main__":
                        action="store_true")
     group.add_argument("--no", help="Retrieves HSM status information using NO command. ",
                        action="store_true")
-    group.add_argument("--ni", help="return information about the Ethernet Host and Management Ports",
+    group.add_argument("--ni", help="return information about the Ethernet Host port 1",
                        action="store_true")
     group.add_argument("--pci", help="Checks if the HSM is set in PCI compliant mode. ",
                        action="store_true")
