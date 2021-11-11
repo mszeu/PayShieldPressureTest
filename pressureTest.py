@@ -63,17 +63,17 @@ def decode_no(response_to_decode: bytes, head_len: int):
             # I obtained the value 24 in this way: 2 for the response len, 2 for the error code and the rest is for the
             # sum of the field len as indicated by the Core Host Command Manual
             str_pointer = str_pointer + 2
-            print("I/O buffer size:", BUFFER_SIZE.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
+            print("I/O buffer size: ", BUFFER_SIZE.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
             str_pointer = str_pointer + 1
-            print("Type of connection:", NET_PROTO.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
+            print("Type of connection: ", NET_PROTO.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
             str_pointer = str_pointer + 1
-            print("Number of TCP sockets:", response_to_decode[str_pointer:str_pointer + 2])
+            print("Number of TCP sockets: ", response_to_decode[str_pointer:str_pointer + 2])
             str_pointer = str_pointer + 2
-            print("Firmware number:", response_to_decode[str_pointer:str_pointer + 9])
+            print("Firmware number: ", response_to_decode[str_pointer:str_pointer + 9])
             str_pointer = str_pointer + 9
-            print("Reserved:", response_to_decode[str_pointer:str_pointer + 1])
+            print("Reserved: ", response_to_decode[str_pointer:str_pointer + 1])
             str_pointer = str_pointer + 1
-            print("Reserved:", response_to_decode[str_pointer:str_pointer + 4])
+            print("Reserved: ", response_to_decode[str_pointer:str_pointer + 4])
         else:  # Mode 01
             str_pointer = str_pointer + 2
             if response_to_decode[str_pointer:str_pointer + 1] == '0':
@@ -112,24 +112,24 @@ def decode_ni(response_to_decode: bytes, head_len: int):
     response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
     if response_to_decode[str_pointer:str_pointer + 2] == '00':  # No errors
         str_pointer = str_pointer + 2
-        print("Records to follow:", response_to_decode[str_pointer:str_pointer + 4])
+        print("Records to follow: ", response_to_decode[str_pointer:str_pointer + 4])
         str_pointer = str_pointer + 4
-        print("Protocol:", NET_PROTO.get(response_to_decode[str_pointer:str_pointer + 1],
-                                         "Unknown"))
+        print("Protocol: ", NET_PROTO.get(response_to_decode[str_pointer:str_pointer + 1],
+                                          "Unknown"))
         str_pointer = str_pointer + 1
-        print("Local port number:", response_to_decode[str_pointer:str_pointer + 4])
+        print("Local port number: ", response_to_decode[str_pointer:str_pointer + 4])
         str_pointer = str_pointer + 4
-        print("IP Address", response_to_decode[str_pointer:str_pointer + 8])
+        print("IP Address: ", hex2ip(response_to_decode[str_pointer:str_pointer + 8]))
         str_pointer = str_pointer + 8
-        print("Remote port number:", response_to_decode[str_pointer:str_pointer + 4])
+        print("Remote port number: ", response_to_decode[str_pointer:str_pointer + 4])
         str_pointer = str_pointer + 4
-        print("Connection Status:", NET_CONNECTION_STATUS.get(response_to_decode[str_pointer:str_pointer + 1]),
-              'Reserved')
+        print("Connection Status: ", NET_CONNECTION_STATUS.get(response_to_decode[str_pointer:str_pointer + 1]
+                                                               , 'Reserved'))
         str_pointer = str_pointer + 1
-        print("Duration:", response_to_decode[str_pointer:str_pointer + 8])
+        print("Duration: ", response_to_decode[str_pointer:str_pointer + 8])
     else:
         if SPECIFIC_ERROR.get(response_to_decode[str_pointer:str_pointer + 2]) is not None:
-            print("Command specific error:", SPECIFIC_ERROR.get(response_to_decode[str_pointer:str_pointer + 2]))
+            print("Command specific error: ", SPECIFIC_ERROR.get(response_to_decode[str_pointer:str_pointer + 2]))
 
 
 def decode_nc(response_to_decode: bytes, head_len: int):
@@ -664,6 +664,13 @@ def check_return_message(result_returned: bytes, head_len: int) -> Tuple[str, st
 
 def test_printable(input_str):
     return all(c in string.printable for c in input_str)
+
+
+def hex2ip(hex_ip):
+    addr_long = int(hex_ip, 16)
+    hex(addr_long)
+    hex_ip = socket.inet_ntoa(pack(">L", addr_long))
+    return hex_ip
 
 
 def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", header_len: int = 4,
