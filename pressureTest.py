@@ -113,20 +113,46 @@ def decode_ni(response_to_decode: bytes, head_len: int):
     if response_to_decode[str_pointer:str_pointer + 2] == '00':  # No errors
         str_pointer = str_pointer + 2
         print("Records to follow: ", response_to_decode[str_pointer:str_pointer + 4])
+        records_to_follow = int(response_to_decode[str_pointer:str_pointer + 4])
         str_pointer = str_pointer + 4
-        print("Protocol: ", NET_PROTO.get(response_to_decode[str_pointer:str_pointer + 1],
-                                          "Unknown"))
-        str_pointer = str_pointer + 1
-        print("Local port number: ", response_to_decode[str_pointer:str_pointer + 4])
-        str_pointer = str_pointer + 4
-        print("IP Address: ", hex2ip(response_to_decode[str_pointer:str_pointer + 8]))
+        for record in range(records_to_follow):
+            print("Protocol: ", NET_PROTO.get(response_to_decode[str_pointer:str_pointer + 1],
+                                              "Unknown"))
+            str_pointer = str_pointer + 1
+            print("Local port number: ", response_to_decode[str_pointer:str_pointer + 4])
+            str_pointer = str_pointer + 4
+            print("IP Address: ", hex2ip(response_to_decode[str_pointer:str_pointer + 8]))
+            str_pointer = str_pointer + 8
+            print("Remote port number: ", response_to_decode[str_pointer:str_pointer + 4])
+            str_pointer = str_pointer + 4
+            print("Connection Status: ", NET_CONNECTION_STATUS.get(response_to_decode[str_pointer:str_pointer + 1]
+                                                                   , 'Reserved'))
+            str_pointer = str_pointer + 1
+            print("Duration: ", response_to_decode[str_pointer:str_pointer + 8])
+            str_pointer = str_pointer + 8
+        print("Total Bytes Sent: ", int(response_to_decode[str_pointer:str_pointer + 16], 16))
+        str_pointer = str_pointer + 16
+        print("Total Bytes Received: ", int(response_to_decode[str_pointer:str_pointer + 16], 16))
+        str_pointer = str_pointer + 16
+        print("Total Unicast Packets Sent: ", int(response_to_decode[str_pointer:str_pointer + 8], 16))
         str_pointer = str_pointer + 8
-        print("Remote port number: ", response_to_decode[str_pointer:str_pointer + 4])
-        str_pointer = str_pointer + 4
-        print("Connection Status: ", NET_CONNECTION_STATUS.get(response_to_decode[str_pointer:str_pointer + 1]
-                                                               , 'Reserved'))
-        str_pointer = str_pointer + 1
-        print("Duration: ", response_to_decode[str_pointer:str_pointer + 8])
+        print("Total Unicast Packets Received: ", int(response_to_decode[str_pointer:str_pointer + 8], 16))
+        str_pointer = str_pointer + 8
+        print("Total Non-unicast packets Sent: ", int(response_to_decode[str_pointer:str_pointer + 8], 16))
+        str_pointer = str_pointer + 8
+        print("Total Non-unicast packets Received: ", int(response_to_decode[str_pointer:str_pointer + 8], 16))
+        str_pointer = str_pointer + 8
+        print("Total Packets Discarded During Send: ", int(response_to_decode[str_pointer:str_pointer + 8], 16))
+        str_pointer = str_pointer + 8
+        print("Total Packets Discarded During Receive: ", int(response_to_decode[str_pointer:str_pointer + 8], 16))
+        str_pointer = str_pointer + 8
+        print("Total Errors During Send: ", int(response_to_decode[str_pointer:str_pointer + 8], 16))
+        str_pointer = str_pointer + 8
+        print("Total Errors During Receive: ", int(response_to_decode[str_pointer:str_pointer + 8], 16))
+        str_pointer = str_pointer + 8
+        print("Total Unknown Packets: ", int(response_to_decode[str_pointer:str_pointer + 8], 16))
+        str_pointer = str_pointer + 8
+
     else:
         if SPECIFIC_ERROR.get(response_to_decode[str_pointer:str_pointer + 2]) is not None:
             print("Command specific error: ", SPECIFIC_ERROR.get(response_to_decode[str_pointer:str_pointer + 2]))
