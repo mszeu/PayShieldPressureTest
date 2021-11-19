@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Tuple, Dict
 from types import FunctionType
 
-VERSION = "1.1.5"
+VERSION = "1.1.6"
 
 
 def decode_n0(response_to_decode: bytes, head_len: int):
@@ -56,28 +56,24 @@ def decode_no(response_to_decode: bytes, head_len: int):
     """
     BUFFER_SIZE: Dict[str, str] = {
         '0': '2K bytes', '1': '8K bytes', '2': '16K bytes', '3': '32K bytes'}
+    NET_PROTO: Dict[str, str] = {'0': 'TCP', '1': 'UDP'}
     response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
     if response_to_decode[str_pointer:str_pointer + 2] == '00':  # No errors
         if len(response_to_decode) >= (24 + head_len):  # Mode 00
             # I obtained the value 24 in this way: 2 for the response len, 2 for the error code and the rest is for the
             # sum of the field len as indicated by the Core Host Command Manual
             str_pointer = str_pointer + 2
-            print("I/O buffer size:", BUFFER_SIZE.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
+            print("I/O buffer size: ", BUFFER_SIZE.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
             str_pointer = str_pointer + 1
-            if response_to_decode[str_pointer:str_pointer + 1] == '0':
-                print("Type of connection: UDP")
-            elif response_to_decode[str_pointer:str_pointer + 1] == '1':
-                print("Type of connection: TCP")
-            else:
-                print("Unexpected connection type")
+            print("Type of connection: ", NET_PROTO.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
             str_pointer = str_pointer + 1
-            print("Number of TCP sockets:", response_to_decode[str_pointer:str_pointer + 2])
+            print("Number of TCP sockets: ", response_to_decode[str_pointer:str_pointer + 2])
             str_pointer = str_pointer + 2
-            print("Firmware number:", response_to_decode[str_pointer:str_pointer + 9])
+            print("Firmware number: ", response_to_decode[str_pointer:str_pointer + 9])
             str_pointer = str_pointer + 9
-            print("Reserved:", response_to_decode[str_pointer:str_pointer + 1])
+            print("Reserved: ", response_to_decode[str_pointer:str_pointer + 1])
             str_pointer = str_pointer + 1
-            print("Reserved:", response_to_decode[str_pointer:str_pointer + 4])
+            print("Reserved: ", response_to_decode[str_pointer:str_pointer + 4])
         else:  # Mode 01
             str_pointer = str_pointer + 2
             if response_to_decode[str_pointer:str_pointer + 1] == '0':
@@ -92,6 +88,74 @@ def decode_no(response_to_decode: bytes, head_len: int):
                 print(
                     "Some of the security settings relevant to PCI HSM compliance have non-compliant values.\n"
                     "\"The Enforce key type 002 separation for PCI HSM compliance\" setting is not one of these.")
+
+
+def decode_ni(response_to_decode: bytes, head_len: int):
+    """
+    It decodes the result of the command NI an prints the meaning of the returned output
+
+    Parameters
+    ___________
+    response_to_decode: bytes
+        The response returned by the payShield
+    head_len: int
+        The length of the header
+
+    Returns
+    ___________
+    nothing
+    """
+    NET_PROTO: Dict[str, str] = {'0': 'TCP', '1': 'UDP'}
+    SPECIFIC_ERROR: Dict[str, str] = {'01': 'Failed to execute NETSTAT',
+                                      '82': 'Invalid Ethernet Statistics value'}
+    NET_CONNECTION_STATUS: Dict[str, str] = {'0': 'ESTABLISHED', '1': 'CLOSED'}
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
+    if response_to_decode[str_pointer:str_pointer + 2] == '00':  # No errors
+        str_pointer = str_pointer + 2
+        print("Records to follow: ", response_to_decode[str_pointer:str_pointer + 4])
+        records_to_follow = int(response_to_decode[str_pointer:str_pointer + 4])
+        str_pointer = str_pointer + 4
+        for record in range(records_to_follow):
+            print("Protocol: ", NET_PROTO.get(response_to_decode[str_pointer:str_pointer + 1],
+                                              "Unknown"))
+            str_pointer = str_pointer + 1
+            print("Local port number: ", response_to_decode[str_pointer:str_pointer + 4])
+            str_pointer = str_pointer + 4
+            print("IP Address: ", hex2ip(response_to_decode[str_pointer:str_pointer + 8]))
+            str_pointer = str_pointer + 8
+            print("Remote port number: ", response_to_decode[str_pointer:str_pointer + 4])
+            str_pointer = str_pointer + 4
+            print("Connection Status: ", NET_CONNECTION_STATUS.get(response_to_decode[str_pointer:str_pointer + 1]
+                                                                   , 'Reserved'))
+            str_pointer = str_pointer + 1
+            print("Duration: ", response_to_decode[str_pointer:str_pointer + 8])
+            str_pointer = str_pointer + 8
+        print("Total Bytes Sent: ", int(response_to_decode[str_pointer:str_pointer + 16], 16))
+        str_pointer = str_pointer + 16
+        print("Total Bytes Received: ", int(response_to_decode[str_pointer:str_pointer + 16], 16))
+        str_pointer = str_pointer + 16
+        print("Total Unicast Packets Sent: ", int(response_to_decode[str_pointer:str_pointer + 8], 16))
+        str_pointer = str_pointer + 8
+        print("Total Unicast Packets Received: ", int(response_to_decode[str_pointer:str_pointer + 8], 16))
+        str_pointer = str_pointer + 8
+        print("Total Non-unicast packets Sent: ", int(response_to_decode[str_pointer:str_pointer + 8], 16))
+        str_pointer = str_pointer + 8
+        print("Total Non-unicast packets Received: ", int(response_to_decode[str_pointer:str_pointer + 8], 16))
+        str_pointer = str_pointer + 8
+        print("Total Packets Discarded During Send: ", int(response_to_decode[str_pointer:str_pointer + 8], 16))
+        str_pointer = str_pointer + 8
+        print("Total Packets Discarded During Receive: ", int(response_to_decode[str_pointer:str_pointer + 8], 16))
+        str_pointer = str_pointer + 8
+        print("Total Errors During Send: ", int(response_to_decode[str_pointer:str_pointer + 8], 16))
+        str_pointer = str_pointer + 8
+        print("Total Errors During Receive: ", int(response_to_decode[str_pointer:str_pointer + 8], 16))
+        str_pointer = str_pointer + 8
+        print("Total Unknown Packets: ", int(response_to_decode[str_pointer:str_pointer + 8], 16))
+        str_pointer = str_pointer + 8
+
+    else:
+        if SPECIFIC_ERROR.get(response_to_decode[str_pointer:str_pointer + 2]) is not None:
+            print("Command specific error: ", SPECIFIC_ERROR.get(response_to_decode[str_pointer:str_pointer + 2]))
 
 
 def decode_nc(response_to_decode: bytes, head_len: int):
@@ -628,6 +692,13 @@ def test_printable(input_str):
     return all(c in string.printable for c in input_str)
 
 
+def hex2ip(hex_ip):
+    addr_long = int(hex_ip, 16)
+    hex(addr_long)
+    hex_ip = socket.inet_ntoa(pack(">L", addr_long))
+    return hex_ip
+
+
 def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", header_len: int = 4,
              decoder_funct: FunctionType = None) -> int:
     """It connects to the specified host and port, using the specified protocol (tcp, udp or tls) and sends the command.
@@ -794,7 +865,8 @@ if __name__ == "__main__":
         'J4': decode_j4,
         'JK': decode_jk,
         'B2': decode_b2,
-        'FY': decode_ecc
+        'FY': decode_ecc,
+        'NI': decode_ni
     }
 
     parser = argparse.ArgumentParser(
@@ -808,6 +880,8 @@ if __name__ == "__main__":
     group.add_argument("--nc", help="Just perform a NC test. ",
                        action="store_true")
     group.add_argument("--no", help="Retrieves HSM status information using NO command. ",
+                       action="store_true")
+    group.add_argument("--ni", help="return information about the Ethernet Host port 1",
                        action="store_true")
     group.add_argument("--pci", help="Checks if the HSM is set in PCI compliant mode. ",
                        action="store_true")
@@ -870,6 +944,8 @@ if __name__ == "__main__":
         command = args.header + 'NC'
     elif args.no:
         command = args.header + 'NO00'
+    elif args.ni:
+        command = args.header + 'NI11'
     elif args.pci:
         command = args.header + 'NO01'
     elif args.j2:
