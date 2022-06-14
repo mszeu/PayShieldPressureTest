@@ -13,12 +13,12 @@ from pathlib import Path
 from typing import Tuple, Dict
 from types import FunctionType
 
-VERSION = "1.1.6"
+VERSION = "1.1.7"
 
 
 def decode_n0(response_to_decode: bytes, head_len: int):
     """
-        It decodes the result of the command N0 an prints the meaning of the returned output
+        It decodes the result of the command N0 and prints the meaning of the returned output
 
         Parameters
         ___________
@@ -31,17 +31,17 @@ def decode_n0(response_to_decode: bytes, head_len: int):
         ___________
         nothing
         """
-    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
-    if response_to_decode[str_pointer:str_pointer + 2] == '01':
+    response_to_decode_str, msg_len, str_pointer = common_parser(response_to_decode, head_len)
+    if response_to_decode_str[str_pointer:str_pointer + 2] == '01':
         print("Invalid Random Value Length")
-    elif response_to_decode[str_pointer:str_pointer + 2] == '00':
+    elif response_to_decode_str[str_pointer:str_pointer + 2] == '00':
         print("Random payload:(HEX)",
-              binascii.hexlify((response_to_decode[6 + head_len:]).encode()).decode('ascii', 'ignore'))
+              bytes.hex(response_to_decode[6 + head_len:]))
 
 
 def decode_no(response_to_decode: bytes, head_len: int):
     """
-    It decodes the result of the command NO an prints the meaning of the returned output
+    It decodes the result of the command NO and prints the meaning of the returned output
 
     Parameters
     ___________
@@ -92,7 +92,7 @@ def decode_no(response_to_decode: bytes, head_len: int):
 
 def decode_ni(response_to_decode: bytes, head_len: int):
     """
-    It decodes the result of the command NI an prints the meaning of the returned output
+    It decodes the result of the command NI and prints the meaning of the returned output
 
     Parameters
     ___________
@@ -160,7 +160,7 @@ def decode_ni(response_to_decode: bytes, head_len: int):
 
 def decode_nc(response_to_decode: bytes, head_len: int):
     """
-    It decodes the result of the command NC an prints the meaning of the returned output
+    It decodes the result of the command NC and prints the meaning of the returned output
     The message trailer is not considered
 
     Parameters
@@ -184,7 +184,7 @@ def decode_nc(response_to_decode: bytes, head_len: int):
 
 def decode_j8(response_to_decode: bytes, head_len: int):
     """
-    It decodes the result of the command J8 an prints the meaning of the returned output
+    It decodes the result of the command J8 and prints the meaning of the returned output
     The message trailer is not considered
 
     Parameters
@@ -228,7 +228,7 @@ def decode_j8(response_to_decode: bytes, head_len: int):
 
 def decode_b2(response_to_decode: bytes, head_len: int):
     """
-    It decodes the result of the command B2 an prints the meaning of the returned output
+    It decodes the result of the command B2 and prints the meaning of the returned output
     The message trailer is not considered
 
     Parameters
@@ -250,7 +250,7 @@ def decode_b2(response_to_decode: bytes, head_len: int):
 
 def decode_j2(response_to_decode: bytes, head_len: int):
     """
-    It decodes the result of the command J2 an prints the meaning of the returned output
+    It decodes the result of the command J2 and prints the meaning of the returned output
     The message trailer is not considered
 
     Parameters
@@ -298,7 +298,7 @@ def decode_j2(response_to_decode: bytes, head_len: int):
 
 def decode_j4(response_to_decode: bytes, head_len: int):
     """
-    It decodes the result of the command J4 an prints the meaning of the returned output
+    It decodes the result of the command J4 and prints the meaning of the returned output
     The message trailer is not considered
 
     Parameters
@@ -341,7 +341,7 @@ def decode_j4(response_to_decode: bytes, head_len: int):
 
 def decode_jk(response_to_decode: bytes, head_len: int):
     """
-    It decodes the result of the command JK an prints the meaning of the returned output
+    It decodes the result of the command JK and prints the meaning of the returned output
     The message trailer is not considered
 
     Parameters
@@ -485,7 +485,7 @@ def decode_jk(response_to_decode: bytes, head_len: int):
 
 def decode_ecc(response_to_decode: bytes, head_len: int):
     """
-        It decodes the result of the command FY an prints the meaning of the returned output
+        It decodes the result of the command FY and prints the meaning of the returned output
 
         Parameters
         ___________
@@ -498,19 +498,20 @@ def decode_ecc(response_to_decode: bytes, head_len: int):
         ___________
         nothing
         """
-    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
-    if response_to_decode[str_pointer:str_pointer + 2] == '00':
+    response_to_decode_str, msg_len, str_pointer = common_parser(response_to_decode, head_len)
+    if response_to_decode_str[str_pointer:str_pointer + 2] == '00':
         str_pointer = str_pointer + 2
-        key_len = int(response_to_decode[str_pointer:str_pointer + 4])
+        key_len = int(response_to_decode_str[str_pointer:str_pointer + 4])
         print("ECC Public Key Length: ", key_len)
         str_pointer = str_pointer + 4
         print("ECC Public Key",
-              binascii.hexlify((response_to_decode[str_pointer:str_pointer + key_len]).encode())
-              .decode('ascii', 'ignore'))
-        print("Public/private separator: ", response_to_decode[str_pointer + key_len:str_pointer + key_len + 1])
+              bytes.hex(response_to_decode[str_pointer:str_pointer + key_len]))
+
+        print("Public/private separator: ",
+              response_to_decode[str_pointer + key_len:str_pointer + key_len + 1].decode('ascii', 'ignore'))
         str_pointer = str_pointer + key_len + 1
         print("ECC Private Key under LMK",
-              response_to_decode[str_pointer:])
+              bytes.hex(response_to_decode[str_pointer:]))
 
 
 def payshield_error_codes(error_code: str) -> str:
@@ -694,7 +695,6 @@ def test_printable(input_str):
 
 def hex2ip(hex_ip):
     addr_long = int(hex_ip, 16)
-    hex(addr_long)
     hex_ip = socket.inet_ntoa(pack(">L", addr_long))
     return hex_ip
 
@@ -784,12 +784,12 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
         if test_printable(message[2:].decode("ascii", "ignore")):
             print("sent data (ASCII) :", message[2:].decode("ascii", "ignore"))
 
-        print("sent data (HEX) :", binascii.hexlify(message))
+        print("sent data (HEX) :", bytes.hex(message))
 
         if test_printable((data[2:]).decode("ascii", "ignore")):
             print("received data (ASCII):", data[2:].decode("ascii", "ignore"))
 
-        print("received data (HEX) :", binascii.hexlify(data))
+        print("received data (HEX) :", bytes.hex(data))
         if (decoder_funct is not None) and callable(decoder_funct):
             print("")
             print("-----DECODING RESPONSE-----")
@@ -812,7 +812,7 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
 
 def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str, int, int]:
     """
-        This function is an helper used by the decode_XX functions.
+        This function is a helper used by the decode_XX functions.
         It converts the response_to_decode in ascii, calculates and prints the message size and
         prints the header, the command returned and the error code.
 
@@ -962,7 +962,7 @@ if __name__ == "__main__":
         command = args.header + 'FY010' + args.ecc_curve + '03#' + args.key_use + '00' + args.key_exportability + '00'
     if args.b2:
         # we need to calculate the hexadecimal representation of the length of the payload string
-        # the length of the string field is 4 char long so we need to format it accordingly
+        # the length of the string field is 4 char long, so we need to format it accordingly
         # Example: 0001 or 000FA etc.
         # Note: this padding algorithm works for echo payloads up to the length of 0xFFFF.
         # I hope no one would be so crazy to exceed that quantity.
@@ -970,13 +970,13 @@ if __name__ == "__main__":
         len_echo_message = len(args.echo)
         hex_string_len = hex(len_echo_message).lstrip('0x').upper()
         # using lstrip() to strip the '0x' prefix is acceptable due to the expected pattern
-        # Ideally you should use removeprefix() but it was introduced in python 3.9 and I want to keep compatibility
+        # Ideally you should use removeprefix() but it was introduced in python 3.9, and I want to keep compatibility
         hex_string_len = h_padding[:4 - len(hex_string_len)] + hex_string_len
         command = args.header + 'B2' + hex_string_len + args.echo
 
     # IMPORTANT: At this point the 'command' need to contain something.
     # If you want to add to the tool command link arguments about commands do it before this comment block
-    # Now we verify if the command variable is empty. In this case we thrown an error.
+    # Now we verify if the command variable is empty. In this case we throw an error.
     if len(command) == 0:
         print("You forgot to specify the action you want to to perform on the payShield")
         exit()
