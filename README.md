@@ -18,7 +18,7 @@ It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** u
 
 ## Version
 
-**1.1.6**
+**1.1.7**
 
 ## Usage
 
@@ -58,7 +58,7 @@ It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** u
 **--b2** Echoes received data, specified through the **--echo** parameter, back to the user.
 
 **--ecc** Generates an ECC public/private key pair using the Elliptic Curve algorithm.  
-By default, the curve used is curve used is NIST P-521, the exportability is 'S' (Sensitive)
+By default, the curve used is NIST P-521, the exportability is 'S' (Sensitive)
 and the key usage is 'S' (Only digital signature).  
 Use the parameters **--ecc-curve**, **--key-use** and **--key-exportability** to change the default values. 
 
