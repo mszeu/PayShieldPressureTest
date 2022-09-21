@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Tuple, Dict
 from types import FunctionType
 
-VERSION = "1.1.7"
+VERSION = "1.1.7.1"
 
 
 def decode_n0(response_to_decode: bytes, head_len: int):
@@ -125,8 +125,8 @@ def decode_ni(response_to_decode: bytes, head_len: int):
             str_pointer = str_pointer + 8
             print("Remote port number: ", response_to_decode[str_pointer:str_pointer + 4])
             str_pointer = str_pointer + 4
-            print("Connection Status: ", NET_CONNECTION_STATUS.get(response_to_decode[str_pointer:str_pointer + 1]
-                                                                   , 'Reserved'))
+            print("Connection Status: ", NET_CONNECTION_STATUS.get(response_to_decode[str_pointer:str_pointer + 1],
+                                                                   'Reserved'))
             str_pointer = str_pointer + 1
             print("Duration: ", response_to_decode[str_pointer:str_pointer + 8])
             str_pointer = str_pointer + 8
@@ -729,7 +729,7 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
     if proto not in ['tcp', 'udp', 'tls']:
         print("invalid protocol parameter, It needs to be tcp, udp or tls")
         return -1
-
+    connection = None
     try:
 
         # calculate the size and format it correctly
@@ -796,18 +796,16 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
             decoder_funct(data, header_len)
 
     except ConnectionError as e:
-        print("Connection issue: ", e.message)
+        print("Connection issue: ", e)
     except FileNotFoundError as e:
         print("The client certificate file or the client key file cannot be found or accessed.\n" +
-              "Check value passed to the parameters --keyfile and --crtfile", e.message)
+              "Check value passed to the parameters --keyfile and --crtfile", e)
     except Exception as e:
-        if hasattr(e, 'message'):
-            print("Unexpected issue:", e.message)
-        else:
-            print("Unexpected issue:", e)
+        print("Unexpected issue:", e)
 
     finally:
-        connection.close()
+        if connection is not None:
+            connection.close()
 
 
 def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str, int, int]:
@@ -1016,27 +1014,3 @@ if __name__ == "__main__":
                 run_test(args.host, args.port, command, args.proto, len(args.header), None)
             print("")
         print("DONE")
-
-
-def setup_connection(ip_addr: str, port: int, proto: str = "tcp") -> socket:
-    if proto == "tcp":
-        # creates the TCP socket
-        connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        connection.connect((ip_addr, port))
-        return connection
-
-    elif proto == "tls":
-        # creates the TCP TLS socket
-        connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        ciphers = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:AES128-GCM-SHA256:AES128-SHA256:HIGH:"
-        ciphers += "!aNULL:!eNULL:!EXPORT:!DSS:!DES:!RC4:!3DES:!MD5:!PSK"
-        ssl_sock = ssl.wrap_socket(connection, args.keyfile, args.crtfile)
-        ssl_sock.connect((ip_addr, port))
-        return connection
-
-    elif proto == "udp":
-        # create the UDP socket
-        connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        return connection
-
-    return None
