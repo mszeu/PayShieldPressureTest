@@ -56,7 +56,7 @@ def decode_no(response_to_decode: bytes, head_len: int):
     """
     BUFFER_SIZE: Dict[str, str] = {
         '0': '2K bytes', '1': '8K bytes', '2': '16K bytes', '3': '32K bytes'}
-    NET_PROTO: Dict[str, str] = {'0': 'TCP', '1': 'UDP'}
+    NET_PROTO: Dict[str, str] = {'0': 'UDP', '1': 'TCP'}
     response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
     if response_to_decode[str_pointer:str_pointer + 2] == '00':  # No errors
         if len(response_to_decode) >= (24 + head_len):  # Mode 00
