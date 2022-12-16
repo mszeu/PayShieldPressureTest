@@ -12,8 +12,9 @@ import argparse
 from pathlib import Path
 from typing import Tuple, Dict
 from types import FunctionType
+from sys import exit  # it prevents issues if the exit() function is invoked in the executable version
 
-VERSION = "1.1.7.2"
+VERSION = "1.1.7.3"
 
 
 def decode_n0(response_to_decode: bytes, head_len: int):
