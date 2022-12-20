@@ -6,7 +6,7 @@ Source License</b> for free with the full access to their developer suite.
 <a href="https://www.jetbrains.com/pycharm/?from=PayshieldPPressureTesPyCharm">PyCharm</a> is an awesome Python IDE that
 greatly simplified my work.
 
-&nbsp;
+<img src=images/supporting-member-badge.png width=100>
 
 The **pressureTest.py** Python script creates a workload on the **Thales payShield 10k** and **9k** appliances.  
 The script can be useful during demonstrations of the monitoring features of the appliance and can be used in every case
