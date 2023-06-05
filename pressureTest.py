@@ -750,10 +750,14 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
             data = connection.recv(buffer_size)
         elif proto == "tls":
             # creates the TCP TLS socket
+
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            context.load_cert_chain(certfile=args.crtfile, keyfile=args.keyfile)
+            context.check_hostname = False
+            context.verify_mode=ssl.CERT_NONE
             connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            ciphers = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:AES128-GCM-SHA256:AES128-SHA256:HIGH:"
-            ciphers += "!aNULL:!eNULL:!EXPORT:!DSS:!DES:!RC4:!3DES:!MD5:!PSK"
-            ssl_sock = ssl.wrap_socket(connection, args.keyfile, args.crtfile)
+            ssl_sock=context.wrap_socket(connection,server_side=False)
+
             ssl_sock.connect((ip_addr, port))
             # send message
             ssl_sock.send(message)
