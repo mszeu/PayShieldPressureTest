@@ -748,6 +748,7 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
             connection.send(message)
             # receive data
             data = connection.recv(buffer_size)
+            connection.close()
         elif proto == "tls":
             # creates the TCP TLS socket
 
@@ -763,6 +764,7 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
             ssl_sock.send(message)
             # receive data
             data = ssl_sock.recv(buffer_size)
+            ssl_sock.close()
         elif proto == "udp":
             # create the UDP socket
             connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
