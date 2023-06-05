@@ -69,7 +69,7 @@ Use the parameters **--ecc-curve**, **--key-use** and **--key-exportability** to
 **--proto** specifies the protocol to use, **tcp**, **udp** or **tls**, if omitted the default value **tcp**
 is used.  
 If **tls** is used you might specify the path of the client key file and the certificate using the parameters
-**--keyfile** and **--crtfile**. 
+**--keyfile** and **--crtfile**.   
 No verifications are performed about the validity of certificates.
 
 **--keyfile** the path of the client key file, if is not specified the default value is **client.key**.  
