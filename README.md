@@ -18,7 +18,7 @@ It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** u
 
 ## Version
 
-**1.1.7.2**
+**1.2**
 
 ## Usage
 
@@ -68,7 +68,9 @@ Use the parameters **--ecc-curve**, **--key-use** and **--key-exportability** to
 
 **--proto** specifies the protocol to use, **tcp**, **udp** or **tls**, if omitted the default value **tcp**
 is used.  
-If **tls** is used you might specify the path of the client key file and the certificate using the parameters **--keyfile** and **--crtfile**.
+If **tls** is used you might specify the path of the client key file and the certificate using the parameters
+**--keyfile** and **--crtfile**.   
+No verifications are performed about the validity of certificates.
 
 **--keyfile** the path of the client key file, if is not specified the default value is **client.key**.  
 It's only considered if the protocol is **tls**.
@@ -109,7 +111,7 @@ The possible choices are:
 
     C:\Test>python pressureTest.py 192.168.0.36 --nc --times 2
 
-    PayShield stress utility, version 1.1.5, by Marco S. Zuppone - msz@msz.eu - https://msz.eu
+    PayShield stress utility, version 1.2, by Marco S. Zuppone - msz@msz.eu - https://msz.eu
     To get more info about the usage invoke it with the -h option This software is open source, and it is under the Affero
     AGPL 3.0 license
 
@@ -144,7 +146,7 @@ Depending on the firmware version the functionality may require a license and/or
   Please refer to the **LICENSE** file that is part of this project.
   The license is **[AGPL 3.0](https://www.gnu.org/licenses/agpl-3.0.en.html)**
   
-  Copyright(C) 2020-2021  **Marco S. Zuppone** - **msz@msz.eu** - [https://msz.eu](https://msz.eu)
+  Copyright(C) 2020-2023  **Marco S. Zuppone** - **msz@msz.eu** - [https://msz.eu](https://msz.eu)
 
 This program is free software: you can redistribute it and/or modify  
 it under the terms of the GNU Affero General Public License as  

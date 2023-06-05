@@ -7,14 +7,14 @@ import socket
 import ssl
 import binascii
 import string
+import sys
 from struct import *
 import argparse
 from pathlib import Path
 from typing import Tuple, Dict
 from types import FunctionType
-from sys import exit  # it prevents issues if the exit() function is invoked in the executable version
 
-VERSION = "1.1.7.3"
+VERSION = "1.2"
 
 
 def decode_n0(response_to_decode: bytes, head_len: int):
@@ -748,17 +748,23 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
             connection.send(message)
             # receive data
             data = connection.recv(buffer_size)
+            connection.close()
         elif proto == "tls":
             # creates the TCP TLS socket
+
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            context.load_cert_chain(certfile=args.crtfile, keyfile=args.keyfile)
+            context.check_hostname = False
+            context.verify_mode=ssl.CERT_NONE
             connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            ciphers = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:AES128-GCM-SHA256:AES128-SHA256:HIGH:"
-            ciphers += "!aNULL:!eNULL:!EXPORT:!DSS:!DES:!RC4:!3DES:!MD5:!PSK"
-            ssl_sock = ssl.wrap_socket(connection, args.keyfile, args.crtfile)
+            ssl_sock=context.wrap_socket(connection,server_side=False)
+
             ssl_sock.connect((ip_addr, port))
             # send message
             ssl_sock.send(message)
             # receive data
             data = ssl_sock.recv(buffer_size)
+            ssl_sock.close()
         elif proto == "udp":
             # create the UDP socket
             connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -938,7 +944,7 @@ if __name__ == "__main__":
             command = args.header + 'EI2' + k_len_str + '01#0000'
         elif args.key < 320 or args.key > 4096:
             print("The key length value needs to be between 320 and 4096")
-            exit()
+            sys.exit()
     elif args.nc:
         command = args.header + 'NC'
     elif args.no:
@@ -978,7 +984,7 @@ if __name__ == "__main__":
     # Now we verify if the command variable is empty. In this case we throw an error.
     if len(command) == 0:
         print("You forgot to specify the action you want to to perform on the payShield")
-        exit()
+        sys.exit()
     if args.proto == 'tls':
         # check that the cert and key files are accessible
         if not (args.keyfile.exists() and args.crtfile.exists()):
@@ -987,7 +993,7 @@ if __name__ == "__main__":
             print("You passed these values:")
             print("Certificate file:", args.crtfile)
             print("Key file:", args.keyfile)
-            exit()
+            sys.exit()
         if args.port < 2500:
             print("WARNING: generally the TLS base port is 2500. You are instead using the port ",
                   args.port, " please check that you passed the right value to the "
