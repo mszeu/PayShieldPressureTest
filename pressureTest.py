@@ -7,12 +7,12 @@ import socket
 import ssl
 import binascii
 import string
+import sys
 from struct import *
 import argparse
 from pathlib import Path
 from typing import Tuple, Dict
 from types import FunctionType
-from sys import exit  # it prevents issues if the exit() function is invoked in the executable version
 
 VERSION = "1.2"
 
@@ -942,7 +942,7 @@ if __name__ == "__main__":
             command = args.header + 'EI2' + k_len_str + '01#0000'
         elif args.key < 320 or args.key > 4096:
             print("The key length value needs to be between 320 and 4096")
-            exit()
+            sys.exit()
     elif args.nc:
         command = args.header + 'NC'
     elif args.no:
@@ -982,7 +982,7 @@ if __name__ == "__main__":
     # Now we verify if the command variable is empty. In this case we throw an error.
     if len(command) == 0:
         print("You forgot to specify the action you want to to perform on the payShield")
-        exit()
+        sys.exit()
     if args.proto == 'tls':
         # check that the cert and key files are accessible
         if not (args.keyfile.exists() and args.crtfile.exists()):
@@ -991,7 +991,7 @@ if __name__ == "__main__":
             print("You passed these values:")
             print("Certificate file:", args.crtfile)
             print("Key file:", args.keyfile)
-            exit()
+            sys.exit()
         if args.port < 2500:
             print("WARNING: generally the TLS base port is 2500. You are instead using the port ",
                   args.port, " please check that you passed the right value to the "

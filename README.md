@@ -18,7 +18,7 @@ It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** u
 
 ## Version
 
-**1.1.7.2**
+**1.2**
 
 ## Usage
 
