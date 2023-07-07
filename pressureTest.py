@@ -1,7 +1,7 @@
 # payShield test utility by Marco S. Zuppone - msz@msz.eu
-# This utility is released under AGPL 3.0 license
-# please refer to the LICENSE file for more information about licensing
-# and to README.md file for more information about the usage of it
+# This utility is released under AGPL 3.0 license.
+# Please refer to the LICENSE file for more information about licensing
+# and to README.md file for more information about the usage of it.
 
 import socket
 import ssl
@@ -92,7 +92,6 @@ class PayConnector:
         host_command : str
             The command to send to the payshield host port.
 
-
         Returns
         -------
         bytes
@@ -177,9 +176,7 @@ class PayConnector:
         if hasattr(self, 'connection') and self.connection:
             self.close()
 
-
 # End Class
-
 
 def decode_n0(response_to_decode: bytes, head_len: int):
     """
