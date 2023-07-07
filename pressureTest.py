@@ -68,7 +68,7 @@ class PayConnector:
         self.protocol = protocol
         self.connected = False
         if protocol not in ['udp', 'tcp', 'tls']:
-            raise ValueError("protocol must me udp, tcp or ssl")
+            raise ValueError("protocol must me udp, tcp or tls")
         if protocol == 'tls':
             if (keyfile is None) or (crtfile is None):
                 raise ValueError("keyfile and crtfile parameters are both required")
@@ -873,7 +873,7 @@ def run_test(payConnectorInstance: PayConnector, host_command: str, header_len: 
 
             The return code from the command
     """
-
+    return_code_tuple =['ZZ','Error']
     try:
 
         # calculate the size and format it correctly
