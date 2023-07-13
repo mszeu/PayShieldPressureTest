@@ -1,7 +1,7 @@
 # payShield test utility by Marco S. Zuppone - msz@msz.eu
-# This utility is released under AGPL 3.0 license
-# please refer to the LICENSE file for more information about licensing
-# and to README.md file for more information about the usage of it
+# This utility is released under AGPL 3.0 license.
+# Please refer to the LICENSE file for more information about licensing
+# and to README.md file for more information about the usage of it.
 
 import socket
 import ssl
@@ -14,8 +14,169 @@ from pathlib import Path
 from typing import Tuple, Dict
 from types import FunctionType
 
-VERSION = "1.2"
+VERSION = "1.3"
+class PayConnector:
+    """It represents the connection with the payShield host port. It supports tcp,udp and tls.
 
+        Attributes
+        ----------
+        ssl_sock : SSLSocket
+            The SSLSocket in case of tls connection.
+        connection  : socket.socket
+            The connection. It should not be accessed directly
+        host : str
+            The host ip or hostname.
+        port : int
+            The tcp/udp port to connect with.
+        protocol: str
+            The protol to use to connect to the host. Can be only tcp, tls or udp.
+        connected: bool
+            When True, the connection has been established already and there is no need to open a new one.
+            When False, the connection needs to be opened.
+        keyfile : str
+            In case of tls protocol this is the full path of the client key file.
+        crtfile : str
+            In case of tls protocol this is the full path of the client certificate file.
+        context : ssl.SSLContext
+            The SSLContext object.
+        """
+
+    def __init__(self, host: str, port: int, protocol: str, keyfile: str = None, crtfile: str = None):
+        """
+        Constructor for the PayConnector class. It sets all the initial parameters.
+
+        Parameters
+        ----------
+        host : str
+            The host ip or hostname.
+        port : int
+            The tcp/udp port to connect with.
+        protocol : str
+            The protol to use to connect to the host. Can be only tcp, tls or udp.
+        keyfile : str, optional
+            In case of tls protocol this is the full path of the client key file.
+        crtfile : str, optional
+            In case of tls protocol this is the full path of the client certificate file.
+
+
+        Raises
+        ------
+        ValueError
+            If the protocol is not 'tcp', 'tls', or 'udp'.
+        ValueError
+            If the protocol is 'tls' but keyfile or crtfile is not provided.
+        """
+
+        self.keyfile = keyfile
+        self.crtfile = crtfile
+        self.ssl_sock = None
+        self.connection = None
+        self.context = None
+        self.host = host
+        self.port = port
+        self.protocol = protocol
+        self.connected = False
+        if protocol not in ['udp', 'tcp', 'tls']:
+            raise ValueError("protocol must me udp, tcp or tls")
+        if protocol == 'tls':
+            if (keyfile is None) or (crtfile is None):
+                raise ValueError("keyfile and crtfile parameters are both required")
+
+    def send_command(self, host_command: str) -> bytes:
+        """
+        sends the command specified in the parameter to the payShield and return the response.
+        If establishes the connection if it's not established yet, otherwise reuses the open connection
+
+        Parameters
+        ----------
+        host_command : str
+            The command to send to the payshield host port.
+
+        Returns
+        -------
+        bytes
+            The response from the host.
+        """
+        size = pack('>h', len(host_command))
+
+        # join everything together in python3
+        message = size + host_command.encode()
+        # Connect to the host and gather the reply in TCP or UDP
+        buffer_size = 4096
+        try:
+            if self.protocol == 'tcp':
+                if not self.connected:
+                    self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    self.connection.connect((self.host, self.port))
+                # send message
+                self.connection.send(message)
+                # receive data
+                data: bytes = self.connection.recv(buffer_size)
+                self.connected = True
+                return data
+
+            elif self.protocol == "tls":
+                # creates the TCP TLS socket
+                if not self.connected:
+                    # Let's srt uo the context
+                    self.context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+                    self.context.load_cert_chain(certfile=self.crtfile, keyfile=self.keyfile)
+                    self.context.check_hostname = False
+                    self.context.verify_mode = ssl.CERT_NONE
+                    self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    self.ssl_sock = self.context.wrap_socket(self.connection, server_side=False)
+                    self.ssl_sock.connect((self.host, self.port))
+                # send message
+                self.ssl_sock.send(message)
+                # receive data
+                data: bytes = self.ssl_sock.recv(buffer_size)
+                self.connected = True
+                return data
+            elif self.protocol == 'udp':
+                if not self.connected:
+                    # create the UDP socket
+                    self.connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    self.connected = True
+                # send data
+                self.connection.sendto(message, (self.host, self.port))
+                # receive data
+                self.connection.settimeout(5)
+                data_tuple = self.connection.recvfrom(buffer_size)
+                data: bytes = data_tuple[0]
+                return data
+
+        except (ConnectionError, TimeoutError) as e:
+            print("Connection issue: ", e)
+            self.connected = False
+
+        except FileNotFoundError as e:
+            print("The client certificate file or the client key file cannot be found or accessed.\n" +
+                  "Check value passed to the parameters --keyfile and --crtfile", e)
+
+        except ssl.SSLError as e:
+            raise ssl.SSLError("TLS connection error: ",e)
+
+        except Exception as e:
+            print("Unexpected issue: ", e)
+            self.connected = False
+
+    def close(self):
+        """
+        It invokes the close method of the connection
+        """
+
+        if self.connected:
+            self.connection.close()
+            self.connected = False
+    def __del__(self):
+        """
+        Destructor for the PayConnector class.
+        It invokes the close method of the connection
+        """
+        if hasattr(self, 'connection') and self.connection:
+            self.close()
+
+# End Class
 
 def decode_n0(response_to_decode: bytes, head_len: int):
     """
@@ -700,37 +861,30 @@ def hex2ip(hex_ip):
     return hex_ip
 
 
-def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", header_len: int = 4,
-             decoder_funct: FunctionType = None) -> int:
-    """It connects to the specified host and port, using the specified protocol (tcp, udp or tls) and sends the command.
-    
-    Parameters
-    ----------
-     ip_addr: str
-        The address to connect to. It can be an IP, hostname or FQDN
-     port: int
-        The port to connect to
-     host_command: str
-        The command to send to the payShield complete of the header part    
-     proto: str
-        The protocol to use, it can be usb, tcp or tls. If not specified the default is tcp
-     header_len: int
-        The length of the header. If not specified the value is 4 because it is the default factory value
-        in payShield 10k
-     decoder_funct: FunctionType
-        If provided needs to be a reference to a function that is able to parse the command and print the meaning of it
-        If not provided the default is None
-     
-     Returns
-     ----------
-      an integer value representing the error code: -1 means that some parameter were wrong.
+def run_test(payConnectorInstance: PayConnector, host_command: str, header_len: int = 4,
+             decoder_funct: FunctionType = None) -> str:
     """
+        It connects to the specified host and port, using the specified protocol (tcp, udp or tls) and sends the command.
 
-    # if proto != "tcp" and proto != "udp" and proto != "tls":
-    if proto not in ['tcp', 'udp', 'tls']:
-        print("invalid protocol parameter, It needs to be tcp, udp or tls")
-        return -1
-    connection = None
+        Parameters
+        ___________
+         payConnectorInstance: PayConnector
+            The instance of the PayConnector class
+         host_command: str
+            The command to send to the payShield complete of the header part
+         header_len: int
+            The length of the header. If not specified the value is 4 because it is the default factory value
+            in payShield 10k
+         decoder_funct: FunctionType
+            If provided needs to be a reference to a function that is able to parse the command and print the meaning of it
+            If not provided the default is None
+
+         Returns
+        ___________
+
+            The return code from the command
+    """
+    return_code_tuple =['ZZ','Error']
     try:
 
         # calculate the size and format it correctly
@@ -739,40 +893,10 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
         # join everything together in python3
         message = size + host_command.encode()
         # Connect to the host and gather the reply in TCP or UDP
-        buffer_size = 4096
-        if proto == "tcp":
-            # creates the TCP socket
-            connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            connection.connect((ip_addr, port))
-            # send message
-            connection.send(message)
-            # receive data
-            data = connection.recv(buffer_size)
-            connection.close()
-        elif proto == "tls":
-            # creates the TCP TLS socket
-
-            context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-            context.load_cert_chain(certfile=args.crtfile, keyfile=args.keyfile)
-            context.check_hostname = False
-            context.verify_mode=ssl.CERT_NONE
-            connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            ssl_sock=context.wrap_socket(connection,server_side=False)
-
-            ssl_sock.connect((ip_addr, port))
-            # send message
-            ssl_sock.send(message)
-            # receive data
-            data = ssl_sock.recv(buffer_size)
-            ssl_sock.close()
-        elif proto == "udp":
-            # create the UDP socket
-            connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            # send data
-            connection.sendto(message, (ip_addr, port))
-            # receive data
-            data_tuple = connection.recvfrom(buffer_size)
-            data = data_tuple[0]
+        data = payConnectorInstance.send_command(host_command)
+        # If no data is returned
+        if data is None:
+            return 'Error'
 
         # try to decode the result code contained in the reply of the payShield
         check_result_tuple = (-1, "", "")
@@ -811,8 +935,7 @@ def run_test(ip_addr: str, port: int, host_command: str, proto: str = "tcp", hea
         print("Unexpected issue:", e)
 
     finally:
-        if connection is not None:
-            connection.close()
+        return return_code_tuple[0]
 
 
 def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str, int, int]:
@@ -876,30 +999,31 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
         description="Generates workload on PayShield 10k and 9k for the sake of testing and demonstration.",
-        epilog="For any questions, feedback, suggestions, send money (yes...it's a dream I know) you can contact the "
+        epilog="For any questions, feedback, suggestions or send money (yes...it's a dream, I know), you can contact the "
                "author at msz@msz.eu")
     parser.add_argument("host", help="Ip address or hostname of the payShield")
     group = parser.add_mutually_exclusive_group()
-    parser.add_argument("--port", "-p", help="The host port", default=1500, type=int)
+    parser.add_argument("--port", "-p", help="The host port. "
+                        "If not specified the default port is 1500.", default=1500, type=int)
     group.add_argument("--key", help="RSA key length. Accepted values are between 320 and 4096.", type=int)
-    group.add_argument("--nc", help="Just perform a NC test. ",
+    group.add_argument("--nc", help="Perform a NC test.",
                        action="store_true")
-    group.add_argument("--no", help="Retrieves HSM status information using NO command. ",
+    group.add_argument("--no", help="Retrieve HSM status information using NO command.",
                        action="store_true")
-    group.add_argument("--ni", help="return information about the Ethernet Host port 1",
+    group.add_argument("--ni", help="Return information about the Ethernet Host port 1.",
                        action="store_true")
-    group.add_argument("--pci", help="Checks if the HSM is set in PCI compliant mode. ",
+    group.add_argument("--pci", help="Check if the HSM is set in PCI compliant mode.",
                        action="store_true")
-    group.add_argument("--j2", help="Get HSM Loading using J2 command. ",
+    group.add_argument("--j2", help="Get HSM Loading using J2 command.",
                        action="store_true")
     group.add_argument("--j4",
-                       help="Get Host Command Volumes using J4 command. ",
+                       help="Get Host Command Volumes using J4 command.",
                        action="store_true")
     group.add_argument("--j8",
-                       help="Get Health Check Accumulated Counts using J8 command. ",
+                       help="Get Health Check Accumulated Counts using J8 command.",
                        action="store_true")
     group.add_argument("--jk",
-                       help="Get Instantaneous Health Check Status using JK command. ",
+                       help="Get Instantaneous Health Check Status using JK command.",
                        action="store_true")
     group.add_argument("--b2",
                        help="Echo received data back to the user.", action="store_true")
@@ -910,27 +1034,28 @@ if __name__ == "__main__":
                             "P-521.",
                        action="store_true")
     parser.add_argument("--ecc-curve", help="select the ECC curve.", default='0', type=str, choices=['0', '1', '2'])
-    parser.add_argument("--key-use", help="select the key mode of use.", default='S', type=str.upper,
+    parser.add_argument("--key-use", help="Select the key mode of use.", default='S', type=str.upper,
                         choices=['S', 'X', 'N'])
-    parser.add_argument("--key-exportability", help="select the key exportability.", default='S', type=str.upper,
+    parser.add_argument("--key-exportability", help="Select the key exportability.", default='S', type=str.upper,
                         choices=['N', 'E', 'S'])
     parser.add_argument("--header",
-                        help="the header string to prepend to the host command. If not specified the default is HEAD.",
+                        help="Header string to prepend to the host command. If not specified the default is HEAD.",
                         default="HEAD", type=str)
-    parser.add_argument("--forever", help="if this option is specified the program runs for ever.",
+    parser.add_argument("--forever", help="If this option is specified the program runs forever.",
                         action="store_true")
-    parser.add_argument("--decode", help="if specified the reply of the payShield is interpreted "
+    parser.add_argument("--decode", help="If specified the reply of the payShield is interpreted "
                                          "if a decoder function for that command has been implemented.",
                         action="store_true")
 
-    parser.add_argument("--times", help="how many time to repeat the operation", type=int, default=1000)
-    parser.add_argument("--proto", help="accepted value are tcp or udp, the default is tcp", default="tcp",
+    parser.add_argument("--times", help="How many times to repeat the operation "
+                        "If not specified the default is 1000.", type=int, default=1000)
+    parser.add_argument("--proto", help="Accepted values are tcp, udp or tls. The default is tcp", default="tcp",
                         choices=["tcp", "udp", "tls"], type=str.lower)
-    parser.add_argument("--keyfile", help="client key file, used if the protocol is TLS", type=Path,
+    parser.add_argument("--keyfile", help="Client key file, used if the protocol is TLS.", type=Path,
                         default="client.key")
-    parser.add_argument("--crtfile", help="client certificate file, used if the protocol is TLS", type=Path,
+    parser.add_argument("--crtfile", help="Client certificate file, used if the protocol is TLS.", type=Path,
                         default="client.crt")
-    parser.add_argument("--echo", help="the payload sent using the echo command B2, otherwise it is ignored", type=str,
+    parser.add_argument("--echo", help="Payload sent using the echo command B2.", type=str,
                         default="PayShieldStress Echo Test", action="store")
     args = parser.parse_args()
     # the order of the IF here is important due to the default arguments.
@@ -966,8 +1091,8 @@ if __name__ == "__main__":
     elif args.ecc:
         command = args.header + 'FY010' + args.ecc_curve + '03#' + args.key_use + '00' + args.key_exportability + '00'
     if args.b2:
-        # we need to calculate the hexadecimal representation of the length of the payload string
-        # the length of the string field is 4 char long, so we need to format it accordingly
+        # We need to calculate the hexadecimal representation of the length of the payload string.
+        # The length of the string field is 4 char long, so we need to format it accordingly.
         # Example: 0001 or 000FA etc.
         # Note: this padding algorithm works for echo payloads up to the length of 0xFFFF.
         # I hope no one would be so crazy to exceed that quantity.
@@ -998,16 +1123,20 @@ if __name__ == "__main__":
             print("WARNING: generally the TLS base port is 2500. You are instead using the port ",
                   args.port, " please check that you passed the right value to the "
                              "--port parameter")
+    if args.proto == 'tls':
+        payConnInst = PayConnector(args.host, args.port, args.proto, args.keyfile, args.crtfile)
+    else:
+        payConnInst = PayConnector(args.host, args.port, args.proto)
 
     if args.forever:
         i = 1
         while True:
             print("Iteration: ", i)
             if args.decode:
-                run_test(args.host, args.port, command, args.proto, len(args.header),
+                run_test(payConnInst, command, len(args.header),
                          DECODERS.get(command[len(args.header):len(args.header) + 2], None))
             else:
-                run_test(args.host, args.port, command, args.proto, len(args.header), None)
+                run_test(payConnInst,command, len(args.header), None)
 
             i = i + 1
             print("")
@@ -1015,9 +1144,9 @@ if __name__ == "__main__":
         for i in range(0, args.times):
             print("Iteration: ", i + 1, " of ", args.times)
             if args.decode:
-                run_test(args.host, args.port, command, args.proto, len(args.header),
+                run_test(payConnInst, command, len(args.header),
                          DECODERS.get(command[len(args.header):len(args.header) + 2], None))
             else:
-                run_test(args.host, args.port, command, args.proto, len(args.header), None)
+                run_test(payConnInst,command, len(args.header), None)
             print("")
         print("DONE")
