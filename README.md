@@ -8,11 +8,11 @@ you need to generate a workload for testing purposes.
 
 The project is in an early development stage and still a bit clumsy.
 
-It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** using a **payShield 10k** with firmware **1.3d**
+It requires **Python 3**. It was tested on **Python 3.10.2*** using a **payShield 10k** with firmware **1.7**
 
 ## Version
 
-**1.2**
+**1.3**
 
 ## Usage
 
@@ -29,7 +29,7 @@ It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** u
 
 ### Mutually exclusive parameters
 
-**--key** the length of the RSA to generate. There value need to be between **320** and **4096**.
+**--key** the length in bits of the RSA keys to generate. The value needs to be between **320** and **4096**.
 
 **--nc** performs just an **NC** test. 
 
@@ -37,7 +37,7 @@ It requires **Python 3**. It was tested on **Python 3.7**, **3.8** and **3.9** u
 
 **--no** gathers the status of the payShield through the **NO** command, type **00**. 
 
-**--ni** gathers the status of the Ethernet Host Port 1 through the **NI** command. 
+**--ni** gathers the Ethernet Host Port 1 status through the **NI** command. 
 
 **--j2** gets HSM Loading using **J2** command. 
 
@@ -78,7 +78,7 @@ It's only considered if the protocol is **tls**.
 
 **--forever** the test will run forever. Use **CTRL-C** to terminate it.
 
-**--times** how many times execute the test. If it is not specified the default value is **1000** times.
+**--times** how many times execute the test. If it is not specified, the default value is **1000** times.
 
 **--decode** decodes the response of the payShield if a decoder function is available for the command.  
 The commands **--decode** supports in the release are: **B2**, **N0**, **NO**, **NC**, **J2**, **J4**, **J8**, **JK** and **FY (ECC)**.
@@ -105,7 +105,7 @@ The possible choices are:
 
     C:\Test>python pressureTest.py 192.168.0.36 --nc --times 2
 
-    PayShield stress utility, version 1.2, by Marco S. Zuppone - msz@msz.eu - https://msz.eu
+    PayShield stress utility, version 1.3, by Marco S. Zuppone - msz@msz.eu - https://msz.eu
     To get more info about the usage invoke it with the -h option This software is open source, and it is under the Affero
     AGPL 3.0 license
 
@@ -134,7 +134,7 @@ The possible choices are:
 The **EI** command used to generate the RSA key requires authorization, and the generation of 4096-bit keys is possible only for keyblock LMKs.
 
 The **--ecc** parameter uses the **FY** command to generate ECC keypairs: 
-Depending on the firmware version the functionality may require a license and/or a firmware update.
+The functionality may require a license and/or a firmware update, depending on the firmware version.
 
 ## COPYRIGHT & LICENSE
   Please refer to the **LICENSE** file that is part of this project.
