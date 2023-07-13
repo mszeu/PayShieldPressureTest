@@ -1,4 +1,4 @@
-# PayShieldPPressureTest
+# PayShieldPressureTest
 
 <img src=images/supporting-member-badge.png width=100>
 
@@ -6,7 +6,7 @@ The **pressureTest.py** Python script creates a workload on the **Thales payShie
 The script can be useful during demonstrations of the monitoring features of the appliance and can be used in every case
 you need to generate a workload for testing purposes.
 
-It requires **Python 3**. It was tested on **Python 3.10.2*** using a **payShield 10k** with firmware **1.7**.
+It requires **Python 3**. It was tested on **Python 3.10.2** using a **payShield 10k** with firmware **1.7**.
 
 ## Version
 
