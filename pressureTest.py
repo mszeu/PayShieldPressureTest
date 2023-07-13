@@ -1004,20 +1004,20 @@ if __name__ == "__main__":
     parser.add_argument("host", help="Ip address or hostname of the payShield")
     group = parser.add_mutually_exclusive_group()
     parser.add_argument("--port", "-p", help="The host port. "
-                        "If not specified the default port is 1500", default=1500, type=int)
+                        "If not specified the default port is 1500.", default=1500, type=int)
     group.add_argument("--key", help="RSA key length. Accepted values are between 320 and 4096.", type=int)
-    group.add_argument("--nc", help="Perform a NC test. ",
+    group.add_argument("--nc", help="Perform a NC test.",
                        action="store_true")
-    group.add_argument("--no", help="Retrieve HSM status information using NO command. ",
+    group.add_argument("--no", help="Retrieve HSM status information using NO command.",
                        action="store_true")
-    group.add_argument("--ni", help="Return information about the Ethernet Host port 1",
+    group.add_argument("--ni", help="Return information about the Ethernet Host port 1.",
                        action="store_true")
-    group.add_argument("--pci", help="Check if the HSM is set in PCI compliant mode. ",
+    group.add_argument("--pci", help="Check if the HSM is set in PCI compliant mode.",
                        action="store_true")
-    group.add_argument("--j2", help="Get HSM Loading using J2 command. ",
+    group.add_argument("--j2", help="Get HSM Loading using J2 command.",
                        action="store_true")
     group.add_argument("--j4",
-                       help="Get Host Command Volumes using J4 command. ",
+                       help="Get Host Command Volumes using J4 command.",
                        action="store_true")
     group.add_argument("--j8",
                        help="Get Health Check Accumulated Counts using J8 command.",
