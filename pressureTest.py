@@ -999,17 +999,17 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
         description="Generates workload on PayShield 10k and 9k for the sake of testing and demonstration.",
-        epilog="For any questions, feedback, suggestions, send money (yes...it's a dream I know) you can contact the "
+        epilog="For any questions, feedback, suggestions or send money (yes...it's a dream, I know), you can contact the "
                "author at msz@msz.eu")
     parser.add_argument("host", help="Ip address or hostname of the payShield")
     group = parser.add_mutually_exclusive_group()
     parser.add_argument("--port", "-p", help="The host port", default=1500, type=int)
     group.add_argument("--key", help="RSA key length. Accepted values are between 320 and 4096.", type=int)
-    group.add_argument("--nc", help="Just perform a NC test. ",
+    group.add_argument("--nc", help="Perform a NC test. ",
                        action="store_true")
-    group.add_argument("--no", help="Retrieves HSM status information using NO command. ",
+    group.add_argument("--no", help="Retrieve HSM status information using NO command. ",
                        action="store_true")
-    group.add_argument("--ni", help="return information about the Ethernet Host port 1",
+    group.add_argument("--ni", help="Return information about the Ethernet Host port 1",
                        action="store_true")
     group.add_argument("--pci", help="Checks if the HSM is set in PCI compliant mode. ",
                        action="store_true")
@@ -1019,10 +1019,10 @@ if __name__ == "__main__":
                        help="Get Host Command Volumes using J4 command. ",
                        action="store_true")
     group.add_argument("--j8",
-                       help="Get Health Check Accumulated Counts using J8 command. ",
+                       help="Get Health Check Accumulated Counts using J8 command.",
                        action="store_true")
     group.add_argument("--jk",
-                       help="Get Instantaneous Health Check Status using JK command. ",
+                       help="Get Instantaneous Health Check Status using JK command.",
                        action="store_true")
     group.add_argument("--b2",
                        help="Echo received data back to the user.", action="store_true")
@@ -1033,27 +1033,28 @@ if __name__ == "__main__":
                             "P-521.",
                        action="store_true")
     parser.add_argument("--ecc-curve", help="select the ECC curve.", default='0', type=str, choices=['0', '1', '2'])
-    parser.add_argument("--key-use", help="select the key mode of use.", default='S', type=str.upper,
+    parser.add_argument("--key-use", help="Select the key mode of use.", default='S', type=str.upper,
                         choices=['S', 'X', 'N'])
-    parser.add_argument("--key-exportability", help="select the key exportability.", default='S', type=str.upper,
+    parser.add_argument("--key-exportability", help="Select the key exportability.", default='S', type=str.upper,
                         choices=['N', 'E', 'S'])
     parser.add_argument("--header",
-                        help="the header string to prepend to the host command. If not specified the default is HEAD.",
+                        help="Header string to prepend to the host command. If not specified the default is HEAD.",
                         default="HEAD", type=str)
-    parser.add_argument("--forever", help="if this option is specified the program runs for ever.",
+    parser.add_argument("--forever", help="If this option is specified the program runs forever.",
                         action="store_true")
-    parser.add_argument("--decode", help="if specified the reply of the payShield is interpreted "
+    parser.add_argument("--decode", help="If specified the reply of the payShield is interpreted "
                                          "if a decoder function for that command has been implemented.",
                         action="store_true")
 
-    parser.add_argument("--times", help="how many time to repeat the operation", type=int, default=1000)
-    parser.add_argument("--proto", help="accepted value are tcp or udp, the default is tcp", default="tcp",
+    parser.add_argument("--times", help="How many times to repeat the operation "
+                        "If not specified the default is 1000.", type=int, default=1000)
+    parser.add_argument("--proto", help="Accepted values are tcp, udp or tls. The default is tcp", default="tcp",
                         choices=["tcp", "udp", "tls"], type=str.lower)
-    parser.add_argument("--keyfile", help="client key file, used if the protocol is TLS", type=Path,
+    parser.add_argument("--keyfile", help="Client key file, used if the protocol is TLS.", type=Path,
                         default="client.key")
-    parser.add_argument("--crtfile", help="client certificate file, used if the protocol is TLS", type=Path,
+    parser.add_argument("--crtfile", help="Client certificate file, used if the protocol is TLS.", type=Path,
                         default="client.crt")
-    parser.add_argument("--echo", help="the payload sent using the echo command B2, otherwise it is ignored", type=str,
+    parser.add_argument("--echo", help="Payload sent using the echo command B2.", type=str,
                         default="PayShieldStress Echo Test", action="store")
     args = parser.parse_args()
     # the order of the IF here is important due to the default arguments.
@@ -1089,8 +1090,8 @@ if __name__ == "__main__":
     elif args.ecc:
         command = args.header + 'FY010' + args.ecc_curve + '03#' + args.key_use + '00' + args.key_exportability + '00'
     if args.b2:
-        # we need to calculate the hexadecimal representation of the length of the payload string
-        # the length of the string field is 4 char long, so we need to format it accordingly
+        # We need to calculate the hexadecimal representation of the length of the payload string.
+        # The length of the string field is 4 char long, so we need to format it accordingly.
         # Example: 0001 or 000FA etc.
         # Note: this padding algorithm works for echo payloads up to the length of 0xFFFF.
         # I hope no one would be so crazy to exceed that quantity.
