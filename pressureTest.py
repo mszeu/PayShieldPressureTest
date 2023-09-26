@@ -15,6 +15,8 @@ from typing import Tuple, Dict
 from types import FunctionType
 
 VERSION = "1.3"
+
+
 class PayConnector:
     """It represents the connection with the payShield host port. It supports tcp,udp and tls.
 
@@ -154,7 +156,7 @@ class PayConnector:
                   "Check value passed to the parameters --keyfile and --crtfile", e)
 
         except ssl.SSLError as e:
-            raise ssl.SSLError("TLS connection error: ",e)
+            raise ssl.SSLError("TLS connection error: ", e)
 
         except Exception as e:
             print("Unexpected issue: ", e)
@@ -168,6 +170,7 @@ class PayConnector:
         if self.connected:
             self.connection.close()
             self.connected = False
+
     def __del__(self):
         """
         Destructor for the PayConnector class.
@@ -175,6 +178,7 @@ class PayConnector:
         """
         if hasattr(self, 'connection') and self.connection:
             self.close()
+
 
 # End Class
 
@@ -884,7 +888,7 @@ def run_test(payConnectorInstance: PayConnector, host_command: str, header_len: 
 
             The return code from the command
     """
-    return_code_tuple =['ZZ','Error']
+    return_code_tuple = ['ZZ', 'Error']
     try:
 
         # calculate the size and format it correctly
@@ -1004,7 +1008,7 @@ if __name__ == "__main__":
     parser.add_argument("host", help="Ip address or hostname of the payShield")
     group = parser.add_mutually_exclusive_group()
     parser.add_argument("--port", "-p", help="The host port. "
-                        "If not specified the default port is 1500.", default=1500, type=int)
+                                             "If not specified the default port is 1500.", default=1500, type=int)
     group.add_argument("--key", help="RSA key length. Accepted values are between 320 and 4096.", type=int)
     group.add_argument("--nc", help="Perform a NC test.",
                        action="store_true")
@@ -1048,7 +1052,7 @@ if __name__ == "__main__":
                         action="store_true")
 
     parser.add_argument("--times", help="How many times to repeat the operation "
-                        "If not specified the default is 1000.", type=int, default=1000)
+                                        "If not specified the default is 1000.", type=int, default=1000)
     parser.add_argument("--proto", help="Accepted values are tcp, udp or tls. The default is tcp", default="tcp",
                         choices=["tcp", "udp", "tls"], type=str.lower)
     parser.add_argument("--keyfile", help="Client key file, used if the protocol is TLS.", type=Path,
@@ -1136,7 +1140,7 @@ if __name__ == "__main__":
                 run_test(payConnInst, command, len(args.header),
                          DECODERS.get(command[len(args.header):len(args.header) + 2], None))
             else:
-                run_test(payConnInst,command, len(args.header), None)
+                run_test(payConnInst, command, len(args.header), None)
 
             i = i + 1
             print("")
@@ -1147,6 +1151,6 @@ if __name__ == "__main__":
                 run_test(payConnInst, command, len(args.header),
                          DECODERS.get(command[len(args.header):len(args.header) + 2], None))
             else:
-                run_test(payConnInst,command, len(args.header), None)
+                run_test(payConnInst, command, len(args.header), None)
             print("")
         print("DONE")
