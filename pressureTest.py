@@ -233,8 +233,8 @@ def decode_no(response_to_decode: bytes, head_len: int):
             str_pointer = str_pointer + 1
             print("Type of connection: ", NET_PROTO.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
             str_pointer = str_pointer + 1
-            if len(response_to_decode) > (24 + head_len):  # FW 1.9a or more
-                socket_field_len = 4  # From FW 1.9a the Number of TCP sockets is 4 character long instead of 2
+            if len(response_to_decode) > (24 + head_len):  # FW 1.8a or more
+                socket_field_len = 4  # From FW 1.8a the Number of TCP sockets is 4 character long instead of 2
             else:
                 socket_field_len = 2
             print("Number of TCP sockets: ", response_to_decode[str_pointer:str_pointer + socket_field_len])
