@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Tuple, Dict
 from types import FunctionType
 
-VERSION = "1.3"
+VERSION = "1.3.1"
 
 
 class PayConnector:
@@ -233,13 +233,18 @@ def decode_no(response_to_decode: bytes, head_len: int):
             str_pointer = str_pointer + 1
             print("Type of connection: ", NET_PROTO.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
             str_pointer = str_pointer + 1
-            print("Number of TCP sockets: ", response_to_decode[str_pointer:str_pointer + 2])
-            str_pointer = str_pointer + 2
+            if len(response_to_decode) > (24 + head_len):  # FW 1.8a or more
+                socket_field_len = 4  # From FW 1.8a the Number of TCP sockets is 4 character long instead of 2
+            else:
+                socket_field_len = 2
+            print("Number of TCP sockets: ", response_to_decode[str_pointer:str_pointer + socket_field_len])
+            str_pointer = str_pointer + socket_field_len
             print("Firmware number: ", response_to_decode[str_pointer:str_pointer + 9])
             str_pointer = str_pointer + 9
             print("Reserved: ", response_to_decode[str_pointer:str_pointer + 1])
             str_pointer = str_pointer + 1
             print("Reserved: ", response_to_decode[str_pointer:str_pointer + 4])
+
         else:  # Mode 01
             str_pointer = str_pointer + 2
             if response_to_decode[str_pointer:str_pointer + 1] == '0':
@@ -1003,8 +1008,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
         description="Generates workload on PayShield 10k and 9k for the sake of testing and demonstration.",
-        epilog="For any questions, feedback, suggestions or send money (yes...it's a dream, I know), you can contact the "
-               "author at msz@msz.eu")
+        epilog="For any questions, feedback, suggestions or send money (yes...it's a dream, I know), you can contact "
+               "the author at msz@msz.eu")
     parser.add_argument("host", help="Ip address or hostname of the payShield")
     group = parser.add_mutually_exclusive_group()
     parser.add_argument("--port", "-p", help="The host port. "
@@ -1050,7 +1055,6 @@ if __name__ == "__main__":
     parser.add_argument("--decode", help="If specified the reply of the payShield is interpreted "
                                          "if a decoder function for that command has been implemented.",
                         action="store_true")
-
     parser.add_argument("--times", help="How many times to repeat the operation "
                                         "If not specified the default is 1000.", type=int, default=1000)
     parser.add_argument("--proto", help="Accepted values are tcp, udp or tls. The default is tcp", default="tcp",
