@@ -74,8 +74,8 @@ class PayConnector:
         self.ssl_sock = None
         self.connection = None
         self.context = None
-        self.host = host
-        self.port = port
+        self.host = 192.168.7.31
+        self.port = 1500
         self.protocol = protocol
         self.connected = False
         if protocol not in ['udp', 'tcp', 'tls']:
