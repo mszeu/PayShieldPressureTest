@@ -11,14 +11,14 @@ import sys
 from struct import *
 import argparse
 from pathlib import Path
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Any, Callable
 from types import FunctionType
 
-VERSION = "1.3.1"
+VERSION = "1.4"
 
 
 class PayConnector:
-    """It represents the connection with the payShield host port. It supports tcp,udp and tls.
+    """It represents the connection with the payShield host port. It supports tcp,udp, and tls.
 
         Attributes
         ----------
@@ -31,19 +31,19 @@ class PayConnector:
         port : int
             The tcp/udp port to connect with.
         protocol: str
-            The protol to use to connect to the host. Can be only tcp, tls or udp.
+            The protol to use to connect to the host. Can be only tcp, tls,or udp.
         connected: bool
-            When True, the connection has been established already and there is no need to open a new one.
+            When True, the connection has been established already, and there is no need to open a new one.
             When False, the connection needs to be opened.
         keyfile : str
-            In case of tls protocol this is the full path of the client key file.
+            In the case of tls protocol, this is the full path of the client key file.
         crtfile : str
-            In case of tls protocol this is the full path of the client certificate file.
+            In the case of tls protocol, this is the full path of the client certificate file.
         context : ssl.SSLContext
             The SSLContext object.
         """
 
-    def __init__(self, host: str, port: int, protocol: str, keyfile: str = None, crtfile: str = None):
+    def __init__(self, host: str, port: int, protocol: str, keyfile: str|None = None, crtfile: str|None = None):
         """
         Constructor for the PayConnector class. It sets all the initial parameters.
 
@@ -54,11 +54,11 @@ class PayConnector:
         port : int
             The tcp/udp port to connect with.
         protocol : str
-            The protol to use to connect to the host. Can be only tcp, tls or udp.
+            The protol to use to connect to the host. Can be only tcp, tls, or udp.
         keyfile : str, optional
-            In case of tls protocol this is the full path of the client key file.
+            In the case of tls protocol, this is the full path of the client key file.
         crtfile : str, optional
-            In case of tls protocol this is the full path of the client certificate file.
+            In the case of tls protocol, this is the full path of the client certificate file.
 
 
         Raises
@@ -92,7 +92,7 @@ class PayConnector:
         Parameters
         ----------
         host_command : str
-            The command to send to the payshield host port.
+            The command to send to the payShield host port.
 
         Returns
         -------
@@ -168,6 +168,8 @@ class PayConnector:
         """
 
         if self.connected:
+            if self.ssl_sock:
+                self.ssl_sock.close()
             self.connection.close()
             self.connected = False
 
@@ -529,25 +531,25 @@ def decode_jk(response_to_decode: bytes, head_len: int):
     # structures to decode the result
     # We can use CONSOLE_STATUS_CODE to check the status of the payShield Manager as well.
 
-    CONSOLE_STATUS_CODE = {
+    CONSOLE_STATUS_CODE: dict[str, str] = {
         '0': 'unknown',
         '1': 'running',
         '2': 'not running',
         '3': 'console disabled by GUI'}
 
-    TAMPER_STATUS_CODE = {
+    TAMPER_STATUS_CODE: dict[str, str] = {
         '0': 'Unknown',
         '1': 'Not Tampered',
         '2': 'Tampered'}
 
-    HOST_STATUS_CODE = {
+    HOST_STATUS_CODE: dict[str, str] = {
         '0': 'unknown',
         '1': 'running',
         '2': 'not running',
         '3': 'not configured'
     }
 
-    TAMPER_CAUSE_CODE = {
+    TAMPER_CAUSE_CODE: dict[str, str] = {
         '00': 'unknown',
         '01': 'temp out of range',
         '02': 'battery low',
@@ -560,24 +562,24 @@ def decode_jk(response_to_decode: bytes, head_len: int):
         '09': 'TSPP Module',
         '10': 'General'
     }
-    LMK_ALGORITHM_CODE = {
+    LMK_ALGORITHM_CODE: dict[str, str] = {
         '0': '3DES2Key',
         '1': '3DES3Key',
         '2': 'AES 256-bit'
     }
-    LMK_SCHEME_CODE = {
+    LMK_SCHEME_CODE: dict[str, str] = {
         'V': 'Variant',
         'K': 'Keyblock'
     }
-    LMK_STATUS_CODE = {
+    LMK_STATUS_CODE: dict[str, str] = {
         'L': 'Live',
         'T': 'Test'
     }
-    LMK_AUTH_CODE = {
+    LMK_AUTH_CODE: dict[str, str] = {
         '0': 'Not authorized',
         '1': 'Authorized'
     }
-    FRAUD_CODE = {
+    FRAUD_CODE: dict[str, str] = {
 
         '0': 'not exceeded (or not enabled)',
         '1': 'exceeded'
@@ -703,7 +705,7 @@ def payshield_error_codes(error_code: str) -> str:
           a string containing the message of the error code
         """
 
-    PAYSHIELD_ERROR_CODE = {
+    PAYSHIELD_ERROR_CODE: dict[str , str ] = {
         '00': 'No error',
         '01': 'Verification failure or warning of imported key parity error',
         '02': 'Key inappropriate length for algorithm',
@@ -819,7 +821,7 @@ def check_returned_command_verb(result_returned: bytes, head_len: int, command_s
         a Tuple[int, str, str]
         where the first value is 0 of the command is congruent or -1 if it is not
         the second value is the command sent
-        the third value is the command returned by te payShield
+        the third value is the command returned by the payShield
     """
 
     verb_returned = result_returned[2 + head_len:][:2]
@@ -886,7 +888,7 @@ def run_test(payConnectorInstance: PayConnector, host_command: str, header_len: 
             in payShield 10k
          decoder_funct: FunctionType
             If provided needs to be a reference to a function that is able to parse the command and print the meaning of it
-            If not provided the default is None
+            If it is not provided the default is None
 
          Returns
         ___________
@@ -990,8 +992,8 @@ if __name__ == "__main__":
     print("")
 
     # List of decoder functions used to interpreter the result.
-    # The reference to the function is used as parameter in the run_test function.
-    # If the parameter is not passed because a decoder for that command it is not defined the default value of the
+    # The reference to the function is used as a parameter in the run_test function.
+    # If the parameter is not passed because a decoder for that command it is not defined, the default value of the
     # parameter assumes the value of None
     DECODERS = {
         'NO': decode_no,
@@ -1066,6 +1068,12 @@ if __name__ == "__main__":
     parser.add_argument("--echo", help="Payload sent using the echo command B2.", type=str,
                         default="PayShieldStress Echo Test", action="store")
     args = parser.parse_args()
+    if args.times <= 0:
+        parser.error("--times must be a positive integer (greater than 0).")
+    if len(args.header) > 255:
+        parser.error("--header must be a string not longer than 255 characters.")
+    if args.port < 0 or args.port > 65535:
+        parser.error("--port must be a positive integer between 0 and 65535.")
     # the order of the IF here is important due to the default arguments.
     # All the mutually exclusive options need to be in this block where ELIF statements are used.
     command = ''
@@ -1112,7 +1120,7 @@ if __name__ == "__main__":
         hex_string_len = h_padding[:4 - len(hex_string_len)] + hex_string_len
         command = args.header + 'B2' + hex_string_len + args.echo
 
-    # IMPORTANT: At this point the 'command' need to contain something.
+    # IMPORTANT: At this point the 'command' needs to contain something.
     # If you want to add to the tool command link arguments about commands do it before this comment block
     # Now we verify if the command variable is empty. In this case we throw an error.
     if len(command) == 0:
