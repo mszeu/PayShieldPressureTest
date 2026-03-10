@@ -92,7 +92,7 @@ class PayConnector:
         Parameters
         ----------
         host_command : str
-            The command to send to the payshield host port.
+            The command to send to the payShield host port.
 
         Returns
         -------
