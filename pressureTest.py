@@ -374,7 +374,7 @@ def decode_ja(response_to_decode: bytes, head_len: int):
     response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
     if response_to_decode[str_pointer:str_pointer + 2] == '00':
         str_pointer = str_pointer + 2
-        print("Pin under the LMK:", response_to_decode[str_pointer:str_pointer + 32])
+        print("Pin under the LMK:", response_to_decode[str_pointer:str_pointer + 33])
 
 
 def decode_j8(response_to_decode: bytes, head_len: int):

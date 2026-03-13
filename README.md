@@ -67,13 +67,13 @@ If **tls** is used you might specify the path of the client key file and the cer
 **--keyfile** and **--crtfile**.   
 No verifications are performed about the validity of certificates.
 
-**--keyfile** the path of the client key file, if is not specified the default value is **client.key**.  
+**--keyfile** the path of the client key file, if it is not specified, the default value is **client.key**.  
 It's only considered if the protocol is **tls**.
 
-**--crtfile** the path of the client certificate file, if is not specified the default value is **client.crt**.  
+**--crtfile** the path of the client certificate file, if it is not specified, the default value is **client.crt**.  
 It's only considered if the protocol is **tls**.
 
-**--header** the header string to prefix to the host command, if not specified the default value is **HEAD**.
+**--header** the header string to prefix to the host command, if not specified, the default value is **HEAD**.
 
 **--echo** specifies the payload sent using the echo command **--b2**, otherwise it is ignored
 
