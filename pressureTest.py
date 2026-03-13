@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Tuple, Dict, Any, Callable
 from types import FunctionType
 
-VERSION = "1.4"
+VERSION = "1.5"
 
 
 class PayConnector:
@@ -43,7 +43,7 @@ class PayConnector:
             The SSLContext object.
         """
 
-    def __init__(self, host: str, port: int, protocol: str, keyfile: str|None = None, crtfile: str|None = None):
+    def __init__(self, host: str, port: int, protocol: str, keyfile: str | None = None, crtfile: str | None = None):
         """
         Constructor for the PayConnector class. It sets all the initial parameters.
 
@@ -353,6 +353,28 @@ def decode_nc(response_to_decode: bytes, head_len: int):
         print("LMK CRC:", response_to_decode[str_pointer:str_pointer + 16])
         str_pointer = str_pointer + 16
         print("Firmware number:", response_to_decode[str_pointer:str_pointer + 9])
+
+
+def decode_ja(response_to_decode: bytes, head_len: int):
+    """
+    It decodes the result of the command JA and prints the meaning of the returned output
+    The message trailer is not considered
+
+    Parameters
+    ___________
+    response_to_decode: bytes
+        The response returned by the payShield
+    head_len: int
+        The length of the header
+
+    Returns
+    ___________
+    nothing
+    """
+    response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
+    if response_to_decode[str_pointer:str_pointer + 2] == '00':
+        str_pointer = str_pointer + 2
+        print("Pin under the LMK:", response_to_decode[str_pointer:str_pointer + 32])
 
 
 def decode_j8(response_to_decode: bytes, head_len: int):
@@ -705,7 +727,7 @@ def payshield_error_codes(error_code: str) -> str:
           a string containing the message of the error code
         """
 
-    PAYSHIELD_ERROR_CODE: dict[str , str ] = {
+    PAYSHIELD_ERROR_CODE: dict[str, str] = {
         '00': 'No error',
         '01': 'Verification failure or warning of imported key parity error',
         '02': 'Key inappropriate length for algorithm',
@@ -1005,7 +1027,8 @@ if __name__ == "__main__":
         'JK': decode_jk,
         'B2': decode_b2,
         'FY': decode_ecc,
-        'NI': decode_ni
+        'NI': decode_ni,
+        'JA': decode_ja
     }
 
     parser = argparse.ArgumentParser(
@@ -1038,6 +1061,9 @@ if __name__ == "__main__":
                        action="store_true")
     group.add_argument("--b2",
                        help="Echo received data back to the user.", action="store_true")
+    group.add_argument("--pingen",
+                       help="Generate a random pin of 5 digits protected under the LMK",
+                       action="store_true")
     group.add_argument("--randgen",
                        help="Generate a random value 8 bytes long.", action="store_true")
     group.add_argument("--ecc",
@@ -1106,6 +1132,8 @@ if __name__ == "__main__":
         command = args.header + 'N0008'
     elif args.ecc:
         command = args.header + 'FY010' + args.ecc_curve + '03#' + args.key_use + '00' + args.key_exportability + '00'
+    elif args.pingen:
+        command = args.header + 'JA1234567890128;05'
     if args.b2:
         # We need to calculate the hexadecimal representation of the length of the payload string.
         # The length of the string field is 4 char long, so we need to format it accordingly.
