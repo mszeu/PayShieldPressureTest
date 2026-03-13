@@ -10,12 +10,12 @@ It requires **Python 3**. It was tested on **Python 3.13** using a **payShield 1
 
 ## Version
 
-**1.4**
+**1.5**
 
 ## Usage
 
     pressureTest.py [-h] [--port PORT]
-                  [--key KEY | --nc | --no | --ni | --pci | --j2 | --j4 | --j8 | --jk | --b2 | --randgen | --ecc]
+                  [--key KEY | --nc | --no | --ni | --pci | --j2 | --j4 | --j8 | --jk | --b2 | --pingen | --randgen | --ecc]
                   [--ecc-curve {0,1,2}] [--key-use {S,X,N}] [--key-exportability {N,E,S}] [--header HEADER]
                   [--forever] [--decode] [--times TIMES] [--proto {tcp,udp,tls}] [--keyfile KEYFILE] 
                   [--crtfile CRTFILE] [--echo ECHO]
@@ -45,12 +45,15 @@ It requires **Python 3**. It was tested on **Python 3.13** using a **payShield 1
 
 **--jk** gets Instantaneous Health Check Status using **JK** command. 
 
+**--pingen** Generates a random PIN encrypted under the LMK using **JA** command.
+It requires a Keyblock AES LMK.
+
 **--randgen** Generates a random value 8 bytes long using **N0** command.
 
 **--b2** Echoes received data, specified through the **--echo** parameter, back to the user.
 
 **--ecc** Generates an ECC public/private key pair using the Elliptic Curve algorithm.  
-By default, the curve used is NIST P-521, the exportability is 'S' (Sensitive)
+By default, the curve used is NIST P-521, the exportability is 'S' (Sensitive),
 and the key usage is 'S' (Only digital signature).  
 Use the parameters **--ecc-curve**, **--key-use** and **--key-exportability** to change the default values. 
 
@@ -64,13 +67,13 @@ If **tls** is used you might specify the path of the client key file and the cer
 **--keyfile** and **--crtfile**.   
 No verifications are performed about the validity of certificates.
 
-**--keyfile** the path of the client key file, if is not specified the default value is **client.key**.  
+**--keyfile** the path of the client key file, if it is not specified, the default value is **client.key**.  
 It's only considered if the protocol is **tls**.
 
-**--crtfile** the path of the client certificate file, if is not specified the default value is **client.crt**.  
+**--crtfile** the path of the client certificate file, if it is not specified, the default value is **client.crt**.  
 It's only considered if the protocol is **tls**.
 
-**--header** the header string to prefix to the host command, if not specified the default value is **HEAD**.
+**--header** the header string to prefix to the host command, if not specified, the default value is **HEAD**.
 
 **--echo** specifies the payload sent using the echo command **--b2**, otherwise it is ignored
 
