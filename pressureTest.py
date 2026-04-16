@@ -1,7 +1,7 @@
 # payShield test utility by Marco S. Zuppone - msz@msz.eu
 # This utility is released under AGPL 3.0 license.
 # Please refer to the LICENSE file for more information about licensing
-# and to README.md file for more information about the usage of it.
+# and to the README.md file for more information about the usage of it.
 
 import socket
 import ssl

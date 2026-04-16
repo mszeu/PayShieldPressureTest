@@ -18,7 +18,7 @@ It requires **Python 3**. It was tested on **Python 3.13** using a **payShield 1
                   [--key KEY | --nc | --no | --ni | --pci | --j2 | --j4 | --j8 | --jk | --b2 | --pingen | --randgen | --ecc]
                   [--ecc-curve {0,1,2}] [--key-use {S,X,N}] [--key-exportability {N,E,S}] [--header HEADER]
                   [--forever] [--decode] [--times TIMES] [--proto {tcp,udp,tls}] [--keyfile KEYFILE] 
-                  [--crtfile CRTFILE] [--echo ECHO]
+                  [--crtfile CRTFILE] [--echo ECHO] [--timing]
                   host
 
 ### Mandatory parameter(s)
@@ -61,29 +61,6 @@ Use the parameters **--ecc-curve**, **--key-use** and **--key-exportability** to
 
 **--port** specifies the host port, if omitted the default value **1500** is used.
 
-**--proto** specifies the protocol to use, **tcp**, **udp** or **tls**, if omitted the default value **tcp**
-is used.  
-If **tls** is used you might specify the path of the client key file and the certificate using the parameters
-**--keyfile** and **--crtfile**.   
-No verifications are performed about the validity of certificates.
-
-**--keyfile** the path of the client key file, if it is not specified, the default value is **client.key**.  
-It's only considered if the protocol is **tls**.
-
-**--crtfile** the path of the client certificate file, if it is not specified, the default value is **client.crt**.  
-It's only considered if the protocol is **tls**.
-
-**--header** the header string to prefix to the host command, if not specified, the default value is **HEAD**.
-
-**--echo** specifies the payload sent using the echo command **--b2**, otherwise it is ignored
-
-**--forever** the test will run forever. Use **CTRL-C** to terminate it.
-
-**--times** how many times execute the test. If it is not specified, the default value is **1000** times.
-
-**--decode** decodes the response of the payShield if a decoder function is available for the command.  
-The commands **--decode** supports in the release are: **B2**, **N0**, **NO**, **NC**, **J2**, **J4**, **J8**, **JK** and **FY (ECC)**.
-
 **--ecc-curve** sets the ECC curve to use when **--ecc** is used. The default is NIST P-521.  
 The possible choices are:
  - 0: FIPS 186-3 – NIST P-256
@@ -101,12 +78,37 @@ The possible choices are:
  - E: May only be exported in a trusted key block, provided the wrapping key itself is in a trusted format.
  - N: No export permitted.
  - S: Sensitive; all other export possibilities are permitted, provided such export has been enabled (existing Authorized State requirements remain).
+
+**--header** the header string to prefix to the host command, if not specified, the default value is **HEAD**.
+
+**--forever** the test will run forever. Use **CTRL-C** to terminate it.
+
+**--decode** decodes the response of the payShield if a decoder function is available for the command.  
+The commands **--decode** supports in the release are: **B2**, **N0**, **NO**, **NC**, **J2**, **J4**, **J8**, **JK** and **FY (ECC)**.
+
+**--times** how many times execute the test. If it is not specified, the default value is **1000** times.
+
+**--proto** specifies the protocol to use, **tcp**, **udp** or **tls**, if omitted the default value **tcp**
+is used.  
+If **tls** is used you might specify the path of the client key file and the certificate using the parameters
+**--keyfile** and **--crtfile**.   
+No verifications are performed about the validity of certificates.
+
+**--keyfile** the path of the client key file, if it is not specified, the default value is **client.key**.  
+It's only considered if the protocol is **tls**.
+
+**--crtfile** the path of the client certificate file, if it is not specified, the default value is **client.crt**.  
+It's only considered if the protocol is **tls**.
+
+**--echo** specifies the payload sent using the echo command **--b2**, otherwise it is ignored
+
+**--timing** measures the time it takes to execute the commands. It's ignored if **--forever** is specified.
  
 ## Example
 
     C:\Test>python pressureTest.py 192.168.0.36 --nc --times 2
 
-    PayShield stress utility, version 1.5, by Marco S. Zuppone - msz@msz.eu - https://msz.eu
+    PayShield stress utility, version 1.5.1, by Marco S. Zuppone - msz@msz.eu - https://msz.eu
     To get more info about the usage invoke it with the -h option This software is open source, and it is under the Affero
     AGPL 3.0 license
 
