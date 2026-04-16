@@ -1,20 +1,21 @@
 # payShield test utility by Marco S. Zuppone - msz@msz.eu
 # This utility is released under AGPL 3.0 license.
 # Please refer to the LICENSE file for more information about licensing
-# and to README.md file for more information about the usage of it.
+# and to the README.md file for more information about the usage of it.
 
 import socket
 import ssl
 import binascii
 import string
 import sys
+import time
 from struct import *
 import argparse
 from pathlib import Path
 from typing import Tuple, Dict, Any, Callable
 from types import FunctionType
 
-VERSION = "1.5"
+VERSION = "1.5.1"
 
 
 class PayConnector:
@@ -120,7 +121,7 @@ class PayConnector:
             elif self.protocol == "tls":
                 # creates the TCP TLS socket
                 if not self.connected:
-                    # Let's srt uo the context
+                    # Let's set the context
                     self.context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
                     self.context.load_cert_chain(certfile=self.crtfile, keyfile=self.keyfile)
                     self.context.check_hostname = False
@@ -1093,6 +1094,7 @@ if __name__ == "__main__":
                         default="client.crt")
     parser.add_argument("--echo", help="Payload sent using the echo command B2.", type=str,
                         default="PayShieldStress Echo Test", action="store")
+    parser.add_argument("--timing", help="Measure the time consumed by the operations", action="store_true")
     args = parser.parse_args()
     if args.times <= 0:
         parser.error("--times must be a positive integer (greater than 0).")
@@ -1185,6 +1187,7 @@ if __name__ == "__main__":
             i = i + 1
             print("")
     else:
+        t1 = time.perf_counter(), time.process_time()
         for i in range(0, args.times):
             print("Iteration: ", i + 1, " of ", args.times)
             if args.decode:
@@ -1193,4 +1196,9 @@ if __name__ == "__main__":
             else:
                 run_test(payConnInst, command, len(args.header), None)
             print("")
+        t2 = time.perf_counter(), time.process_time()
+        if args.timing:
+            print(f"Operations performed: {args.times}")
+            print(f" Real time: {t2[0] - t1[0]:.2f} seconds")
+            print(f" CPU time: {t2[1] - t1[1]:.2f} seconds")
         print("DONE")
