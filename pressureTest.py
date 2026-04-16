@@ -121,7 +121,7 @@ class PayConnector:
             elif self.protocol == "tls":
                 # creates the TCP TLS socket
                 if not self.connected:
-                    # Let's srt uo the context
+                    # Let's set the context
                     self.context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
                     self.context.load_cert_chain(certfile=self.crtfile, keyfile=self.keyfile)
                     self.context.check_hostname = False
