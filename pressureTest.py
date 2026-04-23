@@ -14,8 +14,15 @@ import argparse
 from pathlib import Path
 from typing import Tuple, Dict, Any, Callable
 from types import FunctionType
+# for autoupdate
+import requests
+import threading
+from datetime import datetime, timedelta
+from packaging.version import Version
+import os
+import json
 
-VERSION = "1.5.1"
+VERSION = "1.5.2"
 
 
 class PayConnector:
@@ -1008,10 +1015,99 @@ def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str, int, i
     # End
 
 
+# Update check functions
+def check_for_updates(current_version: str = VERSION,
+                      github_api_url: str = "https://api.github.com/repos/mszeu/PayShieldPressureTest/releases/latest"):
+    try:
+        response = requests.get(github_api_url, timeout=5)
+        response.raise_for_status()
+        data = response.json()
+        latest_version = data["tag_name"].lstrip("v")
+        config_file = get_config_file_full("pressureNew.pid")
+        if Version(latest_version) > Version(current_version):
+            os.makedirs(os.path.dirname(config_file), exist_ok=True)
+            try:
+                with open(config_file, 'w') as fp:
+                    pass
+            except OSError:
+                pass
+        else:
+            if os.path.exists(config_file):
+                try:
+                    os.remove(config_file)
+                except OSError:
+                    pass
+        save_last_check()
+    except requests.exceptions.ConnectionError:
+        pass  # If no connection is possible, we ignore the issue silently
+    except requests.exceptions.HTTPError as e:
+        pass
+    except Exception as e:
+        pass
+
+def get_config_file_full(my_file_name)->str:
+    if os.name == "nt":  # Windows
+        config_dir = os.environ.get("APPDATA", os.path.expanduser("~"))
+    else:
+        config_dir = os.path.join(os.path.expanduser("~"), ".config")
+    return os.path.join(config_dir, "pressureTest", my_file_name)
+
+
+def should_check_for_updates()-> bool:
+    config_file = get_config_file_full("pressure_test.json")
+    try:
+        if not os.path.exists(config_file):
+            return True
+
+        with open(config_file, "r") as f:
+            config = json.load(f)
+
+        last_check = datetime.fromisoformat(config.get("last_update_check", "2000-01-01"))
+        return datetime.now() - last_check > timedelta(days=15)
+
+    except Exception:
+        return True
+
+
+def save_last_check():
+    config_file = get_config_file_full("pressure_test.json")
+    try:
+        config = {}
+        if os.path.exists(config_file):
+            with open(config_file, "r") as f:
+                config = json.load(f)
+
+        config["last_update_check"] = datetime.now().isoformat()
+
+        with open(config_file, "w") as f:
+            json.dump(config, f)
+
+    except Exception:
+        pass
+
+
+def update_available()-> bool:
+    try:
+        config_file = get_config_file_full("pressureNew.pid")
+        if os.path.exists(config_file):
+            return True
+        else:
+            return False
+    except Exception:
+        return False
+
+
 if __name__ == "__main__":
+    if should_check_for_updates():
+        threading.Thread(target=check_for_updates, daemon=True).start()
+
     print("PayShield stress utility, version " + VERSION + ", by Marco S. Zuppone - msz@msz.eu - https://msz.eu")
     print("To get more info about the usage invoke it with the -h option")
     print("This software is open source and it is under the Affero AGPL 3.0 license")
+    print("GitHub repository: https://github.com/mszeu/PayShieldPressureTest")
+    if update_available():
+        print("A new version of the software is available.")
+        print("Please update from https://github.com/mszeu/PayShieldPressureTest")
     print("")
 
     # List of decoder functions used to interpreter the result.
