@@ -1024,11 +1024,14 @@ def check_for_updates(current_version: str = VERSION,
         data = response.json()
         latest_version = data["tag_name"].lstrip("v")
         config_file = get_config_file_full("pressureNew.pid")
+        os.makedirs(os.path.dirname(config_file), exist_ok=True)
         if Version(latest_version) > Version(current_version):
-            os.makedirs(os.path.dirname(config_file), exist_ok=True)
+
             try:
                 with open(config_file, 'w') as fp:
-                    pass
+                    config={}
+                    config["last_version"]=latest_version
+                    json.dump(config, fp)
             except OSError:
                 pass
         else:
@@ -1090,7 +1093,12 @@ def update_available()-> bool:
     try:
         config_file = get_config_file_full("pressureNew.pid")
         if os.path.exists(config_file):
-            return True
+            with open(config_file, "r") as f:
+                config = json.load(f)
+            if Version(config["last_version"])>Version(VERSION):
+                return True
+            else:
+                return False
         else:
             return False
     except Exception:
@@ -1100,7 +1108,7 @@ def update_available()-> bool:
 if __name__ == "__main__":
     if should_check_for_updates():
         threading.Thread(target=check_for_updates, daemon=True).start()
-
+        # check_for_updates()
     print("PayShield stress utility, version " + VERSION + ", by Marco S. Zuppone - msz@msz.eu - https://msz.eu")
     print("To get more info about the usage invoke it with the -h option")
     print("This software is open source and it is under the Affero AGPL 3.0 license")
