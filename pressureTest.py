@@ -21,6 +21,9 @@ from datetime import datetime, timedelta
 from packaging.version import Version
 import os
 import json
+# for the Logging feature
+import logging
+from logging.handlers import RotatingFileHandler
 
 VERSION = "1.5.2"
 
@@ -1105,6 +1108,7 @@ def should_check_for_updates()-> bool:
         return datetime.now() - last_check > timedelta(days=15)
 
     except Exception:
+        logging.exception("Error reading or parsing JSON file")
         return True
 
 
@@ -1126,7 +1130,7 @@ def save_last_check()->None:
             json.dump(config, f)
 
     except Exception:
-        pass
+        logging.exception("Error saving last check")
 
 
 def update_available()-> bool:
@@ -1144,17 +1148,40 @@ def update_available()-> bool:
             with open(config_file, "r") as f:
                 config = json.load(f)
             if Version(config["last_version"])>Version(VERSION):
+                logging.info("New version available: " + config["last_version"])
                 return True
             else:
+                logging.info("No new version available")
                 return False
         else:
+            logging.info("pressureNew.pid not found")
             return False
     except Exception:
+        logging.exception("Error reading the new version from the file pressureNew.pid")
         return False
 
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
+    #Enable logging
+    LOG_DIR = Path(get_config_file_full(""))
+    LOG_DIR.mkdir(exist_ok=True)
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        handlers=[
+            RotatingFileHandler(
+                LOG_DIR / "app.log",
+                maxBytes=2 * 1024 * 1024,  # 10 MB
+                backupCount=5,
+                encoding="utf-8",
+            )
+        ]
+    )
+
+    logger = logging.getLogger(__name__)
     print("PayShield stress utility, version " + VERSION + ", by Marco S. Zuppone - msz@msz.eu - https://msz.eu")
     print("To get more info about the usage invoke it with the -h option")
     print("This software is open source and it is under the Affero AGPL 3.0 license")
