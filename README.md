@@ -10,7 +10,7 @@ It requires **Python 3**. It was tested on **Python 3.13** using a **payShield 1
 
 ## Version
 
-**1.5.1**
+**1.5.2**
 
 ## Usage
 
@@ -90,7 +90,7 @@ The commands **--decode** supports in the release are: **B2**, **N0**, **NO**, *
 
 **--proto** specifies the protocol to use, **tcp**, **udp** or **tls**, if omitted the default value **tcp**
 is used.  
-If **tls** is used you might specify the path of the client key file and the certificate using the parameters
+If **tls** is used, you might specify the path of the client key file and the certificate using the parameters
 **--keyfile** and **--crtfile**.   
 No verifications are performed about the validity of certificates.
 
