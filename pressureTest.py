@@ -1154,9 +1154,7 @@ def update_available()-> bool:
 
 
 if __name__ == "__main__":
-    if should_check_for_updates():
-        threading.Thread(target=check_for_updates, daemon=True).start()
-        # check_for_updates()
+
     print("PayShield stress utility, version " + VERSION + ", by Marco S. Zuppone - msz@msz.eu - https://msz.eu")
     print("To get more info about the usage invoke it with the -h option")
     print("This software is open source and it is under the Affero AGPL 3.0 license")
@@ -1186,7 +1184,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
         description="Generates workload on PayShield 10k and 9k for the sake of testing and demonstration.",
-        epilog="For any questions, feedback, suggestions or send money (yes...it's a dream, I know), you can contact "
+        epilog="For any questions, feedback, suggestions or sending money (yes...it's a dream, I know), you can contact "
                "the author at msz@msz.eu")
     parser.add_argument("host", help="Ip address or hostname of the payShield")
     group = parser.add_mutually_exclusive_group()
@@ -1247,7 +1245,13 @@ if __name__ == "__main__":
     parser.add_argument("--echo", help="Payload sent using the echo command B2.", type=str,
                         default="PayShieldStress Echo Test", action="store")
     parser.add_argument("--timing", help="Measure the time consumed by the operations", action="store_true")
+    parser.add_argument("--no-upd-check", help="Avoid checking on GitHub it a new version is available",
+                        action="store_true")
     args = parser.parse_args()
+    if should_check_for_updates():
+        if not args.no_upd_check:
+            threading.Thread(target=check_for_updates, daemon=True).start()
+            # check_for_updates()
     if args.times <= 0:
         parser.error("--times must be a positive integer (greater than 0).")
     if len(args.header) > 255:
