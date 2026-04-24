@@ -197,19 +197,20 @@ class PayConnector:
 
 def decode_n0(response_to_decode: bytes, head_len: int):
     """
-        It decodes the result of the command N0 and prints the meaning of the returned output
+    It decodes the result of the command N0 and prints the meaning of the returned output
 
-        Parameters
-        ___________
-        response_to_decode: bytes
-            The response returned by the payShield
-        head_len: int
-            The length of the header
+    Parameters
+    ----------
+    response_to_decode : bytes
+        The response returned by the payShield
 
-        Returns
-        ___________
-        nothing
-        """
+    head_len : int
+        The length of the header
+
+    Returns
+    ----------
+    nothing
+    """
     response_to_decode_str, msg_len, str_pointer = common_parser(response_to_decode, head_len)
     if response_to_decode_str[str_pointer:str_pointer + 2] == '01':
         print("Invalid Random Value Length")
@@ -223,14 +224,14 @@ def decode_no(response_to_decode: bytes, head_len: int):
     It decodes the result of the command NO and prints the meaning of the returned output
 
     Parameters
-    ___________
+    ----------
     response_to_decode: bytes
         The response returned by the payShield
     head_len: int
         The length of the header
 
     Returns
-    ___________
+    ----------
     nothing
     """
     BUFFER_SIZE: Dict[str, str] = {
@@ -279,14 +280,14 @@ def decode_ni(response_to_decode: bytes, head_len: int):
     It decodes the result of the command NI and prints the meaning of the returned output
 
     Parameters
-    ___________
+    ----------
     response_to_decode: bytes
         The response returned by the payShield
     head_len: int
         The length of the header
 
     Returns
-    ___________
+    ----------
     nothing
     """
     NET_PROTO: Dict[str, str] = {'0': 'TCP', '1': 'UDP'}
@@ -348,14 +349,14 @@ def decode_nc(response_to_decode: bytes, head_len: int):
     The message trailer is not considered
 
     Parameters
-    ___________
+    ----------
     response_to_decode: bytes
         The response returned by the payShield
     head_len: int
         The length of the header
 
     Returns
-    ___________
+    ----------
     nothing
     """
     response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
@@ -372,14 +373,14 @@ def decode_ja(response_to_decode: bytes, head_len: int):
     The message trailer is not considered
 
     Parameters
-    ___________
+    ----------
     response_to_decode: bytes
         The response returned by the payShield
     head_len: int
         The length of the header
 
     Returns
-    ___________
+    ----------
     nothing
     """
     response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
@@ -394,14 +395,14 @@ def decode_j8(response_to_decode: bytes, head_len: int):
     The message trailer is not considered
 
     Parameters
-    ___________
+    ----------
     response_to_decode: bytes
         The response returned by the payShield
     head_len: int
         The length of the header
 
     Returns
-    ___________
+    ----------
     nothing
     """
     response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
@@ -551,15 +552,16 @@ def decode_jk(response_to_decode: bytes, head_len: int):
     The message trailer is not considered
 
     Parameters
-    ___________
+    ----------
     response_to_decode: bytes
         The response returned by the payShield
     head_len: int
         The length of the header
 
     Returns
-    ___________
-    nothing
+    -------
+    result : None
+        nothing
     """
     # structures to decode the result
     # We can use CONSOLE_STATUS_CODE to check the status of the payShield Manager as well.
@@ -694,15 +696,16 @@ def decode_ecc(response_to_decode: bytes, head_len: int):
         It decodes the result of the command FY and prints the meaning of the returned output
 
         Parameters
-        ___________
+        ----------
         response_to_decode: bytes
             The response returned by the payShield
         head_len: int
             The length of the header
 
         Returns
-        ___________
-        nothing
+        -------
+        result : None
+            nothing
         """
     response_to_decode_str, msg_len, str_pointer = common_parser(response_to_decode, head_len)
     if response_to_decode_str[str_pointer:str_pointer + 2] == '00':
@@ -734,7 +737,8 @@ def payshield_error_codes(error_code: str) -> str:
             The status code returned from the payShield 10k
 
          Returns
-         ----------
+         -------
+         result : str
           a string containing the message of the error code
         """
 
@@ -847,14 +851,15 @@ def check_returned_command_verb(result_returned: bytes, head_len: int, command_s
     head_len: int
         The length of the header
     command_sent: str
-        The command send to the payShield
+        The command sent to the payShield
 
     Returns
-         ----------
+    -------
+    result : tuple
         a Tuple[int, str, str]
-        where the first value is 0 of the command is congruent or -1 if it is not
-        the second value is the command sent
-        the third value is the command returned by the payShield
+        where the first value is 0 of the command is congruent or -1 if it is not.
+        the second value is the command sent.
+        the third value is the command returned by the payShield.
     """
 
     verb_returned = result_returned[2 + head_len:][:2]
@@ -908,10 +913,10 @@ def hex2ip(hex_ip):
 def run_test(payConnectorInstance: PayConnector, host_command: str, header_len: int = 4,
              decoder_funct: FunctionType = None) -> str:
     """
-        It connects to the specified host and port, using the specified protocol (tcp, udp or tls) and sends the command.
+        It connects to the specified host and port, using the specified protocol (tcp, udp, or tls) and sends the command.
 
         Parameters
-        ___________
+        ----------
          payConnectorInstance: PayConnector
             The instance of the PayConnector class
          host_command: str
@@ -923,9 +928,9 @@ def run_test(payConnectorInstance: PayConnector, host_command: str, header_len: 
             If provided needs to be a reference to a function that is able to parse the command and print the meaning of it
             If it is not provided, the default is None
 
-         Returns
-        ___________
-
+        Returns
+        -------
+        result : str
             The return code from the command
     """
     return_code_tuple = ['ZZ', 'Error']
@@ -986,25 +991,26 @@ def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str, int, i
     """
         This function is a helper used by the decode_XX functions.
         It converts the response_to_decode in ascii, calculates and prints the message size and
-        prints the header, the command returned and the error code.
+        prints the header, the command returned, and the error code.
 
         Parameters
-        ___________
-        response_to_decode: bytes
+        ----------
+        response_to_decode : bytes
             The response returned by the payShield
-        head_len: int
+        head_len : int
             The length of the header
 
         Returns
-        ___________
-        returns a tuple:
-            message_to_decode: str
-                The message_to_decode converted in ascii
-            msg_len: int
-                The length of the message
-            str_pointer: int
-                the pointer (position) of the last interpreted/parsed character of the message_to_decode
-        """
+        -------
+        result : tuple
+            A tuple containing:
+        message_to_decode : str
+            The message_to_decode converted in ascii
+        msg_len : int
+            The length of the message
+        str_pointer : int
+            the pointer (position) of the last interpreted/parsed character of the message_to_decode
+    """
     msg_len = int.from_bytes(response_to_decode[:2], byteorder='big', signed=False)
     print("Message length: ", msg_len)
     response_to_decode = response_to_decode.decode('ascii', 'replace')
@@ -1022,18 +1028,17 @@ def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str, int, i
 def check_for_updates(current_version: str = VERSION,
                       github_api_url: str = "https://api.github.com/repos/mszeu/PayShieldPressureTest/releases/latest")->None:
     """
-            This function takes as input the current version of the program and the API url the GitHub repository
-            to find out if there is a newer release available.
-            If a new release is available, it creates the file **pressureNew.pid** in the **APPDATA** and writes in JSON format
-            the new version found.
+        This function takes as input the current version of the program and the API url the GitHub repository
+        to find out if there is a newer release available.
+        If a new release is available, it creates the file **pressureNew.pid** in the **APPDATA** and writes in JSON format
+        the new version found.
 
-            Parameters
-            ___________
-            current_version: str = VERSION
-                The current version of the program
-            github_api_url: str = "https://api.github.com/repos/mszeu/PayShieldPressureTest/releases/latest"
-                The GitHub API to get the latest release
-
+        Parameters
+        ----------
+        current_version: str = VERSION
+            The current version of the program
+        github_api_url: str = "https://api.github.com/repos/mszeu/PayShieldPressureTest/releases/latest"
+            The GitHub API to get the latest release
     """
     try:
         response = requests.get(github_api_url, timeout=5)
@@ -1071,13 +1076,14 @@ def get_config_file_full(my_file_name: str)->str:
         a valid path to store the file in the **APPDATA** folder.
 
         Parameters
-        ___________
-        my_file_name: str
+        ----------
+        my_file_name : str
             The file name
 
         Returns
-        ___________
-        Returns the full path where to safely store the file: str
+        -------
+        result : str
+            Returns the full path where to safely store the file: str
     """
     if os.name == "nt":  # Windows
         config_dir = os.environ.get("APPDATA", os.path.expanduser("~"))
@@ -1093,8 +1099,9 @@ def should_check_for_updates()-> bool:
         If the last check was more than 15 days ago, it returns True, otherwise False.
 
         Returns
-        ___________
-        Returns True if a check is needed, otherwise false: bool
+        -------
+        bool
+            Returns True if a check is needed, otherwise false: bool
     """
     config_file = get_config_file_full("pressure_test.json")
     try:
@@ -1114,7 +1121,7 @@ def should_check_for_updates()-> bool:
 
 def save_last_check()->None:
     """
-        This function saves the date when the program checked for updates in the JSON file **pressure_test.jso**.
+        This function saves the date when the program checked for updates in the JSON file **pressure_test.json**.
 
     """
     config_file = get_config_file_full("pressure_test.json")
@@ -1135,12 +1142,13 @@ def save_last_check()->None:
 
 def update_available()-> bool:
     """
-           This function gathers from the **pressureNew.pid** what is the new version available that was found during the
-           last check and compares it with the current version. If a new version is available, it returns True, else False
+       This function gathers from the **pressureNew.pid** what is the new version available that was found during the
+       last check and compares it with the current version. If a new version is available, it returns True, else False
 
-           Returns
-           ___________
-           If a new version is available, it returns True, else False: bool
+       Returns
+       -------
+       bool
+        If a new version is available, it returns True, else False: bool
     """
     try:
         config_file = get_config_file_full("pressureNew.pid")
@@ -1173,8 +1181,8 @@ if __name__ == "__main__":
         datefmt="%Y-%m-%d %H:%M:%S",
         handlers=[
             RotatingFileHandler(
-                LOG_DIR / "app.log",
-                maxBytes=2 * 1024 * 1024,  # 10 MB
+                LOG_DIR / "pressureTest.log",
+                maxBytes=2 * 1024 * 1024,  # 2 MB
                 backupCount=5,
                 encoding="utf-8",
             )
@@ -1334,7 +1342,7 @@ if __name__ == "__main__":
         command = args.header + 'B2' + hex_string_len + args.echo
 
     # IMPORTANT: At this point the 'command' needs to contain something.
-    # If you want to add to the tool command link arguments about commands do it before this comment block
+    # If you want to add further command line arguments, do it before this comment block.
     # Now we verify if the command variable is empty. In this case we throw an error.
     if len(command) == 0:
         print("You forgot to specify the action you want to to perform on the payShield")
