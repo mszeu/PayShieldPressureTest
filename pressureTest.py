@@ -914,11 +914,11 @@ def run_test(payConnectorInstance: PayConnector, host_command: str, header_len: 
          host_command: str
             The command to send to the payShield complete of the header part
          header_len: int
-            The length of the header. If not specified the value is 4 because it is the default factory value
+            The length of the header. If not specified, the value is 4 because it is the default factory value
             in payShield 10k
          decoder_funct: FunctionType
             If provided needs to be a reference to a function that is able to parse the command and print the meaning of it
-            If it is not provided the default is None
+            If it is not provided, the default is None
 
          Returns
         ___________
@@ -1017,7 +1017,21 @@ def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str, int, i
 
 # Update check functions
 def check_for_updates(current_version: str = VERSION,
-                      github_api_url: str = "https://api.github.com/repos/mszeu/PayShieldPressureTest/releases/latest"):
+                      github_api_url: str = "https://api.github.com/repos/mszeu/PayShieldPressureTest/releases/latest")->None:
+    """
+            This function takes as input the current version of the program and the API url the GitHub repository
+            to find out if there is a newer release available.
+            If a new release is available, it creates the file **pressureNew.pid** in the **APPDATA** and writes in JSON format
+            the new version found.
+
+            Parameters
+            ___________
+            current_version: str = VERSION
+                The current version of the program
+            github_api_url: str = "https://api.github.com/repos/mszeu/PayShieldPressureTest/releases/latest"
+                The GitHub API to get the latest release
+
+    """
     try:
         response = requests.get(github_api_url, timeout=5)
         response.raise_for_status()
@@ -1048,7 +1062,20 @@ def check_for_updates(current_version: str = VERSION,
     except Exception as e:
         pass
 
-def get_config_file_full(my_file_name)->str:
+def get_config_file_full(my_file_name: str)->str:
+    """
+        This function takes as input a file name and returns, depending on the OS where the program is running,
+        a valid path to store the file in the **APPDATA** folder.
+
+        Parameters
+        ___________
+        my_file_name: str
+            The file name
+
+        Returns
+        ___________
+        Returns the full path where to safely store the file: str
+    """
     if os.name == "nt":  # Windows
         config_dir = os.environ.get("APPDATA", os.path.expanduser("~"))
     else:
@@ -1057,6 +1084,15 @@ def get_config_file_full(my_file_name)->str:
 
 
 def should_check_for_updates()-> bool:
+    """
+        This function reads from the JSON file **pressure_test.json** the last date when the program checked
+        for updates and compares it with the current date.
+        If the last check was more than 15 days ago, it returns True, otherwise False.
+
+        Returns
+        ___________
+        Returns True if a check is needed, otherwise false: bool
+    """
     config_file = get_config_file_full("pressure_test.json")
     try:
         if not os.path.exists(config_file):
@@ -1072,7 +1108,11 @@ def should_check_for_updates()-> bool:
         return True
 
 
-def save_last_check():
+def save_last_check()->None:
+    """
+        This function saves the date when the program checked for updates in the JSON file **pressure_test.jso**.
+
+    """
     config_file = get_config_file_full("pressure_test.json")
     try:
         config = {}
@@ -1090,6 +1130,14 @@ def save_last_check():
 
 
 def update_available()-> bool:
+    """
+           This function gathers from the **pressureNew.pid** what is the new version available that was found during the
+           last check and compares it with the current version. If a new version is available, it returns True, else False
+
+           Returns
+           ___________
+           If a new version is available, it returns True, else False: bool
+    """
     try:
         config_file = get_config_file_full("pressureNew.pid")
         if os.path.exists(config_file):
