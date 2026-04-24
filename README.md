@@ -18,7 +18,7 @@ It requires **Python 3**. It was tested on **Python 3.13** using a **payShield 1
                   [--key KEY | --nc | --no | --ni | --pci | --j2 | --j4 | --j8 | --jk | --b2 | --pingen | --randgen | --ecc]
                   [--ecc-curve {0,1,2}] [--key-use {S,X,N}] [--key-exportability {N,E,S}] [--header HEADER]
                   [--forever] [--decode] [--times TIMES] [--proto {tcp,udp,tls}] [--keyfile KEYFILE] 
-                  [--crtfile CRTFILE] [--echo ECHO] [--timing]
+                  [--crtfile CRTFILE] [--echo ECHO] [--timing] [--no-upd-check]
                   host
 
 ### Mandatory parameter(s)
@@ -103,14 +103,17 @@ It's only considered if the protocol is **tls**.
 **--echo** specifies the payload sent using the echo command **--b2**, otherwise it is ignored
 
 **--timing** measures the time it takes to execute the commands. It's ignored if **--forever** is specified.
- 
+
+**--no-upd-check** disables the check for the latest version on GitHub. 
+
 ## Example
 
     C:\Test>python pressureTest.py 192.168.0.36 --nc --times 2
 
-    PayShield stress utility, version 1.5.1, by Marco S. Zuppone - msz@msz.eu - https://msz.eu
-    To get more info about the usage invoke it with the -h option This software is open source, and it is under the Affero
-    AGPL 3.0 license
+    PayShield stress utility, version 1.5.2, by Marco S. Zuppone - msz@msz.eu - https://msz.eu
+    To get more info about the usage invoke it with the -h option
+    This software is open source and it is under the Affero AGPL 3.0 license
+    GitHub repository: https://github.com/mszeu/PayShieldPressureTest
 
     Iteration:  1 of 2
 
@@ -139,6 +142,14 @@ The **EI** command used to generate the RSA key requires authorization, and the 
 The **--ecc** parameter uses the **FY** command to generate ECC keypairs: 
 The functionality may require a license and/or a firmware update, depending on the firmware version.
 
+Starting from this version, the program will check for the latest version on GitHub.\
+To avoid blocking the program flow during the checks, I used a thread.
+
+Sometimes it can happen that the main program terminates before the thread finishes its work.\
+I'm well aware that there are ways of avoiding this, but I don't want to risk blocking the main program flow.\
+If you're running this program in a network-closed environment, you can use the **--no-upd-check** parameter to disable the check.\
+The check is performed every 15 days.
+
 ## COPYRIGHT & LICENSE
   Please refer to the **LICENSE** file that is part of this project.
   The license is **[AGPL 3.0](https://www.gnu.org/licenses/agpl-3.0.en.html)**
@@ -156,4 +167,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.** See the
 **GNU Affero General Public License** for more details.
 
 ## Questions, bugs & suggestions
-For any questions, feedback, suggestions, send money ***(yes...it's a dream, I know)*** you can contact the author at [msz@msz.eu](mailto:msz@msz.eu)
+For any questions, feedback, suggestions, sending money ***(yes...it's a dream, I know)*** you can contact the author at [msz@msz.eu](mailto:msz@msz.eu)

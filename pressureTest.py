@@ -1245,7 +1245,7 @@ if __name__ == "__main__":
     parser.add_argument("--echo", help="Payload sent using the echo command B2.", type=str,
                         default="PayShieldStress Echo Test", action="store")
     parser.add_argument("--timing", help="Measure the time consumed by the operations", action="store_true")
-    parser.add_argument("--no-upd-check", help="Avoid checking on GitHub it a new version is available",
+    parser.add_argument("--no-upd-check", help="Avoid checking on GitHub if a new version is available",
                         action="store_true")
     args = parser.parse_args()
     if should_check_for_updates():
