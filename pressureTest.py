@@ -25,7 +25,7 @@ from typing import Tuple, Dict
 import requests
 from packaging.version import Version
 
-VERSION = "1.5.2"
+VERSION = "1.5.1"
 
 
 class PayConnector:
@@ -986,7 +986,7 @@ def run_test(payConnectorInstance: PayConnector, host_command: str, header_len: 
         return return_code_tuple[0]
 
 
-def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str, int, int]:
+def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str |bytes, int, int]:
     """
         This function is a helper used by the decode_XX functions.
         It converts the response_to_decode in ascii, calculates and prints the message size and
@@ -1022,12 +1022,7 @@ def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str, int, i
     return response_to_decode, msg_len, str_pointer
     # End
 
-
-##########################################
-# The CLASS My friends
-#
-##########################################
-
+# Class UpdateChecker
 class UpdateChecker:
 
     def __init__(self, current_version: str,
