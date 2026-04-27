@@ -3,26 +3,27 @@
 # Please refer to the LICENSE file for more information about licensing
 # and to the README.md file for more information about the usage of it.
 
+import argparse
+import json
+# for the Logging feature
+import logging
+import os
 import socket
 import ssl
 import string
 import sys
+import threading
 import time
-from struct import pack
-import argparse
+from datetime import datetime, timedelta
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Tuple, Dict
+from struct import pack
 from types import FunctionType
+from typing import Tuple, Dict
+
 # for autoupdate
 import requests
-import threading
-from datetime import datetime, timedelta
 from packaging.version import Version
-import os
-import json
-# for the Logging feature
-import logging
-from logging.handlers import RotatingFileHandler
 
 VERSION = "1.5.2"
 
@@ -888,7 +889,6 @@ def check_return_message(result_returned: bytes, head_len: int) -> Tuple[str, st
 
     # better be safe than sorry
     try:
-        # ret_code = int(result_returned[ret_code_position:ret_code_position + 2])
         ret_code = result_returned[ret_code_position:ret_code_position + 2].decode()
     except (ValueError, UnicodeDecodeError):
         return "ZZ", "message result code parsing error"
@@ -1023,156 +1023,166 @@ def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str, int, i
     # End
 
 
-# Update check functions
-def check_for_updates(current_version: str = VERSION,
-                      github_api_url: str = "https://api.github.com/repos/mszeu/PayShieldPressureTest/releases/latest") -> None:
-    """
-        This function takes as input the current version of the program and the API url the GitHub repository
-        to find out if there is a newer release available.
-        If a new release is available, it creates the file **pressureNew.pid** in the **APPDATA** and writes in JSON format
-        the new version found.
+##########################################
+# The CLASS My friends
+#
+##########################################
 
-        Parameters
-        ----------
-        current_version: str = VERSION
-            The current version of the program
-        github_api_url: str = "https://api.github.com/repos/mszeu/PayShieldPressureTest/releases/latest"
-            The GitHub API to get the latest release
-    """
-    try:
-        response = requests.get(github_api_url, timeout=5)
-        response.raise_for_status()
-        data = response.json()
-        latest_version = data["tag_name"].lstrip("v")
-        config_file = get_config_file_full("pressureNew.pid")
-        os.makedirs(os.path.dirname(config_file), exist_ok=True)
-        if Version(latest_version) > Version(current_version):
+class UpdateChecker:
 
-            try:
-                with open(config_file, 'w') as fp:
-                    # noinspection PyDictCreation
-                    config = {}
-                    config["last_version"] = latest_version
-                    json.dump(config, fp)
-            except OSError:
-                pass
-        else:
-            if os.path.exists(config_file):
+    def __init__(self, current_version: str,
+                 github_api_url: str = "https://api.github.com/repos/mszeu/PayShieldPressureTest/releases/latest",
+                 config_file: str = "pressure_test.json",
+                 pid_file: str = "pressureNew.pid",
+                 check_interval_days: int = 15):
+        self.current_version = current_version
+        self.github_api_url = github_api_url
+        self.config_file = config_file
+        self.pid_file = pid_file
+        self.check_interval_days = check_interval_days
+
+    # Update check functions
+    def check_for_updates(self) -> None:
+        """
+            This function checks if there is a newer release available.
+            If a new release is available, it creates the file **config_file** in the **APPDATA** and writes, in JSON format,
+            the new version found.
+        """
+        try:
+            response = requests.get(self.github_api_url, timeout=5)
+            response.raise_for_status()
+            data = response.json()
+            latest_version = data["tag_name"].lstrip("v")
+            config_file = self.get_config_file_full(self.pid_file)
+            os.makedirs(os.path.dirname(config_file), exist_ok=True)
+            if Version(latest_version) > Version(self.current_version):
+
                 try:
-                    os.remove(config_file)
+                    with open(config_file, 'w') as fp:
+                        # noinspection PyDictCreation
+                        config = {}
+                        config["last_version"] = latest_version
+                        json.dump(config, fp)
                 except OSError:
                     pass
-        save_last_check()
-    except requests.exceptions.ConnectionError:
-        pass  # If no connection is possible, we ignore the issue silently
-    except requests.exceptions.HTTPError as e:
-        pass
-    except Exception as e:
-        pass
+            else:
+                if os.path.exists(config_file):
+                    try:
+                        os.remove(config_file)
+                    except OSError:
+                        pass
+            self.save_last_check()
+        except requests.exceptions.ConnectionError:
+            pass  # If no connection is possible, we ignore the issue silently
+            logging.exception("No connection to the API. ConnectionError.")
+        except requests.exceptions.HTTPError:
+            logging.exception("No connection to the API. HTTPError.")
+        except Exception:
+            logging.exception("No connection to the API. Generic Exception.")
 
+    @staticmethod
+    def get_config_file_full(my_file_name: str) -> str:
+        """
+            This function takes as input a file name and returns, depending on the OS where the program is running,
+            a valid path to store the file in the **APPDATA** folder.
 
-def get_config_file_full(my_file_name: str) -> str:
-    """
-        This function takes as input a file name and returns, depending on the OS where the program is running,
-        a valid path to store the file in the **APPDATA** folder.
+            Parameters
+            ----------
+            my_file_name : str
+                The file name
 
-        Parameters
-        ----------
-        my_file_name : str
-            The file name
+            Returns
+            -------
+            result : str
+                Returns the full path where to safely store the file: str
+        """
+        if os.name == "nt":  # Windows
+            config_dir = os.environ.get("APPDATA", os.path.expanduser("~"))
+        else:
+            config_dir = os.path.join(os.path.expanduser("~"), ".config")
+        return os.path.join(config_dir, "pressureTest", my_file_name)
 
-        Returns
-        -------
-        result : str
-            Returns the full path where to safely store the file: str
-    """
-    if os.name == "nt":  # Windows
-        config_dir = os.environ.get("APPDATA", os.path.expanduser("~"))
-    else:
-        config_dir = os.path.join(os.path.expanduser("~"), ".config")
-    return os.path.join(config_dir, "pressureTest", my_file_name)
+    def should_check_for_updates(self) -> bool:
+        """
+            This function reads from the JSON file **pressure_test.json** the last date when the program checked
+            for updates and compares it with the current date.
+            If the last check was more than 15 days ago, it returns True, otherwise False.
 
+            Returns
+            -------
+            bool
+                Returns True if a check is needed, otherwise false: bool
+        """
+        config_file = self.get_config_file_full(self.config_file)
+        try:
+            if not os.path.exists(config_file):
+                return True
 
-def should_check_for_updates() -> bool:
-    """
-        This function reads from the JSON file **pressure_test.json** the last date when the program checked
-        for updates and compares it with the current date.
-        If the last check was more than 15 days ago, it returns True, otherwise False.
+            with open(config_file, "r") as f:
+                config = json.load(f)
 
-        Returns
-        -------
-        bool
-            Returns True if a check is needed, otherwise false: bool
-    """
-    config_file = get_config_file_full("pressure_test.json")
-    try:
-        if not os.path.exists(config_file):
+            last_check = datetime.fromisoformat(config.get("last_update_check", "2000-01-01"))
+            return datetime.now() - last_check > timedelta(days=15)
+
+        except Exception:
+            logging.exception("Error reading or parsing JSON file")
             return True
 
-        with open(config_file, "r") as f:
-            config = json.load(f)
+    def save_last_check(self) -> None:
+        """
+            This function saves the date when the program checked for updates in the JSON file **pressure_test.json**.
 
-        last_check = datetime.fromisoformat(config.get("last_update_check", "2000-01-01"))
-        return datetime.now() - last_check > timedelta(days=15)
+        """
+        config_file = self.get_config_file_full(self.config_file)
+        try:
+            config = {}
+            if os.path.exists(config_file):
+                with open(config_file, "r") as f:
+                    config = json.load(f)
 
-    except Exception:
-        logging.exception("Error reading or parsing JSON file")
-        return True
+            config["last_update_check"] = datetime.now().isoformat()
 
+            with open(config_file, "w") as f:
+                json.dump(config, f)
 
-def save_last_check() -> None:
-    """
-        This function saves the date when the program checked for updates in the JSON file **pressure_test.json**.
+        except Exception:
+            logging.exception("Error saving last check")
 
-    """
-    config_file = get_config_file_full("pressure_test.json")
-    try:
-        config = {}
-        if os.path.exists(config_file):
-            with open(config_file, "r") as f:
-                config = json.load(f)
+    def update_available(self) -> bool:
+        """
+           This function gathers from the **config_file** what is the new version available that was found during the
+           last check and compares it with the current version. If a new version is available, it returns True, else False
 
-        config["last_update_check"] = datetime.now().isoformat()
-
-        with open(config_file, "w") as f:
-            json.dump(config, f)
-
-    except Exception:
-        logging.exception("Error saving last check")
-
-
-def update_available() -> bool:
-    """
-       This function gathers from the **pressureNew.pid** what is the new version available that was found during the
-       last check and compares it with the current version. If a new version is available, it returns True, else False
-
-       Returns
-       -------
-       bool
-        If a new version is available, it returns True, else False: bool
-    """
-    try:
-        config_file = get_config_file_full("pressureNew.pid")
-        if os.path.exists(config_file):
-            with open(config_file, "r") as f:
-                config = json.load(f)
-            if Version(config["last_version"]) > Version(VERSION):
-                logging.info("New version available: " + config["last_version"])
-                return True
+           Returns
+           -------
+           bool
+            If a new version is available, it returns True, else False: bool
+        """
+        try:
+            config_file = self.get_config_file_full(self.pid_file)
+            if os.path.exists(config_file):
+                with open(config_file, "r") as f:
+                    config = json.load(f)
+                if Version(config["last_version"]) > Version(self.current_version):
+                    logging.info("New version available: " + config["last_version"])
+                    return True
+                else:
+                    logging.info("No new version available")
+                    return False
             else:
-                logging.info("No new version available")
+                logging.info(config_file + " not found")
                 return False
-        else:
-            logging.info("pressureNew.pid not found")
+        except Exception:
+            logging.exception("Error reading the new version from the file " + self.config_file)
             return False
-    except Exception:
-        logging.exception("Error reading the new version from the file pressureNew.pid")
-        return False
 
 
 if __name__ == "__main__":
-    #Enable logging
-    LOG_DIR = Path(get_config_file_full(""))
+    # Let's get an instance of UpdateChecker
+    update_checker_instance = UpdateChecker(VERSION)
+
+    # Enable logging
+    LOG_DIR = Path(update_checker_instance.get_config_file_full(""))
     LOG_DIR.mkdir(exist_ok=True)
 
     logging.basicConfig(
@@ -1194,7 +1204,7 @@ if __name__ == "__main__":
     print("To get more info about the usage invoke it with the -h option")
     print("This software is open source and it is under the Affero AGPL 3.0 license")
     print("GitHub repository: https://github.com/mszeu/PayShieldPressureTest")
-    if update_available():
+    if update_checker_instance.update_available():
         print("A new version of the software is available.")
         print("Please update from https://github.com/mszeu/PayShieldPressureTest")
     print("")
@@ -1283,9 +1293,9 @@ if __name__ == "__main__":
     parser.add_argument("--no-upd-check", help="Avoid checking on GitHub if a new version is available",
                         action="store_true")
     args = parser.parse_args()
-    if should_check_for_updates():
+    if update_checker_instance.should_check_for_updates():
         if not args.no_upd_check:
-            threading.Thread(target=check_for_updates, daemon=True).start()
+            threading.Thread(target=update_checker_instance.check_for_updates, daemon=True).start()
             # check_for_updates()
     if args.times <= 0:
         parser.error("--times must be a positive integer (greater than 0).")
