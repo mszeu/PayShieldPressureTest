@@ -9,7 +9,7 @@ import binascii
 import string
 import sys
 import time
-from struct import *
+from struct import pack
 import argparse
 from pathlib import Path
 from typing import Tuple, Dict, Any, Callable
