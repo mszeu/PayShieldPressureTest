@@ -1288,10 +1288,10 @@ if __name__ == "__main__":
     parser.add_argument("--no-upd-check", help="Avoid checking on GitHub if a new version is available",
                         action="store_true")
     args = parser.parse_args()
+    updater_thread=threading.Thread(target=update_checker_instance.check_for_updates, daemon=True)
     if update_checker_instance.should_check_for_updates():
         if not args.no_upd_check:
-            threading.Thread(target=update_checker_instance.check_for_updates, daemon=True).start()
-            # check_for_updates()
+            updater_thread.start()
     if args.times <= 0:
         parser.error("--times must be a positive integer (greater than 0).")
     if len(args.header) > 255:
@@ -1398,3 +1398,6 @@ if __name__ == "__main__":
             print(f" Real time: {t2[0] - t1[0]:.2f} seconds")
             print(f" CPU time: {t2[1] - t1[1]:.2f} seconds")
         print("DONE")
+    if updater_thread.is_alive():
+        logging.debug("Waiting for the updater thread to finish")
+        updater_thread.join(6)
