@@ -5,14 +5,13 @@
 
 import socket
 import ssl
-import binascii
 import string
 import sys
 import time
 from struct import pack
 import argparse
 from pathlib import Path
-from typing import Tuple, Dict, Any, Callable
+from typing import Tuple, Dict
 from types import FunctionType
 # for autoupdate
 import requests
@@ -95,7 +94,7 @@ class PayConnector:
             if (keyfile is None) or (crtfile is None):
                 raise ValueError("keyfile and crtfile parameters are both required")
 
-    def send_command(self, host_command: str) -> bytes:
+    def send_command(self, host_command: str) -> bytes | None:
         """
         sends the command specified in the parameter to the payShield and return the response.
         If establishes the connection if it's not established yet, otherwise reuses the open connection
@@ -240,7 +239,7 @@ def decode_no(response_to_decode: bytes, head_len: int):
     response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
     if response_to_decode[str_pointer:str_pointer + 2] == '00':  # No errors
         if len(response_to_decode) >= (24 + head_len):  # Mode 00
-            # I obtained the value 24 in this way: 2 for the response len, 2 for the error code and the rest is for the
+            # I obtained the value 24 in this way: 2 for the response len, 2 for the error code, and the rest is for the
             # sum of the field len as indicated by the Core Host Command Manual
             str_pointer = str_pointer + 2
             print("I/O buffer size: ", BUFFER_SIZE.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
@@ -858,8 +857,8 @@ def check_returned_command_verb(result_returned: bytes, head_len: int, command_s
     result : tuple
         a Tuple[int, str, str]
         where the first value is 0 of the command is congruent or -1 if it is not.
-        the second value is the command sent.
-        the third value is the command returned by the payShield.
+        The second value is the command sent.
+        The third value is the command returned by the payShield.
     """
 
     verb_returned = result_returned[2 + head_len:][:2]
@@ -960,7 +959,7 @@ def run_test(payConnectorInstance: PayConnector, host_command: str, header_len: 
 
         print("Command sent/received: " + check_result_tuple[1] + " ==> " + check_result_tuple[2])
 
-        # don't print ascii if msg or resp contains non printable chars
+        # don't print ascii if msg or resp contains non-printable chars
         if test_printable(message[2:].decode("ascii", "ignore")):
             print("sent data (ASCII) :", message[2:].decode("ascii", "ignore"))
 
@@ -1026,7 +1025,7 @@ def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str, int, i
 
 # Update check functions
 def check_for_updates(current_version: str = VERSION,
-                      github_api_url: str = "https://api.github.com/repos/mszeu/PayShieldPressureTest/releases/latest")->None:
+                      github_api_url: str = "https://api.github.com/repos/mszeu/PayShieldPressureTest/releases/latest") -> None:
     """
         This function takes as input the current version of the program and the API url the GitHub repository
         to find out if there is a newer release available.
@@ -1051,8 +1050,9 @@ def check_for_updates(current_version: str = VERSION,
 
             try:
                 with open(config_file, 'w') as fp:
-                    config={}
-                    config["last_version"]=latest_version
+                    # noinspection PyDictCreation
+                    config = {}
+                    config["last_version"] = latest_version
                     json.dump(config, fp)
             except OSError:
                 pass
@@ -1070,7 +1070,8 @@ def check_for_updates(current_version: str = VERSION,
     except Exception as e:
         pass
 
-def get_config_file_full(my_file_name: str)->str:
+
+def get_config_file_full(my_file_name: str) -> str:
     """
         This function takes as input a file name and returns, depending on the OS where the program is running,
         a valid path to store the file in the **APPDATA** folder.
@@ -1092,7 +1093,7 @@ def get_config_file_full(my_file_name: str)->str:
     return os.path.join(config_dir, "pressureTest", my_file_name)
 
 
-def should_check_for_updates()-> bool:
+def should_check_for_updates() -> bool:
     """
         This function reads from the JSON file **pressure_test.json** the last date when the program checked
         for updates and compares it with the current date.
@@ -1119,7 +1120,7 @@ def should_check_for_updates()-> bool:
         return True
 
 
-def save_last_check()->None:
+def save_last_check() -> None:
     """
         This function saves the date when the program checked for updates in the JSON file **pressure_test.json**.
 
@@ -1140,7 +1141,7 @@ def save_last_check()->None:
         logging.exception("Error saving last check")
 
 
-def update_available()-> bool:
+def update_available() -> bool:
     """
        This function gathers from the **pressureNew.pid** what is the new version available that was found during the
        last check and compares it with the current version. If a new version is available, it returns True, else False
@@ -1155,7 +1156,7 @@ def update_available()-> bool:
         if os.path.exists(config_file):
             with open(config_file, "r") as f:
                 config = json.load(f)
-            if Version(config["last_version"])>Version(VERSION):
+            if Version(config["last_version"]) > Version(VERSION):
                 logging.info("New version available: " + config["last_version"])
                 return True
             else:
@@ -1167,7 +1168,6 @@ def update_available()-> bool:
     except Exception:
         logging.exception("Error reading the new version from the file pressureNew.pid")
         return False
-
 
 
 if __name__ == "__main__":
