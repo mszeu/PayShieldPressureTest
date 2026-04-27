@@ -25,7 +25,7 @@ from typing import Tuple, Dict
 import requests
 from packaging.version import Version
 
-VERSION = "1.5.1"
+VERSION = "1.5.3"
 
 
 class PayConnector:
