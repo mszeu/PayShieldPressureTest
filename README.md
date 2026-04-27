@@ -10,7 +10,7 @@ It requires **Python 3**. It was tested on **Python 3.13** using a **payShield 1
 
 ## Version
 
-**1.5.2**
+**1.5.3**
 
 ## Usage
 
@@ -110,7 +110,7 @@ It's only considered if the protocol is **tls**.
 
     C:\Test>python pressureTest.py 192.168.0.36 --nc --times 2
 
-    PayShield stress utility, version 1.5.2, by Marco S. Zuppone - msz@msz.eu - https://msz.eu
+    PayShield stress utility, version 1.5.3, by Marco S. Zuppone - msz@msz.eu - https://msz.eu
     To get more info about the usage invoke it with the -h option
     This software is open source and it is under the Affero AGPL 3.0 license
     GitHub repository: https://github.com/mszeu/PayShieldPressureTest
