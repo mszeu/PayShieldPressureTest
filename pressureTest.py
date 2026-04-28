@@ -177,7 +177,7 @@ class PayConnector:
 
         except (ConnectionError, TimeoutError) as e:
             print("Connection issue: ", e)
-            logging.exception("Socket Connection issue")
+            logger.exception("Socket Connection issue: "+e)
             self._force_close()
 
         except FileNotFoundError as e:
@@ -191,7 +191,7 @@ class PayConnector:
 
         except Exception as e:
             print("Unexpected issue: ", e)
-            logging.exception("Unexpected socket issue")
+            logger.exception("Unexpected socket issue")
             self._force_close()
 
     def close(self):
