@@ -121,6 +121,8 @@ class PayConnector:
                 if not self.connected:
                     self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     self.connection.connect((self.host, self.port))
+                    #New way of setting the self.connected status
+                    self.connected = True
 
                 ## send message
                 self.connection.send(message)
@@ -131,7 +133,8 @@ class PayConnector:
                 raw_len = self._recv_exact(self.connection, 2)
                 expected_len = int.from_bytes(raw_len, byteorder='big')
                 data: bytes = raw_len + self._recv_exact(self.connection, expected_len)
-                self.connected = True
+                # old way of setting the self.connected
+                #self.connected = True
                 return data
 
             elif self.protocol == "tls":
@@ -145,6 +148,8 @@ class PayConnector:
                     self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     self.ssl_sock = self.context.wrap_socket(self.connection, server_side=False)
                     self.ssl_sock.connect((self.host, self.port))
+                    #New way of setting the self.connected status
+                    self.connected = True
                 # send message
                 self.ssl_sock.send(message)
                 ## Old way to receive data
@@ -154,7 +159,8 @@ class PayConnector:
                 raw_len = self._recv_exact(self.ssl_sock, 2)
                 expected_len = int.from_bytes(raw_len, byteorder='big')
                 data: bytes = raw_len + self._recv_exact(self.ssl_sock, expected_len)
-                self.connected = True
+                #Old way of setting the self.connected status
+                #self.connected = True
                 return data
             elif self.protocol == 'udp':
                 if not self.connected:
