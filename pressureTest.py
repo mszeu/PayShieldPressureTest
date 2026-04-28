@@ -166,11 +166,11 @@ class PayConnector:
                 if not self.connected:
                     # create the UDP socket
                     self.connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    self.connection.settimeout(5)
                     self.connected = True
                 # send data
                 self.connection.sendto(message, (self.host, self.port))
                 # receive data
-                self.connection.settimeout(5)
                 data_tuple = self.connection.recvfrom(buffer_size)
                 data: bytes = data_tuple[0]
                 return data
@@ -1469,12 +1469,12 @@ if __name__ == "__main__":
             print("WARNING: generally the TLS base port is 2500. You are instead using the port ",
                   args.port, " please check that you passed the right value to the "
                              "--port parameter")
-    if args.proto == 'tls':
-        payConnInst = PayConnector(args.host, args.port, args.proto, args.keyfile, args.crtfile)
-    else:
-        payConnInst = PayConnector(args.host, args.port, args.proto)
+    # if args.proto == 'tls':
+    #     payConnInst = PayConnector(args.host, args.port, args.proto, args.keyfile, args.crtfile)
+    # else:
+    #     payConnInst = PayConnector(args.host, args.port, args.proto)
 
-    with PayConnector(args.host, args.port, args.proto) as payConnInst:
+    with PayConnector(args.host, args.port, args.proto, args.keyfile, args.crtfile) as payConnInst:
         if args.forever:
             i = 1
             while True:
