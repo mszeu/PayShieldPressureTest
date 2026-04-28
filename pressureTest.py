@@ -160,7 +160,8 @@ class PayConnector:
 
         except (ConnectionError, TimeoutError) as e:
             print("Connection issue: ", e)
-            self.connected = False
+            logging.exception("Socket Connection issue")
+            self._force_close()
 
         except FileNotFoundError as e:
             print("The client certificate file or the client key file cannot be found or accessed.\n" +
@@ -171,7 +172,8 @@ class PayConnector:
 
         except Exception as e:
             print("Unexpected issue: ", e)
-            self.connected = False
+            logging.exception("Unexpected socket issue")
+            self._force_close()
 
     def close(self):
         """
@@ -192,6 +194,24 @@ class PayConnector:
         if hasattr(self, 'connection') and self.connection:
             self.close()
 
+    def _force_close(self) -> None:
+        """
+        Forces the closure of the socket(s) and resets the connection state.
+        Used internally after connection errors to avoid file descriptor leaks.
+        """
+        self.connected = False
+        if self.ssl_sock:
+            try:
+                self.ssl_sock.close()
+            except Exception:
+                pass
+            self.ssl_sock = None
+        if self.connection:
+            try:
+                self.connection.close()
+            except Exception:
+                pass
+            self.connection = None
 
 # End Class
 
