@@ -213,6 +213,35 @@ class PayConnector:
                 pass
             self.connection = None
 
+    def _recv_exact(self, sock, num_bytes: int) -> bytes:
+        """
+        Receives exactly num_bytes bytes from the socket, handling partial reads.
+
+        Parameters
+        ----------
+        sock : socket.socket | ssl.SSLSocket
+            The socket to read from.
+        num_bytes : int
+            The exact number of bytes to read.
+
+        Returns
+        -------
+        bytes
+            The received data.
+
+        Raises
+        ------
+        ConnectionError
+            If the connection is closed before all bytes are received.
+        """
+        data = b''
+        while len(data) < num_bytes:
+            chunk = sock.recv(num_bytes - len(data))
+            if not chunk:
+                raise ConnectionError("Connection closed before all data was received")
+            data += chunk
+        return data
+
 # End Class
 
 def decode_n0(response_to_decode: bytes, head_len: int):
@@ -1089,11 +1118,11 @@ class UpdateChecker:
             self.save_last_check()
         except requests.exceptions.ConnectionError:
             pass  # If no connection is possible, we ignore the issue silently
-            logging.exception("No connection to the API. ConnectionError.")
+            logger.exception("No connection to the API. ConnectionError.")
         except requests.exceptions.HTTPError:
-            logging.exception("No connection to the API. HTTPError.")
+            logger.exception("No connection to the API. HTTPError.")
         except Exception:
-            logging.exception("No connection to the API. Generic Exception.")
+            logger.exception("No connection to the API. Generic Exception.")
 
     @staticmethod
     def get_config_file_full(my_file_name: str) -> str:
@@ -1140,7 +1169,7 @@ class UpdateChecker:
             return datetime.now() - last_check > timedelta(days=15)
 
         except Exception:
-            logging.exception("Error reading or parsing JSON file")
+            logger.exception("Error reading or parsing JSON file")
             return True
 
     def save_last_check(self) -> None:
@@ -1161,7 +1190,7 @@ class UpdateChecker:
                 json.dump(config, f)
 
         except Exception:
-            logging.exception("Error saving last check")
+            logger.exception("Error saving last check")
 
     def update_available(self) -> bool:
         """
@@ -1179,16 +1208,16 @@ class UpdateChecker:
                 with open(config_file, "r") as f:
                     config = json.load(f)
                 if Version(config["last_version"]) > Version(self.current_version):
-                    logging.info("New version available: " + config["last_version"])
+                    logger.info("New version available: " + config["last_version"])
                     return True
                 else:
-                    logging.info("No new version available")
+                    logger.info("No new version available")
                     return False
             else:
-                logging.info(config_file + " not found")
+                logger.info(config_file + " not found")
                 return False
         except Exception:
-            logging.exception("Error reading the new version from the file " + self.config_file)
+            logger.exception("Error reading the new version from the file " + self.config_file)
             return False
 
 
@@ -1419,5 +1448,5 @@ if __name__ == "__main__":
             print(f" CPU time: {t2[1] - t1[1]:.2f} seconds")
         print("DONE")
     if updater_thread.is_alive():
-        logging.debug("Waiting for the updater thread to finish")
+        logger.debug("Waiting for the updater thread to finish")
         updater_thread.join(6)
