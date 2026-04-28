@@ -1,5 +1,21 @@
 # payShield test utility by Marco S. Zuppone - msz@msz.eu
-# This utility is released under AGPL 3.0 license.
+# Project name: payShieldPressureTest
+# Python script name: pressureTest.py
+# Official GitHub Repository: https://github.com/mszeu/PayShieldPressureTest
+# Copyright (C) 2020-2026 by Marco S. Zuppone - msz@msz.eu
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # Please refer to the LICENSE file for more information about licensing
 # and to the README.md file for more information about the usage of it.
 
@@ -280,7 +296,7 @@ class PayConnector:
         Returns
         -------
         bytes
-            The received data.
+            The received data: bytes
 
         Raises
         ------
