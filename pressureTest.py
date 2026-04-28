@@ -121,10 +121,16 @@ class PayConnector:
                 if not self.connected:
                     self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     self.connection.connect((self.host, self.port))
-                # send message
+
+                ## send message
                 self.connection.send(message)
-                # receive data
-                data: bytes = self.connection.recv(buffer_size)
+                ##Old way to send message and receive data
+                ## receive data
+                # data: bytes = self.connection.recv(buffer_size)
+                ##New way to send message and receive data
+                raw_len = self._recv_exact(self.connection, 2)
+                expected_len = int.from_bytes(raw_len, byteorder='big')
+                data: bytes = raw_len + self._recv_exact(self.connection, expected_len)
                 self.connected = True
                 return data
 
@@ -241,6 +247,7 @@ class PayConnector:
                 raise ConnectionError("Connection closed before all data was received")
             data += chunk
         return data
+
 
 # End Class
 
@@ -1035,7 +1042,7 @@ def run_test(payConnectorInstance: PayConnector, host_command: str, header_len: 
         return return_code_tuple[0]
 
 
-def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str |bytes, int, int]:
+def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str | bytes, int, int]:
     """
         This function is a helper used by the decode_XX functions.
         It converts the response_to_decode in ascii, calculates and prints the message size and
@@ -1070,6 +1077,7 @@ def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str |bytes,
     print("Error returned: ", response_to_decode[str_pointer:str_pointer + 2])
     return response_to_decode, msg_len, str_pointer
     # End
+
 
 # Class UpdateChecker
 class UpdateChecker:
@@ -1337,7 +1345,7 @@ if __name__ == "__main__":
     parser.add_argument("--no-upd-check", help="Avoid checking on GitHub if a new version is available",
                         action="store_true")
     args = parser.parse_args()
-    updater_thread=threading.Thread(target=update_checker_instance.check_for_updates, daemon=True)
+    updater_thread = threading.Thread(target=update_checker_instance.check_for_updates, daemon=True)
     if update_checker_instance.should_check_for_updates():
         if not args.no_upd_check:
             updater_thread.start()
