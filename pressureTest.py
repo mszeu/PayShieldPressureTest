@@ -124,10 +124,10 @@ class PayConnector:
 
                 ## send message
                 self.connection.send(message)
-                ##Old way to send message and receive data
+                ##Old way to receive data
                 ## receive data
                 # data: bytes = self.connection.recv(buffer_size)
-                ##New way to send message and receive data
+                ##New way to receive data
                 raw_len = self._recv_exact(self.connection, 2)
                 expected_len = int.from_bytes(raw_len, byteorder='big')
                 data: bytes = raw_len + self._recv_exact(self.connection, expected_len)
@@ -147,8 +147,13 @@ class PayConnector:
                     self.ssl_sock.connect((self.host, self.port))
                 # send message
                 self.ssl_sock.send(message)
-                # receive data
-                data: bytes = self.ssl_sock.recv(buffer_size)
+                ## Old way to receive data
+                ## receive data
+                # data: bytes = self.ssl_sock.recv(buffer_size)
+                ## New way to receive data
+                raw_len = self._recv_exact(self.ssl_sock, 2)
+                expected_len = int.from_bytes(raw_len, byteorder='big')
+                data: bytes = raw_len + self._recv_exact(self.ssl_sock, expected_len)
                 self.connected = True
                 return data
             elif self.protocol == 'udp':
