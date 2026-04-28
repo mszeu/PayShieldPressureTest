@@ -115,7 +115,7 @@ class PayConnector:
         # join everything together in python3
         message = size + host_command.encode()
         # Connect to the host and gather the reply in TCP or UDP
-        buffer_size = 4096
+
         try:
             if self.protocol == 'tcp':
                 if not self.connected:
@@ -171,7 +171,7 @@ class PayConnector:
                 # send data
                 self.connection.sendto(message, (self.host, self.port))
                 # receive data
-                data_tuple = self.connection.recvfrom(buffer_size)
+                data_tuple = self.connection.recvfrom(65507)
                 data: bytes = data_tuple[0]
                 return data
 
