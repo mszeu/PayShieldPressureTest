@@ -121,7 +121,7 @@ class PayConnector:
                 if not self.connected:
                     self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     self.connection.connect((self.host, self.port))
-                    #New way of setting the self.connected status
+                    # New way of setting the self.connected status
                     self.connected = True
 
                 ## send message
@@ -134,7 +134,7 @@ class PayConnector:
                 expected_len = int.from_bytes(raw_len, byteorder='big')
                 data: bytes = raw_len + self._recv_exact(self.connection, expected_len)
                 # old way of setting the self.connected
-                #self.connected = True
+                # self.connected = True
                 return data
 
             elif self.protocol == "tls":
@@ -148,7 +148,7 @@ class PayConnector:
                     self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     self.ssl_sock = self.context.wrap_socket(self.connection, server_side=False)
                     self.ssl_sock.connect((self.host, self.port))
-                    #New way of setting the self.connected status
+                    # New way of setting the self.connected status
                     self.connected = True
                 # send message
                 self.ssl_sock.send(message)
@@ -159,8 +159,8 @@ class PayConnector:
                 raw_len = self._recv_exact(self.ssl_sock, 2)
                 expected_len = int.from_bytes(raw_len, byteorder='big')
                 data: bytes = raw_len + self._recv_exact(self.ssl_sock, expected_len)
-                #Old way of setting the self.connected status
-                #self.connected = True
+                # Old way of setting the self.connected status
+                # self.connected = True
                 return data
             elif self.protocol == 'udp':
                 if not self.connected:
@@ -183,8 +183,10 @@ class PayConnector:
         except FileNotFoundError as e:
             print("The client certificate file or the client key file cannot be found or accessed.\n" +
                   "Check value passed to the parameters --keyfile and --crtfile", e)
+            self._force_close()
 
         except ssl.SSLError as e:
+            self._force_close()
             raise ssl.SSLError("TLS connection error: ", e)
 
         except Exception as e:
@@ -206,10 +208,44 @@ class PayConnector:
     def __del__(self):
         """
         Destructor for the PayConnector class.
-        It invokes the close method of the connection
+        Fallback cleanup in case the instance is not used as a context manager.
+        For guaranteed cleanup, use PayConnector as a context manager with 'with'.
         """
         if hasattr(self, 'connection') and self.connection:
             self.close()
+
+    def __enter__(self):
+        """
+        Enables the use of PayConnector as a context manager.
+
+        Returns
+        -------
+        PayConnector
+            The instance itself.
+        """
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+        """
+        Ensures the connection is closed when exiting the context manager,
+        even if an exception occurred.
+
+        Parameters
+        ----------
+        exc_type : type
+            The exception type, if any.
+        exc_val : Exception
+            The exception value, if any.
+        exc_tb : traceback
+            The exception traceback, if any.
+
+        Returns
+        -------
+        bool
+            Returns False so that exceptions are not suppressed.
+        """
+        self.close()
+        return False
 
     def _force_close(self) -> None:
         """
@@ -1438,34 +1474,35 @@ if __name__ == "__main__":
     else:
         payConnInst = PayConnector(args.host, args.port, args.proto)
 
-    if args.forever:
-        i = 1
-        while True:
-            print("Iteration: ", i)
-            if args.decode:
-                run_test(payConnInst, command, len(args.header),
-                         DECODERS.get(command[len(args.header):len(args.header) + 2], None))
-            else:
-                run_test(payConnInst, command, len(args.header), None)
+    with PayConnector(args.host, args.port, args.proto) as payConnInst:
+        if args.forever:
+            i = 1
+            while True:
+                print("Iteration: ", i)
+                if args.decode:
+                    run_test(payConnInst, command, len(args.header),
+                             DECODERS.get(command[len(args.header):len(args.header) + 2], None))
+                else:
+                    run_test(payConnInst, command, len(args.header), None)
 
-            i = i + 1
-            print("")
-    else:
-        t1 = time.perf_counter(), time.process_time()
-        for i in range(0, args.times):
-            print("Iteration: ", i + 1, " of ", args.times)
-            if args.decode:
-                run_test(payConnInst, command, len(args.header),
-                         DECODERS.get(command[len(args.header):len(args.header) + 2], None))
-            else:
-                run_test(payConnInst, command, len(args.header), None)
-            print("")
-        t2 = time.perf_counter(), time.process_time()
-        if args.timing:
-            print(f"Operations performed: {args.times}")
-            print(f" Real time: {t2[0] - t1[0]:.2f} seconds")
-            print(f" CPU time: {t2[1] - t1[1]:.2f} seconds")
-        print("DONE")
+                i = i + 1
+                print("")
+        else:
+            t1 = time.perf_counter(), time.process_time()
+            for i in range(0, args.times):
+                print("Iteration: ", i + 1, " of ", args.times)
+                if args.decode:
+                    run_test(payConnInst, command, len(args.header),
+                             DECODERS.get(command[len(args.header):len(args.header) + 2], None))
+                else:
+                    run_test(payConnInst, command, len(args.header), None)
+                print("")
+            t2 = time.perf_counter(), time.process_time()
+            if args.timing:
+                print(f"Operations performed: {args.times}")
+                print(f" Real time: {t2[0] - t1[0]:.2f} seconds")
+                print(f" CPU time: {t2[1] - t1[1]:.2f} seconds")
+            print("DONE")
     if updater_thread.is_alive():
         logger.debug("Waiting for the updater thread to finish")
         updater_thread.join(6)
