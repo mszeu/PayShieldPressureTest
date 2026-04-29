@@ -43,6 +43,7 @@ from packaging.version import Version
 
 VERSION = "1.5.3"
 
+logger = logging.getLogger(__name__)
 
 class PayConnector:
     """It represents the connection with the payShield host port. It supports tcp,udp, and tls.
@@ -1188,7 +1189,7 @@ class UpdateChecker:
                         pass
             self.save_last_check()
         except requests.exceptions.ConnectionError:
-            pass  # If no connection is possible, we ignore the issue silently
+            # If no connection is possible, we log the exception and continue
             logger.exception("No connection to the API. ConnectionError.")
         except requests.exceptions.HTTPError:
             logger.exception("No connection to the API. HTTPError.")
@@ -1237,7 +1238,7 @@ class UpdateChecker:
                 config = json.load(f)
 
             last_check = datetime.fromisoformat(config.get("last_update_check", "2000-01-01"))
-            return datetime.now() - last_check > timedelta(days=15)
+            return datetime.now() - last_check > timedelta(days=self.check_interval_days)
 
         except Exception:
             logger.exception("Error reading or parsing JSON file")
@@ -1314,7 +1315,6 @@ if __name__ == "__main__":
         ]
     )
 
-    logger = logging.getLogger(__name__)
     print("PayShield stress utility, version " + VERSION + ", by Marco S. Zuppone - msz@msz.eu - https://msz.eu")
     print("To get more info about the usage invoke it with the -h option")
     print("This software is open source and it is under the Affero AGPL 3.0 license")
