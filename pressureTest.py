@@ -1,32 +1,49 @@
 # payShield test utility by Marco S. Zuppone - msz@msz.eu
-# This utility is released under AGPL 3.0 license.
+# Project name: payShieldPressureTest
+# Python script name: pressureTest.py
+# Official GitHub Repository: https://github.com/mszeu/PayShieldPressureTest
+# Copyright (C) 2020-2026 by Marco S. Zuppone - msz@msz.eu
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # Please refer to the LICENSE file for more information about licensing
 # and to the README.md file for more information about the usage of it.
 
-import socket
-import ssl
-import binascii
-import string
-import sys
-import time
-from struct import *
 import argparse
-from pathlib import Path
-from typing import Tuple, Dict, Any, Callable
-from types import FunctionType
-# for autoupdate
-import requests
-import threading
-from datetime import datetime, timedelta
-from packaging.version import Version
-import os
 import json
 # for the Logging feature
 import logging
+import os
+import socket
+import ssl
+import string
+import sys
+import threading
+import time
+from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler
+from pathlib import Path
+from struct import pack
+from types import FunctionType
+from typing import Tuple, Dict
 
-VERSION = "1.5.2"
+# for autoupdate
+import requests
+from packaging.version import Version
 
+VERSION = "1.5.3"
+
+logger = logging.getLogger(__name__)
 
 class PayConnector:
     """It represents the connection with the payShield host port. It supports tcp,udp, and tls.
@@ -95,7 +112,7 @@ class PayConnector:
             if (keyfile is None) or (crtfile is None):
                 raise ValueError("keyfile and crtfile parameters are both required")
 
-    def send_command(self, host_command: str) -> bytes:
+    def send_command(self, host_command: str) -> bytes | None:
         """
         sends the command specified in the parameter to the payShield and return the response.
         If establishes the connection if it's not established yet, otherwise reuses the open connection
@@ -115,17 +132,26 @@ class PayConnector:
         # join everything together in python3
         message = size + host_command.encode()
         # Connect to the host and gather the reply in TCP or UDP
-        buffer_size = 4096
+
         try:
             if self.protocol == 'tcp':
                 if not self.connected:
                     self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     self.connection.connect((self.host, self.port))
-                # send message
+                    # New way of setting the self.connected status
+                    self.connected = True
+
+                ## send message
                 self.connection.send(message)
-                # receive data
-                data: bytes = self.connection.recv(buffer_size)
-                self.connected = True
+                ##Old way to receive data
+                ## receive data
+                # data: bytes = self.connection.recv(buffer_size)
+                ##New way to receive data
+                raw_len = self._recv_exact(self.connection, 2)
+                expected_len = int.from_bytes(raw_len, byteorder='big')
+                data: bytes = raw_len + self._recv_exact(self.connection, expected_len)
+                # old way of setting the self.connected
+                # self.connected = True
                 return data
 
             elif self.protocol == "tls":
@@ -139,39 +165,51 @@ class PayConnector:
                     self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     self.ssl_sock = self.context.wrap_socket(self.connection, server_side=False)
                     self.ssl_sock.connect((self.host, self.port))
+                    # New way of setting the self.connected status
+                    self.connected = True
                 # send message
                 self.ssl_sock.send(message)
-                # receive data
-                data: bytes = self.ssl_sock.recv(buffer_size)
-                self.connected = True
+                ## Old way to receive data
+                ## receive data
+                # data: bytes = self.ssl_sock.recv(buffer_size)
+                ## New way to receive data
+                raw_len = self._recv_exact(self.ssl_sock, 2)
+                expected_len = int.from_bytes(raw_len, byteorder='big')
+                data: bytes = raw_len + self._recv_exact(self.ssl_sock, expected_len)
+                # Old way of setting the self.connected status
+                # self.connected = True
                 return data
             elif self.protocol == 'udp':
                 if not self.connected:
                     # create the UDP socket
                     self.connection = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    self.connection.settimeout(5)
                     self.connected = True
                 # send data
                 self.connection.sendto(message, (self.host, self.port))
                 # receive data
-                self.connection.settimeout(5)
-                data_tuple = self.connection.recvfrom(buffer_size)
+                data_tuple = self.connection.recvfrom(65507)
                 data: bytes = data_tuple[0]
                 return data
 
         except (ConnectionError, TimeoutError) as e:
             print("Connection issue: ", e)
-            self.connected = False
+            logger.exception("Socket Connection issue: " + e)
+            self._force_close()
 
         except FileNotFoundError as e:
             print("The client certificate file or the client key file cannot be found or accessed.\n" +
                   "Check value passed to the parameters --keyfile and --crtfile", e)
+            self._force_close()
 
         except ssl.SSLError as e:
+            self._force_close()
             raise ssl.SSLError("TLS connection error: ", e)
 
         except Exception as e:
             print("Unexpected issue: ", e)
-            self.connected = False
+            logger.exception("Unexpected socket issue")
+            self._force_close()
 
     def close(self):
         """
@@ -187,10 +225,92 @@ class PayConnector:
     def __del__(self):
         """
         Destructor for the PayConnector class.
-        It invokes the close method of the connection
+        Fallback cleanup in case the instance is not used as a context manager.
+        For guaranteed cleanup, use PayConnector as a context manager with 'with'.
         """
         if hasattr(self, 'connection') and self.connection:
             self.close()
+
+    def __enter__(self):
+        """
+        Enables the use of PayConnector as a context manager.
+
+        Returns
+        -------
+        PayConnector
+            The instance itself.
+        """
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+        """
+        Ensures the connection is closed when exiting the context manager,
+        even if an exception occurred.
+
+        Parameters
+        ----------
+        exc_type : type
+            The exception type, if any.
+        exc_val : Exception
+            The exception value, if any.
+        exc_tb : traceback
+            The exception traceback, if any.
+
+        Returns
+        -------
+        bool
+            Returns False so that exceptions are not suppressed.
+        """
+        self.close()
+        return False
+
+    def _force_close(self) -> None:
+        """
+        Forces the closure of the socket(s) and resets the connection state.
+        Used internally after connection errors to avoid file descriptor leaks.
+        """
+        self.connected = False
+        if self.ssl_sock:
+            try:
+                self.ssl_sock.close()
+            except Exception:
+                pass
+            self.ssl_sock = None
+        if self.connection:
+            try:
+                self.connection.close()
+            except Exception:
+                pass
+            self.connection = None
+
+    def _recv_exact(self, sock, num_bytes: int) -> bytes:
+        """
+        Receives exactly num_bytes bytes from the socket, handling partial reads.
+
+        Parameters
+        ----------
+        sock : socket.socket | ssl.SSLSocket
+            The socket to read from.
+        num_bytes : int
+            The exact number of bytes to read.
+
+        Returns
+        -------
+        bytes
+            The received data: bytes
+
+        Raises
+        ------
+        ConnectionError
+            If the connection is closed before all bytes are received.
+        """
+        data = b''
+        while len(data) < num_bytes:
+            chunk = sock.recv(num_bytes - len(data))
+            if not chunk:
+                raise ConnectionError("Connection closed before all data was received")
+            data += chunk
+        return data
 
 
 # End Class
@@ -240,7 +360,7 @@ def decode_no(response_to_decode: bytes, head_len: int):
     response_to_decode, msg_len, str_pointer = common_parser(response_to_decode, head_len)
     if response_to_decode[str_pointer:str_pointer + 2] == '00':  # No errors
         if len(response_to_decode) >= (24 + head_len):  # Mode 00
-            # I obtained the value 24 in this way: 2 for the response len, 2 for the error code and the rest is for the
+            # I obtained the value 24 in this way: 2 for the response len, 2 for the error code, and the rest is for the
             # sum of the field len as indicated by the Core Host Command Manual
             str_pointer = str_pointer + 2
             print("I/O buffer size: ", BUFFER_SIZE.get(response_to_decode[str_pointer:str_pointer + 1], "Unknown"))
@@ -858,8 +978,8 @@ def check_returned_command_verb(result_returned: bytes, head_len: int, command_s
     result : tuple
         a Tuple[int, str, str]
         where the first value is 0 of the command is congruent or -1 if it is not.
-        the second value is the command sent.
-        the third value is the command returned by the payShield.
+        The second value is the command sent.
+        The third value is the command returned by the payShield.
     """
 
     verb_returned = result_returned[2 + head_len:][:2]
@@ -889,7 +1009,6 @@ def check_return_message(result_returned: bytes, head_len: int) -> Tuple[str, st
 
     # better be safe than sorry
     try:
-        # ret_code = int(result_returned[ret_code_position:ret_code_position + 2])
         ret_code = result_returned[ret_code_position:ret_code_position + 2].decode()
     except (ValueError, UnicodeDecodeError):
         return "ZZ", "message result code parsing error"
@@ -960,7 +1079,7 @@ def run_test(payConnectorInstance: PayConnector, host_command: str, header_len: 
 
         print("Command sent/received: " + check_result_tuple[1] + " ==> " + check_result_tuple[2])
 
-        # don't print ascii if msg or resp contains non printable chars
+        # don't print ascii if msg or resp contains non-printable chars
         if test_printable(message[2:].decode("ascii", "ignore")):
             print("sent data (ASCII) :", message[2:].decode("ascii", "ignore"))
 
@@ -987,7 +1106,7 @@ def run_test(payConnectorInstance: PayConnector, host_command: str, header_len: 
         return return_code_tuple[0]
 
 
-def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str, int, int]:
+def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str | bytes, int, int]:
     """
         This function is a helper used by the decode_XX functions.
         It converts the response_to_decode in ascii, calculates and prints the message size and
@@ -1024,155 +1143,162 @@ def common_parser(response_to_decode: bytes, head_len: int) -> Tuple[str, int, i
     # End
 
 
-# Update check functions
-def check_for_updates(current_version: str = VERSION,
-                      github_api_url: str = "https://api.github.com/repos/mszeu/PayShieldPressureTest/releases/latest")->None:
-    """
-        This function takes as input the current version of the program and the API url the GitHub repository
-        to find out if there is a newer release available.
-        If a new release is available, it creates the file **pressureNew.pid** in the **APPDATA** and writes in JSON format
-        the new version found.
+# Class UpdateChecker
+class UpdateChecker:
 
-        Parameters
-        ----------
-        current_version: str = VERSION
-            The current version of the program
-        github_api_url: str = "https://api.github.com/repos/mszeu/PayShieldPressureTest/releases/latest"
-            The GitHub API to get the latest release
-    """
-    try:
-        response = requests.get(github_api_url, timeout=5)
-        response.raise_for_status()
-        data = response.json()
-        latest_version = data["tag_name"].lstrip("v")
-        config_file = get_config_file_full("pressureNew.pid")
-        os.makedirs(os.path.dirname(config_file), exist_ok=True)
-        if Version(latest_version) > Version(current_version):
+    def __init__(self, current_version: str,
+                 github_api_url: str = "https://api.github.com/repos/mszeu/PayShieldPressureTest/releases/latest",
+                 config_file: str = "pressure_test.json",
+                 pid_file: str = "pressureNew.pid",
+                 check_interval_days: int = 15):
+        self.current_version = current_version
+        self.github_api_url = github_api_url
+        self.config_file = config_file
+        self.pid_file = pid_file
+        self.check_interval_days = check_interval_days
 
-            try:
-                with open(config_file, 'w') as fp:
-                    config={}
-                    config["last_version"]=latest_version
-                    json.dump(config, fp)
-            except OSError:
-                pass
-        else:
-            if os.path.exists(config_file):
+    # Update check functions
+    def check_for_updates(self) -> None:
+        """
+            This function checks if there is a newer release available.
+            If a new release is available, it creates the file **config_file** in the **APPDATA** and writes, in JSON format,
+            the new version found.
+        """
+        try:
+            response = requests.get(self.github_api_url, timeout=5)
+            response.raise_for_status()
+            data = response.json()
+            latest_version = data["tag_name"].lstrip("v")
+            config_file = self.get_config_file_full(self.pid_file)
+            os.makedirs(os.path.dirname(config_file), exist_ok=True)
+            if Version(latest_version) > Version(self.current_version):
+
                 try:
-                    os.remove(config_file)
+                    with open(config_file, 'w') as fp:
+                        # noinspection PyDictCreation
+                        config = {}
+                        config["last_version"] = latest_version
+                        json.dump(config, fp)
                 except OSError:
                     pass
-        save_last_check()
-    except requests.exceptions.ConnectionError:
-        pass  # If no connection is possible, we ignore the issue silently
-    except requests.exceptions.HTTPError as e:
-        pass
-    except Exception as e:
-        pass
+            else:
+                if os.path.exists(config_file):
+                    try:
+                        os.remove(config_file)
+                    except OSError:
+                        pass
+            self.save_last_check()
+        except requests.exceptions.ConnectionError:
+            # If no connection is possible, we log the exception and continue
+            logger.exception("No connection to the API. ConnectionError.")
+        except requests.exceptions.HTTPError:
+            logger.exception("No connection to the API. HTTPError.")
+        except Exception:
+            logger.exception("No connection to the API. Generic Exception.")
 
-def get_config_file_full(my_file_name: str)->str:
-    """
-        This function takes as input a file name and returns, depending on the OS where the program is running,
-        a valid path to store the file in the **APPDATA** folder.
+    @staticmethod
+    def get_config_file_full(my_file_name: str) -> str:
+        """
+            This function takes as input a file name and returns, depending on the OS where the program is running,
+            a valid path to store the file in the **APPDATA** folder.
 
-        Parameters
-        ----------
-        my_file_name : str
-            The file name
+            Parameters
+            ----------
+            my_file_name : str
+                The file name
 
-        Returns
-        -------
-        result : str
-            Returns the full path where to safely store the file: str
-    """
-    if os.name == "nt":  # Windows
-        config_dir = os.environ.get("APPDATA", os.path.expanduser("~"))
-    else:
-        config_dir = os.path.join(os.path.expanduser("~"), ".config")
-    return os.path.join(config_dir, "pressureTest", my_file_name)
+            Returns
+            -------
+            result : str
+                Returns the full path where to safely store the file: str
+        """
+        if os.name == "nt":  # Windows
+            config_dir = os.environ.get("APPDATA", os.path.expanduser("~"))
+        else:
+            config_dir = os.path.join(os.path.expanduser("~"), ".config")
+        return os.path.join(config_dir, "pressureTest", my_file_name)
 
+    def should_check_for_updates(self) -> bool:
+        """
+            This function reads from the JSON file **pressure_test.json** the last date when the program checked
+            for updates and compares it with the current date.
+            If the last check was more than 15 days ago, it returns True, otherwise False.
 
-def should_check_for_updates()-> bool:
-    """
-        This function reads from the JSON file **pressure_test.json** the last date when the program checked
-        for updates and compares it with the current date.
-        If the last check was more than 15 days ago, it returns True, otherwise False.
+            Returns
+            -------
+            bool
+                Returns True if a check is needed, otherwise false: bool
+        """
+        config_file = self.get_config_file_full(self.config_file)
+        try:
+            if not os.path.exists(config_file):
+                return True
 
-        Returns
-        -------
-        bool
-            Returns True if a check is needed, otherwise false: bool
-    """
-    config_file = get_config_file_full("pressure_test.json")
-    try:
-        if not os.path.exists(config_file):
+            with open(config_file, "r") as f:
+                config = json.load(f)
+
+            last_check = datetime.fromisoformat(config.get("last_update_check", "2000-01-01"))
+            return datetime.now() - last_check > timedelta(days=self.check_interval_days)
+
+        except Exception:
+            logger.exception("Error reading or parsing JSON file")
             return True
 
-        with open(config_file, "r") as f:
-            config = json.load(f)
+    def save_last_check(self) -> None:
+        """
+            This function saves the date when the program checked for updates in the JSON file **pressure_test.json**.
 
-        last_check = datetime.fromisoformat(config.get("last_update_check", "2000-01-01"))
-        return datetime.now() - last_check > timedelta(days=15)
+        """
+        config_file = self.get_config_file_full(self.config_file)
+        try:
+            config = {}
+            if os.path.exists(config_file):
+                with open(config_file, "r") as f:
+                    config = json.load(f)
 
-    except Exception:
-        logging.exception("Error reading or parsing JSON file")
-        return True
+            config["last_update_check"] = datetime.now().isoformat()
 
+            with open(config_file, "w") as f:
+                json.dump(config, f)
 
-def save_last_check()->None:
-    """
-        This function saves the date when the program checked for updates in the JSON file **pressure_test.json**.
+        except Exception:
+            logger.exception("Error saving last check")
 
-    """
-    config_file = get_config_file_full("pressure_test.json")
-    try:
-        config = {}
-        if os.path.exists(config_file):
-            with open(config_file, "r") as f:
-                config = json.load(f)
+    def update_available(self) -> bool:
+        """
+           This function gathers from the **config_file** what is the new version available that was found during the
+           last check and compares it with the current version. If a new version is available, it returns True, else False
 
-        config["last_update_check"] = datetime.now().isoformat()
-
-        with open(config_file, "w") as f:
-            json.dump(config, f)
-
-    except Exception:
-        logging.exception("Error saving last check")
-
-
-def update_available()-> bool:
-    """
-       This function gathers from the **pressureNew.pid** what is the new version available that was found during the
-       last check and compares it with the current version. If a new version is available, it returns True, else False
-
-       Returns
-       -------
-       bool
-        If a new version is available, it returns True, else False: bool
-    """
-    try:
-        config_file = get_config_file_full("pressureNew.pid")
-        if os.path.exists(config_file):
-            with open(config_file, "r") as f:
-                config = json.load(f)
-            if Version(config["last_version"])>Version(VERSION):
-                logging.info("New version available: " + config["last_version"])
-                return True
+           Returns
+           -------
+           bool
+            If a new version is available, it returns True, else False: bool
+        """
+        try:
+            config_file = self.get_config_file_full(self.pid_file)
+            if os.path.exists(config_file):
+                with open(config_file, "r") as f:
+                    config = json.load(f)
+                if Version(config["last_version"]) > Version(self.current_version):
+                    logger.info("New version available: " + config["last_version"])
+                    return True
+                else:
+                    logger.info("No new version available")
+                    return False
             else:
-                logging.info("No new version available")
+                logger.info(config_file + " not found")
                 return False
-        else:
-            logging.info("pressureNew.pid not found")
+        except Exception:
+            logger.exception("Error reading the new version from the file " + self.config_file)
             return False
-    except Exception:
-        logging.exception("Error reading the new version from the file pressureNew.pid")
-        return False
-
 
 
 if __name__ == "__main__":
-    #Enable logging
-    LOG_DIR = Path(get_config_file_full(""))
+    # Let's get an instance of UpdateChecker
+    update_checker_instance = UpdateChecker(VERSION)
+
+    # Enable logging
+    LOG_DIR = Path(update_checker_instance.get_config_file_full(""))
     LOG_DIR.mkdir(exist_ok=True)
 
     logging.basicConfig(
@@ -1189,12 +1315,11 @@ if __name__ == "__main__":
         ]
     )
 
-    logger = logging.getLogger(__name__)
     print("PayShield stress utility, version " + VERSION + ", by Marco S. Zuppone - msz@msz.eu - https://msz.eu")
     print("To get more info about the usage invoke it with the -h option")
     print("This software is open source and it is under the Affero AGPL 3.0 license")
     print("GitHub repository: https://github.com/mszeu/PayShieldPressureTest")
-    if update_available():
+    if update_checker_instance.update_available():
         print("A new version of the software is available.")
         print("Please update from https://github.com/mszeu/PayShieldPressureTest")
     print("")
@@ -1283,10 +1408,10 @@ if __name__ == "__main__":
     parser.add_argument("--no-upd-check", help="Avoid checking on GitHub if a new version is available",
                         action="store_true")
     args = parser.parse_args()
-    if should_check_for_updates():
+    updater_thread = threading.Thread(target=update_checker_instance.check_for_updates, daemon=True)
+    if update_checker_instance.should_check_for_updates():
         if not args.no_upd_check:
-            threading.Thread(target=check_for_updates, daemon=True).start()
-            # check_for_updates()
+            updater_thread.start()
     if args.times <= 0:
         parser.error("--times must be a positive integer (greater than 0).")
     if len(args.header) > 255:
@@ -1360,36 +1485,40 @@ if __name__ == "__main__":
             print("WARNING: generally the TLS base port is 2500. You are instead using the port ",
                   args.port, " please check that you passed the right value to the "
                              "--port parameter")
-    if args.proto == 'tls':
-        payConnInst = PayConnector(args.host, args.port, args.proto, args.keyfile, args.crtfile)
-    else:
-        payConnInst = PayConnector(args.host, args.port, args.proto)
+    # if args.proto == 'tls':
+    #     payConnInst = PayConnector(args.host, args.port, args.proto, args.keyfile, args.crtfile)
+    # else:
+    #     payConnInst = PayConnector(args.host, args.port, args.proto)
 
-    if args.forever:
-        i = 1
-        while True:
-            print("Iteration: ", i)
-            if args.decode:
-                run_test(payConnInst, command, len(args.header),
-                         DECODERS.get(command[len(args.header):len(args.header) + 2], None))
-            else:
-                run_test(payConnInst, command, len(args.header), None)
+    with PayConnector(args.host, args.port, args.proto, args.keyfile, args.crtfile) as payConnInst:
+        if args.forever:
+            i = 1
+            while True:
+                print("Iteration: ", i)
+                if args.decode:
+                    run_test(payConnInst, command, len(args.header),
+                             DECODERS.get(command[len(args.header):len(args.header) + 2], None))
+                else:
+                    run_test(payConnInst, command, len(args.header), None)
 
-            i = i + 1
-            print("")
-    else:
-        t1 = time.perf_counter(), time.process_time()
-        for i in range(0, args.times):
-            print("Iteration: ", i + 1, " of ", args.times)
-            if args.decode:
-                run_test(payConnInst, command, len(args.header),
-                         DECODERS.get(command[len(args.header):len(args.header) + 2], None))
-            else:
-                run_test(payConnInst, command, len(args.header), None)
-            print("")
-        t2 = time.perf_counter(), time.process_time()
-        if args.timing:
-            print(f"Operations performed: {args.times}")
-            print(f" Real time: {t2[0] - t1[0]:.2f} seconds")
-            print(f" CPU time: {t2[1] - t1[1]:.2f} seconds")
-        print("DONE")
+                i = i + 1
+                print("")
+        else:
+            t1 = time.perf_counter(), time.process_time()
+            for i in range(0, args.times):
+                print("Iteration: ", i + 1, " of ", args.times)
+                if args.decode:
+                    run_test(payConnInst, command, len(args.header),
+                             DECODERS.get(command[len(args.header):len(args.header) + 2], None))
+                else:
+                    run_test(payConnInst, command, len(args.header), None)
+                print("")
+            t2 = time.perf_counter(), time.process_time()
+            if args.timing:
+                print(f"Operations performed: {args.times}")
+                print(f" Real time: {t2[0] - t1[0]:.2f} seconds")
+                print(f" CPU time: {t2[1] - t1[1]:.2f} seconds")
+            print("DONE")
+    if updater_thread.is_alive():
+        logger.debug("Waiting for the updater thread to finish")
+        updater_thread.join(6)
