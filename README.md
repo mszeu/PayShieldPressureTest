@@ -135,7 +135,7 @@ It's only considered if the protocol is **tls**.
     
     DONE
 
-## NOTES
+## Notes
 
 The **EI** command used to generate the RSA key requires authorization, and the generation of 4096-bit keys is possible only for keyblock LMKs.
 
@@ -149,6 +149,35 @@ Sometimes it can happen that the main program terminates before the thread finis
 I'm well aware that there are ways of avoiding this, but I don't want to risk blocking the main program flow.\
 If you're running this program in a network-closed environment, you can use the **--no-upd-check** parameter to disable the check.\
 The check is performed every 15 days.
+
+## Common issues & recommendations
+
+The most common error that you might encounter is the following:\
+*Connection issue:  [WinError 10054] An existing connection was forcibly closed by the remote host*\
+\
+The most common causes are:
+
+- The payShield is not reachable at that IP address or port
+  - by default the port is 1500 for tcp and udp, 2500 for tls, and the protool used is **tcp**
+  - if you're using a different base port please use the **--port** parameter
+- The payShield is not in the **ONLINE** state
+- You are using a firewall that's blocking the connection. Even personal firewalls can block the connection, such as
+  Windows Defender Firewall.
+- There are too many connections open to the payShield. Check under Configuration → Host Settings → TCP/UDP →
+  Connections
+  - depending on the firmware version, you can increase the value to support a maximum of 128 concurrent connections.
+
+Other recommendations:
+
+- If you're running this program in a network-closed environment use the parameter **--no-upd-check** parameter to
+  disable the check.
+- If the header length used by your payShield is different from the default one (4) please provide the header string of
+  the correct length using the parameter **--header**
+
+## Questions, bugs & suggestions
+
+For any questions, feedback, suggestions, sending money ***(yes...it's a dream, I know)*** you can contact the author
+at [msz@msz.eu](mailto:msz@msz.eu)
 
 ## COPYRIGHT & LICENSE
   Please refer to the **LICENSE** file that is part of this project.
@@ -165,6 +194,3 @@ This program is distributed in the hope that it will be useful,
 but **WITHOUT ANY WARRANTY; without even the implied warranty of  
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.** See the  
 **GNU Affero General Public License** for more details.
-
-## Questions, bugs & suggestions
-For any questions, feedback, suggestions, sending money ***(yes...it's a dream, I know)*** you can contact the author at [msz@msz.eu](mailto:msz@msz.eu)
