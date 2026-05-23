@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "payshield-pressure-test"
+version = "1.5.3"
+description = "Generates workload on payShield 10k/9k for testing and demonstration."
+readme = "README.md"
+license = { text = "AGPL-3.0-or-later" }
+authors = [{ name = "Marco S. Zuppone", email = "msz@msz.eu" }]
+requires-python = ">=3.10"
+dependencies = [
+    "requests",
+    "packaging",
+]
+
+[project.urls]
+Homepage = "https://github.com/mszeu/PayShieldPressureTest"
+Repository = "https://github.com/mszeu/PayShieldPressureTest"
+
+[project.scripts]
+# After `pip install .` the user can run:  payshield-test <host> [options]
+payshield-test = "main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["payshield*"]
