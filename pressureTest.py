@@ -43,7 +43,7 @@ from payshield.decoders import DECODERS
 from payshield.runner import run_test
 from payshield.updater import UpdateChecker
 
-VERSION = "1.5.3"
+VERSION = "1.5.4"
 
 
 def main() -> None:
