@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # payShield test utility by Marco S. Zuppone - msz@msz.eu
 # Project name: payShieldPressureTest
-# Python script name: main.py
+# Python script name: pressureTest.py
 # Official GitHub Repository: https://github.com/mszeu/PayShieldPressureTest
 # Copyright (C) 2020-2026 by Marco S. Zuppone - msz@msz.eu
 #
@@ -21,7 +21,7 @@
 # and to the README.md file for more information about the usage of it.
 
 """
-main.py
+pressureTest.py
 -------
 Entry point for payShieldPressureTest.
 
