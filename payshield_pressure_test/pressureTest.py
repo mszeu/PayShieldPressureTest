@@ -43,7 +43,7 @@ from payshield_pressure_test.decoders import DECODERS
 from payshield_pressure_test.runner import run_test
 from payshield_pressure_test.updater import UpdateChecker
 
-VERSION = "1.5.4.3"
+VERSION = "1.5.4.5"
 
 
 def main() -> None:

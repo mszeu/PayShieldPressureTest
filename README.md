@@ -10,7 +10,7 @@ It requires **Python 3**. It was tested on **Python 3.13** using a **payShield 1
 
 ## Version
 
-**1.5.3**
+**1.5.4.5**
 
 ## Usage
 
