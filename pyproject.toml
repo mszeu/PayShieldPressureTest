@@ -2,14 +2,14 @@
 requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 [project]
-name = "payshield-pressure-test"
-version = "1.5.4"
+name = "payshield_pressure_test"
+version = "1.5.4.2"
 description = "Generates workload on payShield 10k/9k for testing and demonstration."
 readme = "README.md"
 license = "AGPL-3.0-or-later"
 license-files = ["LICEN[CS]E*"]
 authors = [{ name = "Marco S. Zuppone", email = "msz@msz.eu" }]
-requires-python = ">=3.10"
+requires-python = ">=3.13"
 dependencies = [
     "requests",
     "packaging",
@@ -22,7 +22,7 @@ Issues = "https://github.com/mszeu/PayShieldPressureTest/issues"
 
 [project.scripts]
 # After `pip install .` the user can run:  payshield-pressuretest <host> [options]
-payshield-pressuretest = "pressureTest:main"
+payshield-pressuretest = "payshield.pressureTest:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
