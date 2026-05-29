@@ -32,7 +32,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-from payshield.pressureTest import main
+from payshield_pressure_test.pressureTest import main
 
 if __name__ == "__main__":
     main()

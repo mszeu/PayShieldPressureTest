@@ -6,12 +6,12 @@
 # AGPL-3.0 License — see LICENSE file for details.
 
 """
-payshield
+payshield_pressure_test
 ---------
 Core package for payShieldPressureTest.
 
 Public re-exports so callers can do, e.g.:
-    from payshield import PayConnector, run_test
+    from payshield_pressure_test import PayConnector, run_test
 """
 
 from .connector import PayConnector

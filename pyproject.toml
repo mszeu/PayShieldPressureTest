@@ -21,7 +21,7 @@ Repository = "https://github.com/mszeu/PayShieldPressureTest"
 Issues = "https://github.com/mszeu/PayShieldPressureTest/issues"
 
 [project.scripts]
-# After `pip install .` the user can run:  payshield-pressuretest <host> [options]
+# After `pip install .` the user can run:  payshield_pressure_test-pressuretest <host> [options]
 payshield-pressuretest = "payshield.pressureTest:main"
 
 [tool.setuptools.packages.find]
