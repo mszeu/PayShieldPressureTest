@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 class PayConnector:
     """Represents the connection with the payShield host port.
 
-    Supports tcp, udp, and tls transports.
+    Supports tcp, udp, and tls transport.
 
     Attributes
     ----------

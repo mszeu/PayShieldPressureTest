@@ -3,7 +3,7 @@ requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 [project]
 name = "payshield_pressure_test"
-version = "1.5.4.2"
+version = "1.5.4.3"
 description = "Generates workload on payShield 10k/9k for testing and demonstration."
 readme = "README.md"
 license = "AGPL-3.0-or-later"
