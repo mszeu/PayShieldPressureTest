@@ -14,6 +14,14 @@ It requires **Python 3**. It was tested on **Python 3.13** using a **payShield 1
 
 ## Usage
 
+The script entry point depends on the way you installed it.\
+If you installed it as a module, using the command **pip install payshield-pressure-test**, you can use the following
+command:\
+**py -m payshield_pressure_test.pressureTest \<host\> \[options\]** or **payshield-pressuretest \<host\> \[options\]**\
+If you installed it as a standalone script, you can launch it with **py pressureTest.py \<host\> \[options\]**
+
+If you are using the Windows executable version, you can launch it with **pressureTest.exe \<host\> \[options\]**
+
     pressureTest.py [-h] [--port PORT]
                   [--key KEY | --nc | --no | --ni | --pci | --j2 | --j4 | --j8 | --jk | --b2 | --pingen | --randgen | --ecc]
                   [--ecc-curve {0,1,2}] [--key-use {S,X,N}] [--key-exportability {N,E,S}] [--header HEADER]
@@ -161,7 +169,7 @@ The most common causes are:
   - by default the port is 1500 for tcp and udp, 2500 for tls, and the protool used is **tcp**
   - if you're using a different base port please use the **--port** parameter
 - The payShield is not in the **ONLINE** state
-- You are using a firewall that's blocking the connection. Even personal firewalls can block the connection, such as
+- You are using a firewall blocking the connection. Even personal firewalls can block the connection, such as
   Windows Defender Firewall.
 - There are too many connections open to the payShield. Check under Configuration → Host Settings → TCP/UDP →
   Connections
